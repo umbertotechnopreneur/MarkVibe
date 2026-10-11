@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <Authors>Umberto Giacobbi</Authors>
+    <Company>VibeWare</Company>
+    <Copyright>Copyright (c) 2026 Umberto Giacobbi</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(MarkVibeBuildTime)' != ''">
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>BuildTimestamp</_Parameter1>
+      <_Parameter2>$(MarkVibeBuildTime)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

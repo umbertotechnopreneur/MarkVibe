@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" width="960" height="280" role="img" aria-label="Connected document cards">
+ <rect width="960" height="280" rx="24" fill="#edf0ff"/>
+ <path d="M286 140H390M570 140H674" stroke="#969fe4" stroke-width="3"/>
+ <g fill="#ffffff" stroke="#cbd2ef">
+  <rect x="106" y="58" width="180" height="164" rx="16"/>
+  <rect x="390" y="38" width="180" height="204" rx="16"/>
+  <rect x="674" y="58" width="180" height="164" rx="16"/>
+ </g>
+ <g fill="#565de1">
+  <rect x="130" y="86" width="44" height="6" rx="3"/>
+  <rect x="414" y="66" width="60" height="6" rx="3"/>
+  <rect x="698" y="86" width="48" height="6" rx="3"/>
+ </g>
+ <g fill="#273249" font-family="Segoe UI, sans-serif" font-size="17">
+  <text x="130" y="125">Field notes</text><text x="414" y="105">Workspace setup</text><text x="698" y="125">Reading guide</text>
+ </g>
+ <g stroke="#d4daeb" stroke-width="5" stroke-linecap="round">
+  <path d="M132 151H254M132 168H228M132 185H243"/>
+  <path d="M416 131H540M416 148H513M416 165H537M416 182H518M416 199H535"/>
+  <path d="M700 151H822M700 168H796M700 185H811"/>
+ </g>
+</svg>

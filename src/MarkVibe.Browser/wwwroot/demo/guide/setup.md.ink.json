@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "document": {
+    "path": "guide/setup.md",
+    "hashAlgorithm": "sha256-utf8-exact",
+    "contentHash": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "annotations": [
+    {
+      "id": "sample-annotation",
+      "anchor": {
+        "kind": "section",
+        "headingId": "installation",
+        "blockId": "b-example",
+        "quote": "Use the running viewer through HTTPS or localhost.",
+        "prefix": "",
+        "suffix": "No local documents need to be uploaded to a service.",
+        "sourceLine": 11
+      },
+      "placement": "after-block",
+      "canvas": {
+        "width": 800,
+        "height": 180,
+        "coordinateSpace": "logical"
+      },
+      "strokes": [
+        {
+          "color": "#565de1",
+          "width": 3,
+          "tool": "pen",
+          "points": [
+            {
+              "x": 30,
+              "y": 60,
+              "pressure": 0.4,
+              "elapsedMs": 0
+            },
+            {
+              "x": 130,
+              "y": 40,
+              "pressure": 0.6,
+              "elapsedMs": 80
+            },
+            {
+              "x": 220,
+              "y": 65,
+              "pressure": 0.5,
+              "elapsedMs": 160
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishSingleFile>false</PublishSingleFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="[1.0.4258.31]" />
+    <ProjectReference Include="../MarkVibe.Native/MarkVibe.Native.csproj" />
+    <ProjectReference Include="../MarkVibe.Browser/MarkVibe.Browser.csproj" ReferenceOutputAssembly="false" GlobalPropertiesToRemove="RuntimeIdentifier;RuntimeIdentifiers;SelfContained;PublishSelfContained;PublishSingleFile;PublishReadyToRun" />
+  </ItemGroup>
+  <Target Name="StageDesktopAssets" AfterTargets="Build">
+    <Exec Command="node &quot;$(MSBuildProjectDirectory)/../../scripts/stage-windows-assets.mjs&quot; &quot;$(MSBuildProjectDirectory)/../MarkVibe.Browser/bin/$(Configuration)/net10.0/MarkVibe.Browser.staticwebassets.runtime.json&quot; &quot;$(TargetDir)app&quot;" />
+  </Target>
+  <Target Name="StagePublishedDesktopAssets" AfterTargets="Publish">
+    <Exec Command="node &quot;$(MSBuildProjectDirectory)/../../scripts/stage-windows-assets.mjs&quot; &quot;$(MSBuildProjectDirectory)/../MarkVibe.Browser/bin/$(Configuration)/net10.0/MarkVibe.Browser.staticwebassets.runtime.json&quot; &quot;$(PublishDir)app&quot;" />
+  </Target>
+</Project>

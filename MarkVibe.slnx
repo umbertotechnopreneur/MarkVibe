@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MarkVibe.Core/MarkVibe.Core.csproj" />
+    <Project Path="src/MarkVibe/MarkVibe.csproj" />
+    <Project Path="src/MarkVibe.Browser/MarkVibe.Browser.csproj" />
+    <Project Path="src/MarkVibe.Native/MarkVibe.Native.csproj" />
+    <Project Path="src/MarkVibe.Windows/MarkVibe.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MarkVibe.Core.Checks/MarkVibe.Core.Checks.csproj" />
+    <Project Path="tests/MarkVibe.Native.Checks/MarkVibe.Native.Checks.csproj" />
+  </Folder>
+</Solution>

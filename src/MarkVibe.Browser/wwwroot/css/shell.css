@@ -1,0 +1,14 @@
+:root{--shell:#f4f5f7;--panel:#fff;--text:#20283a;--muted:#596579;--line:#dde2ea;--accent:#525ce8;--accent-soft:#eceefe;--code:#f3f5fa;--reading-scale:1;color-scheme:light}
+:root[data-theme=dark]{--shell:#111621;--panel:#181f2d;--text:#e5eaf4;--muted:#a4b0c4;--line:#303c52;--accent:#929aff;--accent-soft:#2a3155;--code:#111824;color-scheme:dark}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--shell);font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text)}
+#opensilver-root{position:relative;width:100%;height:100%;overflow:hidden}
+#app:empty{display:none}#app:has(.boot-card){position:fixed;inset:0;z-index:100;background:var(--shell);display:grid;place-items:center}
+.boot-card{text-align:center;max-width:420px;padding:32px}.boot-mark{display:inline-grid;place-items:center;width:56px;height:56px;border-radius:18px;background:var(--accent);color:white;font-size:28px;font-weight:700}
+.boot-card h1{font-size:28px;letter-spacing:-.7px;margin:24px 0 10px}.boot-card p{font-size:14px;color:var(--muted);line-height:1.7}.boot-progress{height:4px;width:150px;margin:28px auto;border-radius:8px;background:var(--line);overflow:hidden}
+.boot-progress:after{content:"";display:block;width:60px;height:4px;background:var(--accent);animation:progress 1.4s ease-in-out infinite}
+@keyframes progress{from{transform:translateX(-60px)}to{transform:translateX(150px)}}
+#blazor-error-ui{display:none;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:var(--panel);border-top:1px solid var(--line);padding:16px;color:var(--text);font-size:14px}
+#blazor-error-ui a{color:var(--accent);margin-left:12px}
+#opensilver-root [tabindex]:focus-visible,#opensilver-root input:focus-visible,#opensilver-root button:focus-visible{outline:2px solid var(--accent)!important;outline-offset:3px}
+.mv-picker{position:fixed;width:1px;height:1px;opacity:0;left:-2px;bottom:0}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

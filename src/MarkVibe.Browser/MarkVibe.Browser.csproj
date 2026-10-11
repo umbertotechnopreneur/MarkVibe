@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <NoXamlPreprocessor>true</NoXamlPreprocessor>
+    <OpenSilverType>7</OpenSilverType>
+    <PublishTrimmed>false</PublishTrimmed>
+    <WasmEnableSIMD>false</WasmEnableSIMD>
+    <WasmEnableWebcil>false</WasmEnableWebcil>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenSilver.WebAssembly" Version="[3.3.3]" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="[10.0.10]" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="[10.0.10]" PrivateAssets="all" />
+    <ProjectReference Include="../MarkVibe/MarkVibe.csproj" />
+  </ItemGroup>
+  <Target Name="RequireClientBundle" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('wwwroot/js/markvibe.js')" Text="Client assets are missing. After authorization, run npm install and npm run bundle from the repository root. See README.md." />
+  </Target>
+</Project>
