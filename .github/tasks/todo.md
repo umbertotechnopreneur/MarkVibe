@@ -3,6 +3,15 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
+- [ ] Owner review/functional acceptance of the 2026-10-17 maintainability pass:
+  provider-explicit `ai.*` commands without old aliases, shared browser HTTP/storage
+  handling, split map codec/session, named validation phases and documented types.
+  See `docs/maintainability-review-2026-10-17.md` for before/after examples and
+  remaining architectural candidates. Bundle and final Debug x64 source compilation
+  passed; no tests, packaging, installation or GUI checks ran. Installed 0.1.0.25
+  does not yet include this source pass. The existing smoke fixture is updated
+  but not executed. Future changes do not require historical compatibility.
+
 - [ ] Owner acceptance of installed Debug x64 0.1.0.25 and the opaque desktop
   presentation repair: the 0.1.0.24
   screenshot shows missing shell regions while panning, despite the previous

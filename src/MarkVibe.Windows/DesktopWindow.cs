@@ -47,7 +47,7 @@ using static MarkVibe.Core.UiStrings;
 
 namespace MarkVibe.Windows;
 /// <summary>Owns the opaque desktop browser, isolated print host and authenticated native operations.</summary>
-internal sealed class DesktopWindow : Window
+internal sealed partial class DesktopWindow : Window
 {
     private const string Host = "markvibe.local";
     private const string Origin = "https://" + Host;
@@ -352,9 +352,7 @@ internal sealed class DesktopWindow : Window
     /// <summary>Identifies independent AI requests so they never hold the local file/export gate.</summary>
     private static bool IsAiOperation(string? operation)
     {
-        return operation?.StartsWith("openai.", StringComparison.Ordinal) == true
-            || operation?.StartsWith("codex.", StringComparison.Ordinal) == true
-            || operation is "ai.connection.status" or "ai.connection.test";
+        return operation?.StartsWith("ai.", StringComparison.Ordinal) == true;
     }
 
     /// <summary>Routes validated bridge operations to local workspace, sidecar and export services.</summary>
@@ -367,10 +365,6 @@ internal sealed class DesktopWindow : Window
         // Isolated checks never inspect saved credentials or start an AI connection.
         if (_options.SmokeTest && IsAiOperation(operation))
         {
-            if (operation == "openai.status")
-            {
-                return new OpenAiKeyStatus(false, false, "windows");
-            }
             if (operation == "ai.connection.status")
             {
                 var provider = args.TryGetProperty("provider", out var requestedProvider)
@@ -384,6 +378,11 @@ internal sealed class DesktopWindow : Window
             throw new WorkspaceException("test-api-disabled",
                 "AI connections are unavailable in the isolated verification profile.");
         }
+        if (IsAiOperation(operation))
+        {
+            return await DispatchAiAsync(operation!, args, token);
+        }
+
         // Reads a required string argument from the authenticated request payload.
         string Text(string key) => args.GetProperty(key).GetString() ?? throw new WorkspaceException("invalid-request", "Missing native argument.");
         switch (operation)
@@ -408,36 +407,6 @@ internal sealed class DesktopWindow : Window
                     acrylicAvailable = WindowsBackdrop.Supported,
                     accent = WindowsBackdrop.Accent
                 };
-            case "ai.connection.status":
-                return await _aiConnections.StatusAsync(Text("provider"), token);
-            case "ai.connection.test":
-            {
-                var apiKey = args.TryGetProperty("apiKey", out var candidate)
-                    && candidate.ValueKind != JsonValueKind.Null
-                        ? candidate.GetString()
-                        : null;
-                return await _aiConnections.TestAsync(Text("provider"), apiKey, token);
-            }
-            case "codex.models":
-                return await _aiConnections.ModelsAsync(AiProviders.CodexCli, token);
-            case "codex.prepare":
-                return await _aiConnections.PrepareAsync(AiProviders.CodexCli,
-                    Wire.Decode<MarkdownAiRequest>(args.GetProperty("request").GetRawText()), token);
-            case "codex.edit":
-                return await _aiConnections.EditAsync(AiProviders.CodexCli,
-                    Wire.Decode<MarkdownAiRequest>(args.GetProperty("request").GetRawText()), null, token);
-            case "openai.status":
-                return OpenAiKeySettings.Status();
-            case "openai.validate":
-                return await OpenAiKeySettings.ValidateAndSaveAsync(Text("apiKey"), token);
-            case "openai.models":
-                return await MarkdownAiClient.ModelsAsync(token);
-            case "openai.prepare":
-                return await MarkdownAiClient.PrepareAsync(Wire.Decode<MarkdownAiRequest>(args.GetProperty("request").GetRawText()), token);
-            case "openai.edit":
-                return await MarkdownAiClient.EditAsync(Wire.Decode<MarkdownAiRequest>(args.GetProperty("request").GetRawText()),
-                    args.TryGetProperty("prefixTokens", out var prefixes) && prefixes.ValueKind == JsonValueKind.Array
-                        ? Wire.Decode<int[]>(prefixes.GetRawText()) : null, token);
             case "document.saveCopy":
                 return await SaveMarkdownCopyAsync(Text("source"), Text("filename"), Text("workspaceId"), Text("path"), token);
             case "file.reveal":

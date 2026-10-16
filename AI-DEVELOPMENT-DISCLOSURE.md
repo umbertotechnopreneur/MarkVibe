@@ -1,5 +1,28 @@
 # AI development disclosure
 
+## Focused maintainability pass — 2026-10-17
+
+Umberto requested concrete examples of duplicate/complex code, simpler ownership,
+descriptive intermediate values, spacing and useful type/method/internal comments.
+He explicitly rejected historical compatibility requirements. Codex reviewed the
+AI bridge, browser request/storage paths, map codec/session and shared contracts,
+implemented the focused changes and documented before/after examples in
+`docs/maintainability-review-2026-10-17.md`. It also identified separate remaining
+request-session, CLI process/protocol and native HTTP consolidation opportunities.
+
+The current provider-explicit bridge replaces old command families without aliases;
+browser HTTP/storage plumbing is shared, the map session has a dedicated file and
+JSON validation has named phases. Secure-context UUID support is now required.
+Bounds, cancellation, containment, strict map versioning and real platform checks
+remain. This is a scoped maintainability review, not a complete dead-code or
+security audit and not a claim that every file has been cleaned.
+
+Bundling and final Debug x64 application compilation succeeded with zero errors
+and the existing transitive dependency warnings. The smoke fixture was updated but
+not executed. No suites, GUI checks, provider tests, inference, packaging, version
+increment, installation or application launch occurred. Installed 0.1.0.25 remains
+the earlier delivery and does not yet contain these source changes.
+
 ## Opaque desktop presentation — 2026-10-16
 
 The owner supplied a new screenshot showing missing shell regions while moving

@@ -2,6 +2,16 @@
 
 Keep durable, repository-specific findings here; omit temporary commands and plans.
 
+- Give internal AI commands one provider-explicit contract and change every caller
+  and dispatcher together. Do not retain a second family of names as speculative
+  compatibility. Reject unknown providers instead of silently using another key.
+- A useful readability pass names domain predicates and phases, rather than
+  introducing a temporary for every expression. Keep raw JSON validation separate
+  from typed model invariants, and keep mutable session state out of codec files.
+- Shared request plumbing must preserve policy differences. Credential validation
+  and document editing have different deadlines/messages and save semantics;
+  deduplication must not erase those contracts or weaken response bounds.
+
 - A composition host is not inherently a redraw fix. WebView2CompositionControl
   adds graphics capture and WPF presentation; use it only when actual WPF overlays
   require that path. MarkVibe overlays are browser content, so direct opaque HWND

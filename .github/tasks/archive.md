@@ -3,6 +3,31 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-17 — Focused maintainability review and current-only AI contract
+
+- Record concrete before/after examples and separate implemented changes from
+  remaining candidates in `docs/maintainability-review-2026-10-17.md`. Add the
+  owner's no-historical-compatibility rule while preserving file safety and current
+  capability validation. Do not rewrite generated/vendor sources.
+- Replace duplicate native/browser `openai.*` and `codex.*` command families with
+  `ai.models`, `ai.prepare` and `ai.edit`, each carrying the captured provider.
+  Remove unused status/validation bridge routes and redundant wrappers; update
+  all managed/client/native callers together without retaining aliases. Extract
+  native AI decoding into `DesktopWindow.Ai.cs`; keep smoke isolation before it.
+- Consolidate browser validation/edit fetch lifecycle and preference/layout
+  storage envelopes. Preserve validation-specific timeout/messages and save-after-
+  success ordering; apply the existing bounded JSON reader to validation too.
+  Require secure-context UUID generation instead of an old-browser random/time path.
+- Separate MapLayoutSession from JSON/model definitions, reuse already parsed
+  JSON, name geometry/appearance predicates and overlap bounds, and document
+  shared contracts and helpers. Expand BrowserServices into request, response and
+  decode phases; clarify native model-ID and token-count extraction.
+- Bundle successfully and compile the final Windows/application dependency graph
+  in Debug x64 with zero errors and eighteen existing NU1902/NU1903 warnings.
+  Update the smoke scenario's status command without running it. No suites, GUI
+  checks, provider tests, inference, packaging, version increment, installation
+  or launch ran. Installed Debug 0.1.0.25 remains the prior delivery.
+
 ## 2026-10-16 — Opaque direct presentation and Debug 0.1.0.25
 
 - Treat the owner's screenshot of missing shell regions during map movement in

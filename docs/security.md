@@ -73,9 +73,11 @@ identity; its own authentication/network policies remain applicable. A Test
 request uses synthetic text and may consume account usage. No CLI inference or
 credential test is run automatically as a development acceptance check.
 
-The native `--smoke-test` profile intercepts every AI connection, `codex.*` and `openai.*` bridge operation
-before reaching credential or HTTP handlers. Its `openai.status` reports no
-configured key and unavailable storage; other AI operations fail explicitly.
+The native `--smoke-test` profile intercepts the current `ai.*` bridge operations
+before reaching credential, HTTP or CLI handlers. Its `ai.connection.status`
+reports an unconfigured, unavailable provider; other AI operations fail explicitly.
+The only editing commands are `ai.models`, `ai.prepare` and `ai.edit`, each with
+an explicit provider. Retired `openai.*` and `codex.*` commands are not aliases.
 This guard does not read the user's saved credential and prevents AI network
 requests from that verification profile. It is separate from normal startup
 behavior and does not establish live provider acceptance.

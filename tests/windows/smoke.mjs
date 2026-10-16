@@ -208,7 +208,8 @@ try {
     assert.ok(entries.every(entry => !entry.path.startsWith("escape/")));
   });
   await check("card resize autosaves a layout without modifying the source document", async () => {
-    assert.equal((await native("openai.status", {})).value.configured, false, "Smoke mode must isolate real credentials");
+    const aiStatus = await native("ai.connection.status", { provider: "api-key" });
+    assert.equal(aiStatus.value.configured, false, "Smoke mode must isolate real credentials");
     await page.locator("[dataid=MapButton]").click();
     const grip = page.getByRole("button", { name: "Resize Windows reading fixture — Caffè", exact: true });
     await grip.waitFor();

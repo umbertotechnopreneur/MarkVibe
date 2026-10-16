@@ -138,12 +138,6 @@ public partial class MainPage
         return ++_aiConnectionGeneration;
     }
 
-    /// <summary>Routes captured requests explicitly; a Codex failure never falls back to an API credential.</summary>
-    private static string MarkdownAiOperation(string provider, string operation)
-    {
-        return (provider == AiProviders.CodexCli ? "codex." : "openai.") + operation;
-    }
-
     /// <summary>Rejects late work after provider changes even if a transport completed concurrently with cancellation.</summary>
     private void EnsureMarkdownAiConnection(string provider, int generation, CancellationToken cancellationToken)
     {
@@ -196,7 +190,8 @@ public partial class MainPage
                 return;
             }
             var availableModelIds = await BrowserServices.CallAsync<string[]>(
-                MarkdownAiOperation(provider, "models"),
+                "ai.models",
+                new { provider },
                 cancellationToken: lookup.Token);
             EnsureMarkdownAiConnection(provider, generation, lookup.Token);
 
@@ -613,8 +608,8 @@ public partial class MainPage
             }
 
             var prefixTokens = await BrowserServices.CallAsync<int[]>(
-                MarkdownAiOperation(provider, "prepare"),
-                new { request, counts = MarkdownAi.CountPayloads(request) },
+                "ai.prepare",
+                new { provider, request, counts = MarkdownAi.CountPayloads(request) },
                 cancellation.Token);
             EnsureMarkdownAiConnection(provider, connectionGeneration, cancellation.Token);
             _aiUsage = MarkdownAi.PreparedUsage(request, prefixTokens);
@@ -625,8 +620,8 @@ public partial class MainPage
             await RenderMarkdownAiAsync();
 
             var exchange = await BrowserServices.CallAsync<MarkdownAiExchange>(
-                MarkdownAiOperation(provider, "edit"),
-                new { request, payload = MarkdownAi.Payload(request), prefixTokens },
+                "ai.edit",
+                new { provider, request, payload = MarkdownAi.Payload(request), prefixTokens },
                 cancellation.Token);
             EnsureMarkdownAiConnection(provider, connectionGeneration, cancellation.Token);
             var result = MarkdownAi.Read(exchange, request);

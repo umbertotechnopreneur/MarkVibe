@@ -53,10 +53,25 @@ internal static class MarkdownAiClient
         {
             throw new WorkspaceException("openai-response-invalid", "OpenAI returned an unexpected model list.");
         }
-        return response.GetProperty("data").EnumerateArray()
-            .Where(model => model.ValueKind == JsonValueKind.Object && model.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String)
-            .Select(model => model.GetProperty("id").GetString()!)
-            .Take(4096).ToArray();
+
+        var modelIds = new List<string>();
+        foreach (var model in response.GetProperty("data").EnumerateArray())
+        {
+            if (model.ValueKind != JsonValueKind.Object
+                || !model.TryGetProperty("id", out var identifier)
+                || identifier.ValueKind != JsonValueKind.String)
+            {
+                continue;
+            }
+
+            modelIds.Add(identifier.GetString()!);
+            if (modelIds.Count == 4096)
+            {
+                break;
+            }
+        }
+
+        return modelIds.ToArray();
     }
 
     /// <summary>Counts the fixed system/document/request prefixes before generation without disclosing the native credential.</summary>
@@ -89,8 +104,14 @@ internal static class MarkdownAiClient
         try
         {
             var result = await SendAsync("responses/input_tokens", payload, apiKey, timeout.Token);
-            return result.TryGetProperty("input_tokens", out var count) && count.ValueKind == JsonValueKind.Number
-                && count.TryGetInt32(out var value) && value is >= 0 and <= 10000000 ? value : -1;
+            var hasTokenCount = result.TryGetProperty("input_tokens", out var count)
+                && count.ValueKind == JsonValueKind.Number;
+            if (!hasTokenCount || !count.TryGetInt32(out var tokenCount))
+            {
+                return -1;
+            }
+
+            return tokenCount is >= 0 and <= 10000000 ? tokenCount : -1;
         }
         catch (Exception error) when (error is WorkspaceException or OperationCanceledException)
         {

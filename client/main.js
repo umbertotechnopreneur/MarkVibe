@@ -34,8 +34,7 @@ import {
 } from "./workspaces.js";
 import { readPreferences, savePreferences, readLayout, saveLayout } from "./settings.js";
 import {
-  openAiKeyStatus, validateAndSaveOpenAiKey, openAiModels, prepareMarkdownWithOpenAi, editMarkdownWithOpenAi,
-  aiConnectionStatus, testAiConnection, codexModels, prepareMarkdownWithCodex, editMarkdownWithCodex
+  aiConnectionStatus, testAiConnection, aiModels, prepareMarkdown, editMarkdown
 } from "./openai.js";
 import { isDesktop, nativeCall, initializeDesktop, rememberNative, downloadSidecar, downloadMarkdown } from "./native.js";
 import { WorkspaceError, checkCancelled, errorFor, nextFrame, normalizePath, makeId } from "./path.js";
@@ -352,26 +351,16 @@ async function dispatch(operation, args, signal) {
       return applyPreferences(args);
     case "layout.save":
       return saveLayout(args);
-    case "openai.status":
-      return openAiKeyStatus(signal);
-    case "openai.validate":
-      return validateAndSaveOpenAiKey(args.apiKey, signal);
-    case "openai.models":
-      return openAiModels(signal);
-    case "openai.prepare":
-      return prepareMarkdownWithOpenAi(args, signal);
-    case "openai.edit":
-      return editMarkdownWithOpenAi(args, signal);
     case "ai.connection.status":
       return aiConnectionStatus(args.provider, signal);
     case "ai.connection.test":
       return testAiConnection(args, signal);
-    case "codex.models":
-      return codexModels(signal);
-    case "codex.prepare":
-      return prepareMarkdownWithCodex(args, signal);
-    case "codex.edit":
-      return editMarkdownWithCodex(args, signal);
+    case "ai.models":
+      return aiModels(args, signal);
+    case "ai.prepare":
+      return prepareMarkdown(args, signal);
+    case "ai.edit":
+      return editMarkdown(args, signal);
     case "ai.state":
       snapshots.set(args.hostId, { ...args, kind: "markdown-ai" });
       return true;

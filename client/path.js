@@ -18,6 +18,7 @@
  *
  * VBWR E */
 
+/** Carries a stable application error code and a credential-free explanation across browser adapters. */
 export class WorkspaceError extends Error {
   /** Retain the existing workspace error code alongside its user-facing explanation. */
   constructor(code, message) {
@@ -104,8 +105,8 @@ export const resourceUrl = path => new URL(path, document.baseURI).href;
 export const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 /** Yield to the event loop between bounded processing batches. */
 export const pause = () => new Promise(resolve => setTimeout(resolve, 0));
-/** Generate an opaque local identity using browser UUID support or the established fallback. */
-export const makeId = () => globalThis.crypto?.randomUUID?.() ?? "w-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+/** Generate a workspace identity using the secure-context UUID API required by the supported browser host. */
+export const makeId = () => globalThis.crypto.randomUUID();
 /** Translate browser capability and file failures into the existing workspace error contract. */
 export function errorFor(error, permissionWasGranted = false) {
   if (error instanceof WorkspaceError) {

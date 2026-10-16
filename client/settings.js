@@ -78,31 +78,41 @@ export function normalizePreferences(value) {
   };
 }
 
-/** Read bounded persisted settings while tolerating malformed data, future versions and unavailable storage. */
-export function readPreferences() {
-  // Invalid JSON, future versions and unavailable storage fall back to session defaults.
+/** Read only the current bounded envelope; malformed data and other versions are not migrated. */
+function readStoredValues(storageKey, maximumCharacters) {
   try {
-    const raw = localStorage.getItem("markvibe.preferences");
-    if (!raw || raw.length > 4096) {
-      return { ...defaults };
+    const serialized = localStorage.getItem(storageKey);
+    if (!serialized || serialized.length > maximumCharacters) {
+      return null;
     }
-    const saved = JSON.parse(raw);
-    return normalizePreferences(saved?.version === 1 ? saved.values : null);
+
+    const saved = JSON.parse(serialized);
+    return saved?.version === 1 ? saved.values : null;
   } catch {
-    return { ...defaults };
+    return null;
   }
 }
 
-/** Persist the validated preference envelope and report whether browser storage accepted it. */
-export function savePreferences(value) {
-  // value: validated C# preferences. False reports browser storage failure to the UI.
+/** Write the current envelope and report storage failure without leaking a partial application state. */
+function saveStoredValues(storageKey, values) {
   try {
-    localStorage.setItem("markvibe.preferences", JSON.stringify({ version: 1, values: value }));
+    const serialized = JSON.stringify({ version: 1, values });
+    localStorage.setItem(storageKey, serialized);
     return true;
-  }
-  catch {
+  } catch {
     return false;
   }
+}
+
+/** Restore preferences through the current envelope and the supported-value validator. */
+export function readPreferences() {
+  const savedValues = readStoredValues("markvibe.preferences", 4096);
+  return normalizePreferences(savedValues);
+}
+
+/** Persist managed validated preferences, reporting storage failure to the settings UI. */
+export function savePreferences(value) {
+  return saveStoredValues("markvibe.preferences", value);
 }
 
 /** Normalize shell geometry without retaining prompts, document paths or arbitrary stored fields. */
@@ -125,21 +135,11 @@ function boundedLayoutNumber(value, minimum, maximum, fallback) {
 
 /** Restore the independent shell layout, defaulting safely when storage is absent or malformed. */
 export function readLayout() {
-  try {
-    const raw = localStorage.getItem("markvibe.layout");
-    const saved = raw && raw.length <= 1024 ? JSON.parse(raw) : null;
-    return normalizeLayout(saved?.version === 1 ? saved.values : null);
-  } catch {
-    return normalizeLayout(null);
-  }
+  const savedValues = readStoredValues("markvibe.layout", 1024);
+  return normalizeLayout(savedValues);
 }
 
 /** Persist layout alone so resizing panes does not refresh themes or document renderers. */
 export function saveLayout(value) {
-  try {
-    localStorage.setItem("markvibe.layout", JSON.stringify({ version: 1, values: normalizeLayout(value) }));
-    return true;
-  } catch {
-    return false;
-  }
+  return saveStoredValues("markvibe.layout", normalizeLayout(value));
 }

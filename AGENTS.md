@@ -103,6 +103,12 @@ readers; minimizing line count is not a goal.
 - Preserve behavior and public contracts during readability-only cleanup. Review
   comments, names, spacing and control flow together, and preserve concurrent changes
   from other contributors.
+- Support only current application-owned schemas and bridge commands. Do not add
+  migrations, obsolete aliases, old decoders or speculative compatibility layers
+  unless the owner explicitly requests them. Remove unused historical paths when
+  changing both ends of an internal contract. Keep malformed-input validation,
+  cancellation, security boundaries and genuine platform capabilities: these are
+  not backward compatibility. Never delete user files to retire a format.
 - Preserve a VibeWare header on maintained project source, script and markup files,
   using the exact `VBWR B` / `VBWR E` markers and the file format's comment syntax.
   Record only supported AI contributions and human guidance; use **MIT** for project
