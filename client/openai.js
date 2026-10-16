@@ -288,14 +288,17 @@ async function sendOpenAi(endpoint, payload, apiKey, signal, options = {}) {
     return result;
   } catch (error) {
     checkCancelled(signal);
+    // The stream reader can report an aborted deadline as WorkspaceError too.
+    // Prioritize caller cancellation above, then the deadline, before classifying other failures.
+    if (controller.signal.aborted) {
+      throw new WorkspaceError("openai-timeout", timeoutMessage);
+    }
+
     if (error instanceof WorkspaceError) {
       if (validatingKey && error.code === "openai-response-invalid") {
         throw new WorkspaceError(error.code, invalidResponseMessage);
       }
       throw error;
-    }
-    if (controller.signal.aborted) {
-      throw new WorkspaceError("openai-timeout", timeoutMessage);
     }
     if (error instanceof SyntaxError) {
       throw new WorkspaceError("openai-response-invalid", invalidResponseMessage);
