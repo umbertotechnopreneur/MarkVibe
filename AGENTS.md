@@ -129,6 +129,10 @@ build, installation and final launch; it does not authorize interactive validati
 
 ## Commit & Pull Request Guidelines
 
+Keep documentation short and easy to read. Use plain words, short sentences and
+one or two concrete examples. Explain the result first; link to code for details.
+Avoid repeating the same explanation across documents.
+
 Use focused imperative subjects. Describe the problem, result and actual validation; link issues and UI screenshots when available. Update dependency locks. Record when tests were not requested.
 
 Deliver future changes through pull requests into the protected default branch.

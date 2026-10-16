@@ -5,6 +5,10 @@ transcripts and temporary artifacts in dated validation reports, not this index.
 
 ## 2026-10-17 — Focused maintainability review and current-only AI contract
 
+- At the owner's follow-up request, shorten the review to a plain-language change
+  table, two examples, three remaining improvements and the actual check results.
+  Record short, simple documentation as a repository rule. This follow-up changes
+  documentation only; no build or tests are needed or run.
 - Record concrete before/after examples and separate implemented changes from
   remaining candidates in `docs/maintainability-review-2026-10-17.md`. Add the
   owner's no-historical-compatibility rule while preserving file safety and current
