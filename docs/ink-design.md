@@ -1,5 +1,7 @@
 > Historical design: pen, ink and sticky-note editing were removed from the app
 > on 2026-10-11. This document describes the retired feature, not the current UI.
+> The remaining codec/schema and provider enumeration were removed on 2026-10-16.
+> Names and schema paths below describe historical source; user files are left untouched.
 
 # Ink annotations and sidecars
 

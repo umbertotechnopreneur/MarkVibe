@@ -1,0 +1,32 @@
+<!-- VBWR B
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+  Created with AI: OpenAI Codex; concise modal AI connection results; 2026-10-16
+  Human guidance: Umberto Giacobbi; explicit Test passed or Test failed after each user-requested test
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+VBWR E -->
+<ChildWindow x:Class="MarkVibe.Controls.AiConnectionResultWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="clr-namespace:MarkVibe.Controls"
+ Title="Connection test" Width="460" Height="270" Style="{StaticResource AppDialog}">
+ <Grid Margin="24,8,24,20">
+  <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+   <StackPanel>
+    <Grid Margin="0,0,0,12">
+     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+     <controls:VectorIcon x:Name="ResultIcon" Width="22" Height="22" Margin="0,0,10,0"/>
+     <TextBlock x:Name="OutcomeText" Grid.Column="1" FontSize="18" FontWeight="Medium" VerticalAlignment="Center" TextWrapping="Wrap"/>
+    </Grid>
+    <TextBlock x:Name="MessageText" TextWrapping="Wrap" FontSize="13" Foreground="{StaticResource MutedText}"/>
+   </StackPanel>
+  </ScrollViewer>
+  <Button x:Name="CloseResultButton" Grid.Row="1" Content="Close" Style="{StaticResource DialogPrimaryButton}" Click="Dismiss" HorizontalAlignment="Right" Margin="0,16,0,0" controls:IconLabel.HideIcon="True" AutomationProperties.Name="Close connection test result"/>
+ </Grid>
+</ChildWindow>

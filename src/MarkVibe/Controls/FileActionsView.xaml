@@ -1,0 +1,18 @@
+<!-- VBWR B
+ Project: MarkVibe | Creator: Umberto Giacobbi
+ Created with AI: OpenAI Codex; shared file context actions; 2026-10-16
+ Human guidance: Umberto Giacobbi; consistent Explorer, terminal, browser and delete menus
+ Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
+ VBWR E -->
+<UserControl x:Class="MarkVibe.Controls.FileActionsView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="clr-namespace:MarkVibe.Controls">
+ <StackPanel>
+  <Button x:Name="BrowserButton" Style="{StaticResource FileMenuButton}" Click="OpenBrowser" ToolTipService.ToolTip="Open in browser" />
+  <Button x:Name="ExplorerButton" Style="{StaticResource FileMenuButton}" Click="Reveal" ToolTipService.ToolTip="Show in File Explorer" />
+  <Button x:Name="TerminalButton" Style="{StaticResource FileMenuButton}" Click="OpenTerminal" ToolTipService.ToolTip="Open in terminal" />
+  <Border x:Name="DeleteDivider" Height="1" Margin="6,7" Background="{StaticResource ShellBorder}" />
+  <Button x:Name="DeleteButton" Foreground="#F87884" Style="{StaticResource FileMenuButton}" Click="Delete" ToolTipService.ToolTip="Delete file…" />
+ </StackPanel>
+</UserControl>

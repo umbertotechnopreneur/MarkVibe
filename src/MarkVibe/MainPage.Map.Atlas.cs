@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; managed atlas commands and complete-catalog route projection; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement all seven document atlas improvements
+ * Modified with AI: OpenAI Codex; calculate full-catalog attention before bounded graph presentation; 2026-10-16
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 using System.Text.Json;
@@ -9,13 +10,24 @@ using MarkVibe.Core;
 
 namespace MarkVibe;
 
+/// <summary>Projects complete-catalog graph facts and applies validated persisted atlas commands.</summary>
 public partial class MainPage
 {
     /// <summary>Projects routes and neighborhood distances before applying the existing visible-card limit.</summary>
     private static MapSnapshot BuildAtlasMap(Context context, string selected)
     {
         var atlas = context.Map.Session.Value.Atlas ?? new();
-        return context.Catalog.Map(selected, false, context.Map.RouteStart, context.Map.RouteEnd, atlas.FocusDepth);
+        var exploration = context.Map.Exploration;
+        exploration.Refresh(context.Catalog);
+        var map = context.Catalog.Map(selected, false, context.Map.RouteStart, context.Map.RouteEnd,
+            atlas.FocusDepth, exploration.PriorityPaths());
+        var visiblePaths = map.Nodes.Select(node => node.Path).ToHashSet(StringComparer.Ordinal);
+        return map with
+        {
+            Attention = exploration.Attention.Where(item => visiblePaths.Contains(item.Key))
+                .ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal),
+            IndexComplete = exploration.IndexComplete
+        };
     }
 
     /// <summary>Handles atlas edits while the shared map gate is held; document contents and saved positions are untouched.</summary>

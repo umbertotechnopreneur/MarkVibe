@@ -10,6 +10,7 @@
  * Created with AI: OpenAI Codex; OpenAI credential and Markdown request transport; 2026-10-11
  * Human guidance: Umberto Giacobbi; disclose insecure browser storage and validate before saving
  * Modified with AI: OpenAI Codex; stateless generation, context preflight and cancellation; 2026-10-11
+ * Modified with AI: OpenAI Codex; explicit provider status, tests and desktop-only Codex transport; 2026-10-16
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
@@ -22,6 +23,96 @@ import { isDesktop, nativeCall } from "./native.js";
 import { WorkspaceError, checkCancelled } from "./path.js";
 
 const keyStorageName = "markvibe.openai.apiKey";
+
+/** Reject unknown transport identifiers rather than silently sending through another provider. */
+function requireAiProvider(provider) {
+  if (provider !== "api-key" && provider !== "codex-cli") {
+    throw new WorkspaceError("ai-provider", "Choose an available AI connection in Settings.");
+  }
+  return provider;
+}
+
+/** Read local configuration only; choosing Codex never inspects the saved API credential. */
+export async function aiConnectionStatus(provider, signal) {
+  checkCancelled(signal);
+  requireAiProvider(provider);
+  if (isDesktop()) {
+    return nativeCall("ai.connection.status", { provider }, signal);
+  }
+  if (provider === "codex-cli") {
+    return {
+      provider,
+      configured: false,
+      available: false,
+      message: "Codex CLI requires the Windows desktop app."
+    };
+  }
+
+  const status = await openAiKeyStatus(signal);
+  return {
+    provider,
+    configured: status.configured,
+    available: status.storageAvailable,
+    message: !status.storageAvailable
+      ? "API key storage is unavailable."
+      : status.configured ? "API key saved. Connection not tested." : "Add an API key in Settings."
+  };
+}
+
+/** Test the explicit connection, saving an API candidate only after successful validation. */
+export async function testAiConnection(args, signal) {
+  checkCancelled(signal);
+  const provider = requireAiProvider(args.provider);
+  const candidate = provider === "api-key" && typeof args.apiKey === "string" ? args.apiKey.trim() : "";
+  if (isDesktop()) {
+    // A hidden API-key field must never cross the bridge for a Codex test.
+    const payload = provider === "api-key" && candidate ? { provider, apiKey: candidate } : { provider };
+    return nativeCall("ai.connection.test", payload, signal);
+  }
+  if (provider === "codex-cli") {
+    return { passed: false, message: "Codex CLI requires the Windows desktop app." };
+  }
+
+  try {
+    if (candidate) {
+      await validateAndSaveOpenAiKey(candidate, signal);
+    } else {
+      // GET /models verifies the saved key without replacing it or generating content.
+      await openAiModels(signal);
+    }
+    return { passed: true, message: candidate ? "API key validated and saved." : "Saved API key accepted." };
+  } catch (error) {
+    checkCancelled(signal);
+    return {
+      passed: false,
+      message: error instanceof WorkspaceError ? error.message : "The API connection test could not be completed."
+    };
+  }
+}
+
+/** Invoke only the desktop Codex backend, preserving cancellation without an API-key fallback. */
+async function callCodex(operation, args, signal) {
+  checkCancelled(signal);
+  if (!isDesktop()) {
+    throw new WorkspaceError("codex-desktop-required", "Codex CLI requires the Windows desktop app.");
+  }
+  return nativeCall(operation, args, signal);
+}
+
+/** Return the native shared model catalog; the explicit test and each edit verify actual account access. */
+export async function codexModels(signal) {
+  return callCodex("codex.models", {}, signal);
+}
+
+/** Request Codex's uncounted preflight contract without reading an API key or generating content. */
+export async function prepareMarkdownWithCodex(args, signal) {
+  return callCodex("codex.prepare", { request: args.request }, signal);
+}
+
+/** Send the captured stateless Markdown request through the desktop Codex backend. */
+export async function editMarkdownWithCodex(args, signal) {
+  return callCodex("codex.edit", { request: args.request, prefixTokens: args.prefixTokens }, signal);
+}
 
 /** Report credential availability without returning the stored key to the settings dialog. */
 export async function openAiKeyStatus(signal) {

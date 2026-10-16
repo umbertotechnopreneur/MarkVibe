@@ -9,6 +9,9 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; separate persisted application UI font preference; 2026-10-16
+ * Modified with AI: OpenAI Codex; persist an explicit API-key or Codex CLI AI provider; 2026-10-16
+ * Human guidance: Umberto Giacobbi; choose an installed monospace UI font without changing document typography
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -61,6 +64,7 @@ public sealed record SourceBlock(string Id, int StartLine, int EndLine, string Q
 public sealed record DocumentLink(string Path, string Anchor, int Line);
 public sealed record ReadingPosition(string BlockId = "", double Fraction = 0, double SourceLine = 1);
 public sealed record HistoryEntry(string Id, string WorkspaceId, string Path, string Anchor, ReadingPosition Position);
+/// <summary>Stores validated presentation and AI-provider choices without retaining credentials.</summary>
 public sealed record Preferences(
     string Appearance = "system",
     string DocumentStyle = "technical",
@@ -72,7 +76,9 @@ public sealed record Preferences(
     string LightDocumentTheme = "markvibe",
     string DarkDocumentTheme = "markvibe",
     string LightCodeTheme = "auto",
-    string DarkCodeTheme = "auto"
+    string DarkCodeTheme = "auto",
+    string UiFont = "system",
+    string AiProvider = AiProviders.ApiKey
 )
 {
     /// <summary>Returns preferences with supported choices and bounded zoom while retaining the existing defaults.</summary>
@@ -85,7 +91,9 @@ public sealed record Preferences(
         LightDocumentTheme = ReaderThemes.DocumentId(LightDocumentTheme, "light"),
         DarkDocumentTheme = ReaderThemes.DocumentId(DarkDocumentTheme, "dark"),
         LightCodeTheme = ReaderThemes.CodeId(LightCodeTheme, "light"),
-        DarkCodeTheme = ReaderThemes.CodeId(DarkCodeTheme, "dark")
+        DarkCodeTheme = ReaderThemes.CodeId(DarkCodeTheme, "dark"),
+        UiFont = UiFontCatalog.Normalize(UiFont),
+        AiProvider = AiProviders.Normalize(AiProvider)
     };
 }
 

@@ -284,6 +284,14 @@ export async function exportDocument({ document: model, workspaceId, preferences
   return { filename: stem + "." + format, warnings };
 }
 
+/** Open the same sanitized, self-contained rendering in the system browser without an export picker. */
+export async function openBrowserPreview({ document: model, workspaceId, preferences }, signal) {
+  const { html, warnings } = await prepareDocument(model, workspaceId, preferences, signal);
+  checkCancelled(signal);
+  await nativeCall("file.browser", { html }, signal);
+  return { opened: true, warnings };
+}
+
 /** Releases pending browser download URLs and print frames. */
 export function disposeExports() {
   for (const url of downloads) {

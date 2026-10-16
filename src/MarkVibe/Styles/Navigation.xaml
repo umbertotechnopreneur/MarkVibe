@@ -8,6 +8,7 @@
   Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 
   Modified with AI: OpenAI Codex; transparent underline navigation tabs; 2026-10-11
+  Modified with AI: OpenAI Codex; full rounded tree row selection surfaces; 2026-10-16
   Human guidance: Umberto Giacobbi; no tab backgrounds, accent text and underline
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
@@ -41,7 +42,7 @@ VBWR E -->
   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem">
    <Grid Background="Transparent">
     <Grid x:Name="TemplateTopSelected" Visibility="Collapsed" Background="Transparent">
-     <ContentControl x:Name="HeaderTopSelected" IsTabStop="False" Margin="{TemplateBinding Padding}" Foreground="{StaticResource SystemAccent}" FontWeight="SemiBold" HorizontalAlignment="Left" />
+     <ContentControl x:Name="HeaderTopSelected" IsTabStop="False" Margin="{TemplateBinding Padding}" Foreground="{StaticResource SystemAccent}" FontWeight="Medium" HorizontalAlignment="Left" />
      <Border Height="2" Margin="14,0" VerticalAlignment="Bottom" Background="{StaticResource SystemAccent}" CornerRadius="1" />
     </Grid>
     <Border x:Name="TemplateTopUnselected" Visibility="Collapsed" Background="Transparent">
@@ -99,7 +100,8 @@ VBWR E -->
       <VisualState x:Name="SelectedInactive"><Storyboard><DoubleAnimation Storyboard.TargetName="SelectionLine" Storyboard.TargetProperty="Opacity" To="1" Duration="0" /></Storyboard></VisualState>
      </VisualStateGroup>
     </VisualStateManager.VisualStateGroups>
-    <Border x:Name="SelectionLine" Grid.ColumnSpan="2" Width="2" Height="18" HorizontalAlignment="Left" Background="{StaticResource SystemAccent}" Opacity="0" />
+    <Border Grid.ColumnSpan="2" Background="{TemplateBinding Background}" CornerRadius="6" Margin="0,1" IsHitTestVisible="False" />
+    <Border x:Name="SelectionLine" Grid.ColumnSpan="2" Width="2" Height="18" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" Opacity="0" IsHitTestVisible="False" />
     <ToggleButton x:Name="ExpanderButton" Style="{StaticResource TreeExpander}" />
     <ContentPresenter x:Name="Header" Grid.Column="1" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" HorizontalAlignment="Stretch" />
     <ItemsPresenter x:Name="Children" Grid.Row="1" Grid.Column="1" Visibility="Collapsed" />

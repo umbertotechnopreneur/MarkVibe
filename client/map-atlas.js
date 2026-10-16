@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; atlas rendering, semantic zoom, folder islands and minimap; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement all seven document atlas improvements
+ * Modified with AI: OpenAI Codex; share document activation between overview labels and cards; 2026-10-16
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 import { textElement, uiText } from "./markdown.js";
@@ -308,7 +309,7 @@ export class MapAtlasRenderer {
           if (candidate.folder !== undefined) {
             void this.command("atlas-folder", { folder: candidate.folder });
           } else if (!host.suspended && !host.arranging) {
-            host.selectCard(candidate.path, true);
+            host.activateCard(candidate.path, event, true);
           }
         });
         this.labels.set(candidate.key, label);

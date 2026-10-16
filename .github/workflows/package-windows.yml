@@ -7,8 +7,8 @@
 # VibeWare: Human intent, AI execution, and plenty of tokens
 # Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 #
-# Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
-# Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+# Modified with AI: OpenAI Codex; explicit CI architecture selection; 2026-10-16
+# Human guidance: Umberto Giacobbi; local x64 Debug default and explicit wider packaging
 # Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 #
 # Copyright (c) 2026 Umberto Giacobbi
@@ -53,7 +53,7 @@ jobs:
         env:
           MARKVIBE_CONFIGURATION: ${{ inputs.configuration }}
           MARKVIBE_VERSION: ${{ inputs.version }}
-        run: ./scripts/package-windows.ps1 -Configuration $env:MARKVIBE_CONFIGURATION -Version $env:MARKVIBE_VERSION
+        run: ./scripts/package-windows.ps1 -Configuration $env:MARKVIBE_CONFIGURATION -Architectures x64,arm64 -Version $env:MARKVIBE_VERSION
       - name: Upload distribution files
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

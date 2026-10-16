@@ -6,6 +6,11 @@
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  * Created with AI: OpenAI Codex; native OpenSilver document tree; 2026-10-11
  * Human guidance: Umberto Giacobbi; Windows-style folder navigation and flat icons
+ * Modified with AI: OpenAI Codex; honor the selected UI font in outline labels; 2026-10-16
+ * Human guidance: Umberto Giacobbi; one independent font preference for the application UI
+ * Modified with AI: OpenAI Codex; preserve document and folder labels across language changes; 2026-10-16
+ * Human guidance: Umberto Giacobbi; translate application controls without translating user content
+ * Modified with AI: OpenAI Codex; shared row background and foreground feedback; 2026-10-16
  * Copyright (c) 2026 Umberto Giacobbi
  * License: MIT (see LICENSE)
  * VBWR E */
@@ -89,14 +94,15 @@ public partial class MainPage
             if (isHeading && node.Header is Grid row)
             {
                 row.Children.RemoveAt(0);
-                row.Children.Insert(0, new TextBlock
+                var headingMarker = new TextBlock
                 {
                     Text = "H" + level,
-                    FontFamily = new FontFamily("Consolas"),
+                    FontFamily = AppTypography.CurrentFamily,
                     FontSize = 12,
-                    Foreground = (SolidColorBrush)Application.Current.Resources["SystemAccent"],
                     VerticalAlignment = VerticalAlignment.Center
-                });
+                };
+                NavigationRow.BindForeground(headingMarker, TextBlock.ForegroundProperty, node);
+                row.Children.Insert(0, headingMarker);
             }
             var siblings = headingParents.Count == 0 ? OutlineTree.Items : headingParents.Peek().Node.Items;
             siblings.Add(node);
@@ -147,6 +153,8 @@ public partial class MainPage
                     {
                         folder = CreateTreeNode(segments[index], "folder", folderPath);
                         folder.Tag = folderPath;
+                        var targetPath = folderPath;
+                        AttachFileMenu(folder, () => new(workspaceId, targetPath, targetPath.Split('/').Last(), true));
                         folder.IsExpanded = expandedFolders.Contains(folderPath);
                         _folderNodes.Add(folderPath, folder);
                         parentItems.Add(folder);
@@ -160,6 +168,7 @@ public partial class MainPage
                 var lastSeparator = document.Path.LastIndexOf('/');
                 var filename = document.Path[(lastSeparator + 1)..];
                 var node = CreateTreeNode(filename, "file", document.Path);
+                AttachFileMenu(node, () => node.Tag is DocumentCard current ? new(workspaceId, current.Path, current.Title) : null);
                 var parentItems = lastSeparator < 0 ? DocumentTree.Items : _folderNodes[document.Path[..lastSeparator]].Items;
                 parentItems.Add(node);
                 _documentNodes.Add(document.Path, node);
@@ -191,18 +200,18 @@ public partial class MainPage
     /// <summary>Creates one compact accessible row; TreeView supplies expansion and keyboard navigation.</summary>
     private static TreeViewItem CreateTreeNode(string name, string symbol, string path)
     {
-        var header = new Grid { Margin = new Thickness(4, 5, 6, 5) };
+        var header = new Grid { Margin = new Thickness(4, 5, 6, 5), Background = new SolidColorBrush(Colors.Transparent) };
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(28) });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        var icon = new IconLabel(symbol, "") { Width = 20, Height = 20, VerticalAlignment = VerticalAlignment.Center };
+        var icon = new VectorIcon { Symbol = symbol, Width = 20, Height = 20, VerticalAlignment = VerticalAlignment.Center };
         header.Children.Add(icon);
         var caption = new TextBlock
         {
-            Text = name,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
         };
+        AppLocalization.SetRaw(caption, name);
         Grid.SetColumn(caption, 1);
         header.Children.Add(caption);
         var node = new TreeViewItem
@@ -211,6 +220,11 @@ public partial class MainPage
             Style = (Style)Application.Current.Resources["DocumentTreeItem"],
             HorizontalContentAlignment = HorizontalAlignment.Stretch
         };
+        NavigationRow.BindForeground(icon, Control.ForegroundProperty, node);
+        NavigationRow.BindForeground(caption, TextBlock.ForegroundProperty, node);
+        NavigationRow.Attach(node, header);
+        // The row's caption, path, tooltip and any child document rows are caller-owned content.
+        AppLocalization.SetRaw(node);
         AutomationProperties.SetName(node, path);
         return node;
     }

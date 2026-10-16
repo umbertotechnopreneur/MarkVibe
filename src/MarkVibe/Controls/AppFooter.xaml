@@ -1,0 +1,37 @@
+<!-- VBWR B
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+  Created with AI: OpenAI Codex; accessible publication footer with retained layout space; 2026-10-16
+  Human guidance: Umberto Giacobbi; discreet VibeWare and legal links following the publication template
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+VBWR E -->
+<UserControl x:Class="MarkVibe.Controls.AppFooter"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="clr-namespace:MarkVibe.Controls"
+ xmlns:toolkit="clr-namespace:System.Windows.Controls;assembly=OpenSilver.Controls.Toolkit">
+ <Grid Background="Transparent" Margin="8,2" MouseEnter="PointerEntered" MouseLeave="PointerLeft" GotFocus="FocusEntered" LostFocus="FocusLeft">
+  <toolkit:WrapPanel x:Name="FooterLinks" HorizontalAlignment="Center">
+   <toolkit:WrapPanel Margin="4,0" VerticalAlignment="Center">
+    <HyperlinkButton Content="About MarkVibe" Style="{StaticResource AppLink}" Click="ShowAbout" FontSize="10" Foreground="{StaticResource MutedText}" controls:IconLabel.HideIcon="True"/>
+    <StackPanel Orientation="Horizontal">
+     <TextBlock Text=" · " FontSize="10" Foreground="{StaticResource MutedText}" VerticalAlignment="Center"/>
+     <HyperlinkButton Content="Terms" Style="{StaticResource AppLink}" Click="OpenTerms" FontSize="10" Foreground="{StaticResource MutedText}" controls:IconLabel.HideIcon="True"/>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal">
+     <TextBlock Text=" · " FontSize="10" Foreground="{StaticResource MutedText}" VerticalAlignment="Center"/>
+     <HyperlinkButton Content="Privacy" Style="{StaticResource AppLink}" Click="OpenPrivacy" FontSize="10" Foreground="{StaticResource MutedText}" controls:IconLabel.HideIcon="True"/>
+    </StackPanel>
+   </toolkit:WrapPanel>
+   <StackPanel Orientation="Horizontal" Margin="12,0,4,0" VerticalAlignment="Center">
+    <TextBlock Text="This is VibeWare · " FontSize="10" Foreground="{StaticResource MutedText}" VerticalAlignment="Center"/>
+    <HyperlinkButton Content="Manifesto" Style="{StaticResource AppLink}" Click="OpenManifesto" FontSize="10" Foreground="{StaticResource MutedText}" controls:IconLabel.HideIcon="True"/>
+   </StackPanel>
+  </toolkit:WrapPanel>
+ </Grid>
+</UserControl>

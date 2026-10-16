@@ -8,7 +8,9 @@
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  *
  * Modified with AI: OpenAI Codex; readability and OpenAI key settings; 2026-10-11
+ * Modified with AI: OpenAI Codex; dispatch explicit API-key and desktop Codex AI connections; 2026-10-16
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; dispatch session-scoped exploration controls; 2026-10-16
  * Modified with AI: OpenAI Codex; Markdown AI dispatch, waiting popup and document selection lifecycle; 2026-10-11
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
  * Modified with AI: OpenAI Codex; reliable map updates, metadata controls and installed UI fonts; 2026-10-16
@@ -30,8 +32,11 @@ import {
   releaseAssets, releaseWorkspace, disposeWorkspaces, setWorkspaceMemory, canResumeWorkspace,
   readMapLayout, writeMapLayout
 } from "./workspaces.js";
-import { readPreferences, savePreferences } from "./settings.js";
-import { openAiKeyStatus, validateAndSaveOpenAiKey, openAiModels, prepareMarkdownWithOpenAi, editMarkdownWithOpenAi } from "./openai.js";
+import { readPreferences, savePreferences, readLayout, saveLayout } from "./settings.js";
+import {
+  openAiKeyStatus, validateAndSaveOpenAiKey, openAiModels, prepareMarkdownWithOpenAi, editMarkdownWithOpenAi,
+  aiConnectionStatus, testAiConnection, codexModels, prepareMarkdownWithCodex, editMarkdownWithCodex
+} from "./openai.js";
 import { isDesktop, nativeCall, initializeDesktop, rememberNative, downloadSidecar, downloadMarkdown } from "./native.js";
 import { WorkspaceError, checkCancelled, errorFor, nextFrame, normalizePath, makeId } from "./path.js";
 import { setLanguage, setSystemLanguage, t, localize, refreshTranslations } from "./i18n.js";
@@ -332,6 +337,7 @@ async function dispatch(operation, args, signal) {
         const position = current?.path === path && current.anchor === anchor ? current.position : null;
         return {
           preferences,
+          layout: readLayout(),
           dark: preferences.appearance === "dark" || preferences.appearance === "system" && colorScheme.matches,
           rememberedFolder: capabilities().rememberedFolder,
           path,
@@ -344,6 +350,8 @@ async function dispatch(operation, args, signal) {
       }
     case "preferences.apply":
       return applyPreferences(args);
+    case "layout.save":
+      return saveLayout(args);
     case "openai.status":
       return openAiKeyStatus(signal);
     case "openai.validate":
@@ -354,6 +362,16 @@ async function dispatch(operation, args, signal) {
       return prepareMarkdownWithOpenAi(args, signal);
     case "openai.edit":
       return editMarkdownWithOpenAi(args, signal);
+    case "ai.connection.status":
+      return aiConnectionStatus(args.provider, signal);
+    case "ai.connection.test":
+      return testAiConnection(args, signal);
+    case "codex.models":
+      return codexModels(signal);
+    case "codex.prepare":
+      return prepareMarkdownWithCodex(args, signal);
+    case "codex.edit":
+      return editMarkdownWithCodex(args, signal);
     case "ai.state":
       snapshots.set(args.hostId, { ...args, kind: "markdown-ai" });
       return true;
@@ -401,7 +419,8 @@ async function dispatch(operation, args, signal) {
       return openWorkspace(args.mode, signal);
     case "map.command": {
       const view = await getView(args.hostId, signal);
-      if (args.action === "fit") view.fit();
+      if (args.action.startsWith("explore-")) await view.effects.command(args.action.slice(8), args.data);
+      else if (args.action === "fit") view.fit();
       else if (args.action === "save") await view.save();
       else await view.action(args.action, args.data);
       return true;

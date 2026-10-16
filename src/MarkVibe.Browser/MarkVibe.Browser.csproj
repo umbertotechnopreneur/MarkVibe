@@ -33,6 +33,6 @@ VBWR E -->
     <ProjectReference Include="../MarkVibe/MarkVibe.csproj" />
   </ItemGroup>
   <Target Name="RequireClientBundle" BeforeTargets="BeforeBuild">
-    <Error Condition="!Exists('wwwroot/js/markvibe.js')" Text="Client assets are missing. After authorization, run npm install and npm run bundle from the repository root. See README.md." />
+    <Exec Command="node &quot;$(MSBuildProjectDirectory)/../../scripts/check-client-bundle.mjs&quot;" />
   </Target>
 </Project>

@@ -3,6 +3,229 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-16 — Initial consolidation, protected master, PR and repository copy
+
+- Reuse the owner's explicit approval for `codex/prepare-public-repository`.
+  Preserve all 18 original commits in verified Git bundles and the staged binary
+  patch outside artifacts. Consolidate their original HEAD tree into root
+  `861ed14` (`First commit`) and put the pending preparation/UI/provider changes
+  in a single follow-up commit. Update remote master with an exact old-SHA lease;
+  preserve the published `v0.1.0.2` tag and existing local checkpoint tag.
+- Protect actual default branch `master`: require PRs, enforce administrators,
+  resolve conversations, require linear history and disallow force pushes/deletion.
+  Permit squash merging only. No required check was invented or workflow started;
+  automated checks were not requested. The owner is the sole maintainer, so zero
+  mandatory approving reviews avoids an impossible self-approval requirement.
+- Open [PR #1](https://github.com/umbertotechnopreneur/MarkVibe/pull/1), assign it to
+  `umbertotechnopreneur`, label it `enhancement` and `documentation`, and attach it
+  to the Codex task. Leave it open for owner review; no PR merge is claimed.
+- Copy the complete checkout, Git backups and Debug artifacts to the previously
+  absent `E:\MarkVibe` using non-destructive recursive copy with junction exclusion.
+  Preserve `E:\Research\MarkVibe`. The initial copy reported zero failures; verify
+  matching Git HEAD and selected source, solution, package and index SHA-256 hashes.
+  The owner will change the Codex project folder link; do not alter app metadata.
+
+## 2026-10-16 — Selectable AI connections and Debug 0.1.0.24
+
+- Add persisted OpenAI API key/Codex CLI radio selection, provider-specific status,
+  one Test button per connection and localized pass/fail dialogs. Keep API as the
+  default and reject unavailable or unknown providers without silent fallback.
+  Cancel obsolete provider/edit operations before accepting a replacement result.
+- API tests use model-list authentication and preserve an existing key on failure.
+  Windows CLI tests request a tiny structured synthetic response through the
+  installed CLI login; CLI editing receives the same captured target and explicit
+  read-only references. Browser CLI support fails with an explicit desktop notice.
+  Keep requests bounded and ephemeral, disable tools/plugins, reject tool events
+  and terminate the process tree on cancellation or deadline. Read-only does not
+  claim complete OS isolation for filesystem reads; CLI retention remains distinct
+  from API store:false. Catalog IDs and token estimates do not prove CLI access.
+- Rebuild/sign MSI 0.1.24, MSIX/bundle and portable 0.1.0.24 for Debug x64 after
+  cleaning artifacts. Trust matching development certificate
+  185EE4C6A8786F8CCD5A31D9A0771DF2FCC75F6B, install the MSIX and launch its installed
+  executable. Windows reports exact version, x64 and Status Ok; record deployment
+  separately in INSTALL-INFO.json. No provider Test action, inference, automated
+  suite, check executable or GUI acceptance was executed. MSI installation and
+  Visual Studio F5 remain unverified.
+- The owner explicitly approved branch `codex/prepare-public-repository` and
+  commit/push/PR delivery with initial-history consolidation. Create that branch
+  without resetting the prepared work. Preserve recoverable history/dirty-state
+  backups outside artifacts and retain published release tags.
+
+## 2026-10-16 — Repository preparation, Visual Studio and Debug 0.1.0.23
+
+- Rewrite README around the owner's weekend-project origin, concise capabilities
+  and an illustrative Mermaid document map, without screenshots. Apply the supplied
+  VibeWare templates: unchanged approved logo, accessible header badge, first-person
+  About disclosure, canonical links and a layout-preserving 30-second/3-second
+  footer that reveals on hover or keyboard focus. Localize new labels in all nine
+  supported languages. Remove obsolete About claims about ink/annotations.
+- Retain MIT application licensing and record actual dependency boundaries,
+  including EPL-2.0 elkjs source availability, the chosen Apache-2.0 DOMPurify
+  option and WebView2's SDK notice. Include bundled legal notices in client
+  freshness detection. No claim that dependencies or trademarks become MIT.
+- Use three agents for C# exploration, client graph effects and MSI packaging.
+  Retain unchanged control previews, validate AI references against one catalog
+  snapshot, cancel replaced SVG effects/stale selection geometry, reduce repeated
+  DOM updates and remove unused or unreachable helpers. Preserve document data.
+- Add native Windows Installer COM/makecab MSI generation with stable identities,
+  per-user installation tables, retained user data and explicit version mapping.
+  Correct the RemoveFile row found during the first actual packaging attempt;
+  regenerate from a clean artifacts directory. Create and sign the MSI 0.1.23
+  containing 908 payload files, plus MSIX/bundle and portable for app 0.1.0.23.
+  Inspect MSI product/version metadata without installing it.
+- Add a classic Visual Studio solution aligned with .slnx, Desktop/Browser launch
+  profiles and VS-only client preparation. Restore and build all seven projects
+  in Debug with zero errors and seven existing NU1900 cache warnings. Check
+  executables compile but are not run. Visual Studio/F5 acceptance remains open.
+- Install Debug x64 0.1.0.23 with development certificate
+  58EA02A2C75389899AA13BB8D97B0CC8F6265039 in LocalMachine/TrustedPeople.
+  Verify installed identity/version/architecture and Windows Status Ok, then launch
+  the installed executable. Separate BUILD-INFO.json and INSTALL-INFO.json record
+  generation and deployment. No interactive checks, suites or inference ran.
+- The owner confirmed that Partner Center identity is not yet available and
+  narrowed MSIX delivery to local Debug. Document future Store prerequisites;
+  do not invent the identity, create a Store/Release build or submit anything.
+  Git consolidation, protection and PR remain pending the required branch consent.
+
+## 2026-10-16 — Useful map effects and Debug 0.1.0.22
+
+- Implement all six owner-approved exploration ideas. Resting cards use simpler
+  opaque surfaces, medium-weight titles and shorter excerpts; active cards reveal
+  detail. Directional pulses run once for up to 24 adjacent links, using distinct
+  incoming/outgoing colors, line styles and arrows. Hover/keyboard focus previews
+  a relation lens without modifying saved positions.
+- Add temporary C# exploration state, Ctrl/Cmd-click and Shift-drag selection,
+  a bounded 12-document shelf, side-by-side catalog comparison and atomic AI
+  reference batches. Validate the existing 16-reference/4 MiB limits before any
+  collection membership changes. These actions invoke no inference.
+- Record only successful navigation in a ten-visit trail. Chips locate documents;
+  subdued dotted geometry joins consecutive visible visits. Preview/hover/centering
+  do not add history. Calculate missing Markdown targets and isolation over the
+  full catalog before projection; suppress isolation while metadata is incomplete.
+  Changed documents mean observed fingerprint/local revision changes in the current
+  session, not filesystem timestamps. Cache facts by catalog metadata revision.
+- Keep source documents and sidecar schema unchanged. Finite effects respect
+  reduced motion and cancel on suspension, visibility/session changes or disposal.
+  No new blur, SVG filters, background engine or continuous animation loop is used.
+- Bundle and compile Debug x64; sign/install version 0.1.0.22 with matching cert
+  43E2B2B088F66242EE4206B723F230C1830C1CEE in LocalMachine/TrustedPeople.
+  Windows confirms the version, x64 and Status Ok; launch the installed executable.
+  BUILD-INFO.json and separate INSTALL-INFO.json record delivery. No automated
+  suites, interactive checks, inference or publication ran. Existing NU1900
+  vulnerability-cache warnings remain. Owner GUI acceptance is pending.
+- Disregard the owner's retracted timeline/WebGL message and its associated Git
+  request; no unrelated engine research, commit or push was performed.
+
+## 2026-10-16 — Map inspector follow-up and Debug 0.1.0.21
+
+- Restore the missing strokes on all 24 XAML map symbols, keep hollow geometry
+  hollow, restore musical notes and globe meridians, and enlarge gallery choices
+  to 22 px. Complete missing detail strokes on other reused interface glyphs and
+  redraw HTML/PDF export symbols with distinct code/document silhouettes.
+- Recognize the second document click by browser click count or the same path,
+  nearby pointer coordinates and a 500 ms fallback window. Selection target changes
+  no longer require a native dblclick event. Share activation with overview labels;
+  retain single-click selection, Enter opening and gesture/session guards.
+- Rename the distance caption, widen its selector from 120 to 200 px, and use
+  explicit 12 px typography for viewpoint inputs and dropdown items. Give the
+  view-name field 160 px so the larger matching watermark has space.
+- Use bordered inspector buttons with local icons and shorter AI captions. Make
+  incoming/outgoing sections initially collapsed, retaining their expansion while
+  the inspector refreshes during the session. Separate route status from the next
+  section with bottom spacing. Add XML/documentation comments to maintained code.
+- Build/sign/install Debug x64 0.1.0.21 with the matching development certificate
+  7BB013983A2D5379B421A83E104940F33A97AAD8 in LocalMachine/TrustedPeople. Windows
+  confirms version, architecture and Status Ok; launch the installed executable.
+  Repository artifacts include BUILD-INFO.json and separate INSTALL-INFO.json.
+  No interactive checks or test suites ran; the owner performs GUI acceptance.
+  No inference or publication ran. Existing NU1900 audit-cache warnings persist.
+
+## 2026-10-16 — Composed Windows host and Debug 0.1.0.20
+
+- A later owner screenshot showed gray native redraw corruption still present
+  after 0.1.0.18. Retained cards and black DOM computed styles did not establish
+  that native presentation was correct; the earlier acceptance boundary is limited.
+- Replace the visible HWND-hosted browser with WebView2CompositionControl and keep
+  the hidden PDF WebView unchanged. Target Windows 10 APIs explicitly and pin the
+  existing 10.0.19041.57 reference pack so its Windows Runtime assembly is included.
+  A startup check caught that missing assembly in the undelivered 0.1.0.19 package.
+- Contain map painting within its opaque viewport; remove SVG drop-shadow filters
+  and minimap backdrop blur while retaining shared modal material. Synthetic
+  visible-window observation did not reproduce the owner's exact gray failure;
+  its cause and resolution on the real workspace are not proven by those checks.
+- Build/sign/install 0.1.0.20 Debug x64. Verify package Status Ok, exact certificate
+  F26E7618CE8CC747858651927D35F18327CDA58B, the Windows Runtime assembly in the package,
+  and successful startup with a responding WindowsApps process. No suite, inference
+  or publication ran. NuGet audit-cache retrieval produced NU1900; earlier package
+  advisories remain open.
+- The owner requested that GUI checks be left to him because they interrupted
+  active work. Stop interactive checks and record that rule in AGENTS.md. Owner
+  acceptance remains in todo.md; no further window/input/capture operation is authorized
+  without a new explicit request.
+
+## 2026-10-16 — Stable map navigation, semilight UI and Debug 0.1.0.18
+
+- Complete the requested three-agent pass: saved map-inspector splitter and
+  documented content builders, shared theme brushes for existing input captions,
+  and readable AI state/request/reference flows with XML documentation.
+- Fix opening blur through stable template elements; inspect 16 px backdrop blur
+  while Settings stays open. Inspect checkbox, menu and status colors through
+  light/dark/light changes. Use Semilight (350) body text and Medium (500)
+  emphasis, preserving caption bindings and document/editor typography.
+- Resize the inspector from 290 to 400 px and observe restoration to 400 px after
+  terminating and restarting the diagnostic desktop process. Retain the separate
+  persisted AI, sidebar and source/preview layout implemented in 0.1.0.15.
+- Investigate the owner's map flicker report. Sidebar navigation recreated every
+  card and replayed entrance animations. Route it through retained selection,
+  refresh changed metadata in place, and recognize replacement workspace sessions.
+  Keep the map canvas opaque black and use equivalent planar depth scaling so
+  hover/selection do not switch between 3D and 2D transforms.
+- Inspect Debug 0.1.0.18 with 24 synthetic linked documents: sidebar navigation
+  retains all 24 card elements, repeats no entrance animation once the initial
+  presentation settles, and keeps the canvas black. Direct card selection also
+  retains all cards. This focused observation does not establish universal GPU
+  behavior or full atlas acceptance.
+- Bundle/build/sign/install Debug x64 0.1.0.18 with existing tools. Verify current
+  user package Status Ok, exact development certificate in LocalMachine/TrustedPeople,
+  and a responding visible process running from that version's WindowsApps path.
+  Save separate ignored artifacts/INSTALL-INFO.json. No test suite, inference,
+  Git delivery or publication ran. Existing NU1902/NU1903 warnings remain tracked.
+
+## 2026-10-16 — Docked assistant and Debug installation
+
+- Replace the floating assistant with a fixed right-hand pane, standard splitter,
+  closed first-run default and saved open state/width. Retain sidebar geometry and
+  the source/preview ratio separately from appearance preferences.
+- Collapse references into one disclosure row, keep the response above the composer,
+  and show one next-request estimate. Move guidance/accounting to accessible blue
+  information buttons; keep missing-context/input-limit warnings visible.
+- Remove title dragging, compact mode, floating geometry and document spacer CSS;
+  reuse unchanged reference rows instead of rebuilding them while typing.
+- Build/sign Debug x64 0.1.0.15 using existing Node 24.19.0 and .NET SDK 10.0.402.
+  Import that build's development certificate and update the current-user package.
+  Windows reports version 0.1.0.15, Status Ok; its installed executable launched
+  and displayed the reader. No test suite or live inference ran. Existing
+  NU1902/NU1903 dependency advisories remain separate maintenance work.
+- Record standing owner authorization for local Debug forced closure, discarding
+  unsaved in-app work, certificate trust and installation in AGENTS.md. Source
+  documents and unrelated data/certificates remain outside that authorization.
+- The owner then reported missing settings blur while open and requested a saved
+  map-inspector splitter, complete theme refresh and three-agent readability work.
+  Those follow-ups are tracked separately; installation is not their acceptance.
+
+## 2026-10-16 — Authorized 0.1.0.13 local installation
+
+- Receive explicit owner consent for development certificate
+  E5C9ACC815B3399618A25C0B6F944C0E301216C1, publisher CN=Umberto Giacobbi,
+  in LocalMachine/TrustedPeople and installation of the 0.1.0.13 update.
+- Verify the bundle against its build checksum and the certificate against the
+  authorized thumbprint/publisher. Import that exact certificate through the
+  prepared elevated helper, then install the bundle for the current Windows user.
+- Windows confirms UmbertoGiacobbi.MarkVibe 0.1.0.13, X64, Status Ok. The existing
+  direct desktop preview remains open. Record deployment in the ignored
+  artifacts/installation-result-0.1.0.13.json without rewriting build checksums.
+  No tests, API validation or functional acceptance were performed.
+
 ## 2026-10-16 — Document atlas implementation and local checkpoints
 
 - Implement the seven owner-approved map improvements: semantic zoom and readable

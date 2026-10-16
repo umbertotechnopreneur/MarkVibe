@@ -1,0 +1,21 @@
+[
+  {
+    "Name": "MarkVibe Desktop",
+    "Projects": [
+      {
+        "Path": "src\\MarkVibe.Windows\\MarkVibe.Windows.csproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "MarkVibe Browser",
+    "Projects": [
+      {
+        "Path": "src\\MarkVibe.Browser\\MarkVibe.Browser.csproj",
+        "Action": "Start",
+        "DebugTarget": "MarkVibe Debug"
+      }
+    ]
+  }
+]

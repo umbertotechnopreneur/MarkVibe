@@ -8,6 +8,7 @@
   Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Modified with AI: OpenAI Codex; truthful origin story and VibeWare publication disclosure; 2026-10-16
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
@@ -20,19 +21,31 @@ VBWR E -->
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:controls="clr-namespace:MarkVibe.Controls"
+ xmlns:toolkit="clr-namespace:System.Windows.Controls;assembly=OpenSilver.Controls.Toolkit"
  Title="About MarkVibe" Width="1000" Height="680" Style="{StaticResource AppDialog}">
  <Grid>
-  <Grid.RowDefinitions><RowDefinition Height="168" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+  <Grid.RowDefinitions><RowDefinition Height="128" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
   <Grid Background="#101528">
    <Image x:Name="HeroImage" Stretch="UniformToFill" IsHitTestVisible="False" />
-   <StackPanel VerticalAlignment="Center" Margin="30,0"><TextBlock Text="MarkVibe" FontSize="38" FontWeight="SemiBold" Foreground="White" /><TextBlock Text="Read. Annotate. Keep it yours." FontSize="14" Foreground="#DDD9FA" Margin="0,8,0,0" /></StackPanel>
+   <Grid Margin="20,0">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+     <TextBlock Text="MarkVibe" FontSize="34" FontWeight="Medium" Foreground="White"/>
+     <TextBlock Text="Read local Markdown, explore document links on a map, and customize your workspace." FontSize="12" Foreground="#DDD9FA" Margin="0,6,0,0" TextWrapping="Wrap"/>
+    </StackPanel>
+    <HyperlinkButton Grid.Column="1" Style="{StaticResource AppLink}" Click="Manifesto" VerticalAlignment="Center" AutomationProperties.Name="Participates in VibeWare. Read the manifesto" ToolTipService.ToolTip="Participates in VibeWare. Read the manifesto" controls:IconLabel.HideIcon="True">
+     <Image x:Name="VibeWareLogo" Width="52" Height="52" Stretch="Uniform" IsHitTestVisible="False"/>
+    </HyperlinkButton>
+   </Grid>
   </Grid>
   <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
    <Grid x:Name="AboutColumns" Margin="28,22">
     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
     <StackPanel x:Name="StoryColumn">
-     <TextBlock Text="I created MarkVibe because I was frustrated by the Markdown readers I tried: I could read, but taking handwritten notes or getting a useful PDF or HTML export meant extra tools, awkward steps, or a different operating system." FontSize="14" TextWrapping="Wrap" />
+     <TextBlock Text="A weekend project" FontSize="19" FontWeight="Medium" Margin="0,0,0,12"/>
+     <TextBlock Text="I started MarkVibe as a quick weekend project because I was frustrated with Markdown readers. I did not want to launch Visual Studio Code, or a browser, just to read a few MD files." FontSize="13" TextWrapping="Wrap"/>
+     <TextBlock Text="I wanted a reader I could customize completely. Keeping the code small lets me change how it works without navigating a huge codebase." FontSize="13" TextWrapping="Wrap" Margin="0,12,0,0"/>
      <Grid Margin="0,20,0,0">
       <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
       <TextBlock Text="Version" Foreground="{StaticResource MutedText}" FontSize="12" Margin="0,0,16,8" /><TextBlock x:Name="VersionText" Grid.Column="1" FontSize="12" TextWrapping="Wrap" />
@@ -40,27 +53,31 @@ VBWR E -->
      </Grid>
     </StackPanel>
     <StackPanel x:Name="LinksColumn" Grid.Column="2">
-     <TextBlock Text="Made for my documents" FontSize="19" FontWeight="SemiBold" Margin="0,0,0,10" />
-     <TextBlock Text="I wanted one place to read my local documents, write notes and save a portable copy. MarkVibe keeps ink in a separate file and exports the current page with its images and diagrams." FontSize="13" TextWrapping="Wrap" Margin="0,0,0,12" />
-     <TextBlock Text="I release MarkVibe as free software under the MIT license. You may use, change, share or sell it, keeping the copyright and license notice." FontSize="13" TextWrapping="Wrap" Margin="0,0,0,12" />
-     <HyperlinkButton Content="GitHub repository" Style="{StaticResource AppLink}" Click="Repository" ToolTipService.ToolTip="Open the MarkVibe repository on GitHub" HorizontalAlignment="Left" />
-     <HyperlinkButton Content="MIT license" Style="{StaticResource AppLink}" Click="License" ToolTipService.ToolTip="Read the MIT license" HorizontalAlignment="Left" />
-     <HyperlinkButton Content="Report a problem" Style="{StaticResource AppLink}" Click="ReportIssue" ToolTipService.ToolTip="Report a problem on GitHub" HorizontalAlignment="Left" />
+     <TextBlock Text="This is VibeWare" FontSize="19" FontWeight="Medium" Margin="0,0,0,12"/>
+     <TextBlock Text="I created this software with AI assistance. I define its purpose, guide the implementation, and take responsibility for checking functionality, performance, and security." FontSize="13" TextWrapping="Wrap"/>
+     <TextBlock Text="I am Umberto Giacobbi. MarkVibe participates in my VibeWare initiative: useful software built with AI under human direction." FontSize="13" TextWrapping="Wrap" Margin="0,12,0,0"/>
+     <TextBlock Text="Read the manifesto to learn why I created VibeWare." FontSize="13" TextWrapping="Wrap" Margin="0,12,0,4"/>
+     <HyperlinkButton x:Name="ManifestoLink" Style="{StaticResource AppLink}" Click="Manifesto" AutomationProperties.Name="Read the VibeWare manifesto"/>
+     <Border Background="{StaticResource ShellBorder}" Height="1" Margin="0,12"/>
+     <HyperlinkButton x:Name="RepositoryLink" Style="{StaticResource AppLink}" Click="Repository" AutomationProperties.Name="MarkVibe on GitHub"/>
+     <HyperlinkButton x:Name="InitiativeLink" Style="{StaticResource AppLink}" Click="InitiativeRepository" AutomationProperties.Name="VibeWare on GitHub"/>
+     <HyperlinkButton x:Name="AuthorLink" Style="{StaticResource AppLink}" Click="Author" AutomationProperties.Name="Visit umbertogiacobbi.biz"/>
+     <TextBlock Text="I release MarkVibe as free software under the MIT license. You may use, change, share or sell it, keeping the copyright and license notice." FontSize="12" TextWrapping="Wrap" Margin="0,16,0,6" Foreground="{StaticResource MutedText}"/>
+     <HyperlinkButton Content="MIT license" Style="{StaticResource AppLink}" Click="License" ToolTipService.ToolTip="Read the MIT license" controls:IconLabel.HideIcon="True"/>
     </StackPanel>
    </Grid>
   </ScrollViewer>
   <Border Grid.Row="2" Padding="28,16,28,18" BorderThickness="0,1,0,0" BorderBrush="{StaticResource ShellBorder}">
-   <Grid>
-    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-     <Image x:Name="VibeWareLogo" Width="46" Height="46" Stretch="Uniform" Margin="0,0,16,0" IsHitTestVisible="False" />
-     <StackPanel Grid.Column="1"><TextBlock Text="VibeWare" FontSize="15" FontWeight="SemiBold" /><TextBlock Text="Human intent, AI execution, and plenty of tokens" FontSize="11" Foreground="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,3,16,3" />
-      <StackPanel Orientation="Horizontal"><HyperlinkButton Content="What is VibeWare?" Style="{StaticResource AppLink}" Click="VibeWare" ToolTipService.ToolTip="Discover the VibeWare movement" Margin="0,0,18,0" /><HyperlinkButton Content="Manifesto" Style="{StaticResource AppLink}" Click="Manifesto" ToolTipService.ToolTip="Read the VibeWare manifesto" /></StackPanel>
+   <StackPanel>
+    <toolkit:WrapPanel HorizontalAlignment="Center">
+     <HyperlinkButton Content="Terms" Style="{StaticResource AppLink}" Click="Terms" controls:IconLabel.HideIcon="True"/>
+     <StackPanel Orientation="Horizontal">
+      <TextBlock Text=" · " VerticalAlignment="Center" Foreground="{StaticResource MutedText}"/>
+      <HyperlinkButton Content="Privacy" Style="{StaticResource AppLink}" Click="Privacy" controls:IconLabel.HideIcon="True"/>
      </StackPanel>
-    </Grid>
-    <Button Grid.Column="1" Content="Close" Style="{StaticResource DialogPrimaryButton}" Click="Dismiss" VerticalAlignment="Center" ToolTipService.ToolTip="Close About MarkVibe" controls:IconLabel.HideIcon="True" Margin="12,0,0,0" />
-    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,12,0,0"><TextBlock Text="Created by" FontSize="12" Foreground="{StaticResource MutedText}" VerticalAlignment="Center" Margin="0,0,8,0" /><HyperlinkButton Content="Umberto Giacobbi" Style="{StaticResource AppLink}" Click="Author" ToolTipService.ToolTip="Visit umbertogiacobbi.biz" /></StackPanel>
-   </Grid>
+    </toolkit:WrapPanel>
+    <Button Content="Close" Style="{StaticResource DialogPrimaryButton}" Click="Dismiss" HorizontalAlignment="Right" ToolTipService.ToolTip="Close About MarkVibe" AutomationProperties.Name="Close About MarkVibe" controls:IconLabel.HideIcon="True" Margin="0,8,0,0"/>
+   </StackPanel>
   </Border>
  </Grid>
 </ChildWindow>

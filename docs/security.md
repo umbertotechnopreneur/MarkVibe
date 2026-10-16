@@ -1,6 +1,6 @@
 # Security and resource boundaries
 
-The following boundaries are implemented in source. Authorized checks on 2026-10-11 exercised path/scheme containment, bounded ZIP cases and a browser fixture with scripts, unsafe links and remote images. Those passing regressions cover their specific cases, not a complete security audit. See [validation](validation.md) for coverage and remaining acceptance.
+The following boundaries describe the current source. Authorized checks on 2026-10-11 exercised path/scheme containment, bounded ZIP cases and a browser fixture with scripts, unsafe links and remote images. Those historical regressions cover their specific cases, not the later implementation or a complete security audit. The 2026-10-16 maintainability changes received source/static review only; no build or tests were run for that work. See [validation](validation.md) for recorded coverage and remaining acceptance.
 
 ## Untrusted document content
 
@@ -16,15 +16,33 @@ Current-page HTML/PDF preparation reuses the same HTML, image and Mermaid valida
 
 Local SVG assets use a separate, stricter profile that removes style, links, scripts, image references, filters, foreignObject and animation. Accepted raster files must have supported signatures and bounded header dimensions. Corrupt or unsupported images receive a useful error.
 
-No Markdown content can select an interop method, load a library URL or supply a JavaScript callback. Ink is parsed and validated in C# before SVG rendering; unsupported versions, unknown fields, invalid coordinates/timing and aggregate limits fail explicitly. Unresolved anchors are reported and retained.
+No Markdown content can select an interop method, load a library URL or supply a JavaScript callback. Ink and sticky-note editing, their codecs and their sidecar schemas are retired; annotation files are excluded from providers without deleting user files.
 
-## OpenAI credentials
+## AI connections and OpenAI credentials
+
+Settings retains the selected `api-key` or `codex-cli` provider separately from
+credentials. The API connection is the default. Changing connection never
+silently falls back to another provider, and obsolete/cancelled replies cannot
+replace the captured document revision. Provider test actions are explicit and
+their pass/fail dialogs describe what was actually checked.
 
 The optional Settings validation action makes an authenticated HTTPS `GET` to
 `https://api.openai.com/v1/models`. It sends only the candidate credential; no
-workspace or document content is included. Validation is explicit, has a 20-second
-network timeout and is cancelled when Settings closes. No automatic API check is
-performed when starting the app or opening the dialog.
+workspace or document content is included. Validation is explicit, uses bounded
+request deadlines and is cancelled when Settings closes. Opening Settings reads
+credential status without validating a candidate. Normal application startup
+automatically requests the account model list when a saved key is configured;
+that request carries the credential but no document content and performs no
+generation. Document or selection content and explicitly selected reference
+documents are sent only through an explicit AI action, including its token-count
+preflight. Collection membership and local file/token statistics make no API calls.
+
+Each workspace collection retains at most 16 canonical Markdown paths. At send
+time, the current editing target is excluded from references; each reference is
+limited to 1 MiB UTF-8 and their combined source to 4 MiB. Duplicate or unsafe
+paths are rejected. References are untrusted, read-only request content and do
+not authorize editing those files. The captured current document or selection is
+the only replacement target. Preflight counts include the reference messages.
 
 The authenticated Windows bridge performs the request natively and saves an
 accepted key as the user environment variable `OPENAI_API_KEY`, also updating the
@@ -40,6 +58,28 @@ instead of reflecting remote response bodies. A failed validation preserves any
 previously saved key. The check establishes authentication and model-list access;
 model inference, account credit and quotas require separate checks.
 
+The Windows Codex connection starts the installed CLI with structured arguments
+and standard input, not a shell command containing the prompt. It uses the CLI's
+existing login without returning credentials to the WebView, and does not load
+the user's tool/plugin configuration for the editing session. The working
+directory and response files are temporary; request sessions are ephemeral and
+read-only. Input/output are bounded, and cancellation/deadline terminates the
+child process tree. Documents are passed as captured text rather than granting
+the selected workspace as the process working directory.
+
+Read-only sandboxing is a write restriction, not complete OS isolation for
+filesystem reads. The CLI is an external local program executing with the user's
+identity; its own authentication/network policies remain applicable. A Test
+request uses synthetic text and may consume account usage. No CLI inference or
+credential test is run automatically as a development acceptance check.
+
+The native `--smoke-test` profile intercepts every AI connection, `codex.*` and `openai.*` bridge operation
+before reaching credential or HTTP handlers. Its `openai.status` reports no
+configured key and unavailable storage; other AI operations fail explicitly.
+This guard does not read the user's saved credential and prevents AI network
+requests from that verification profile. It is separate from normal startup
+behavior and does not establish live provider acceptance.
+
 ## Paths and enumeration
 
 Workspace-relative paths are Unicode NFC and case-sensitive. Rooted paths, drive paths, controls, backslashes, noncanonical imported paths and paths escaping the root are rejected. URL percent encoding is handled once for links, never repeatedly for provider filenames.
@@ -53,11 +93,14 @@ Connected scans are cancellable and bounded by 10,000 visited entries, 1,024 dir
 | Path length / segments | 1,024 characters / 64 segments |
 | Relevant workspace entries / Markdown documents | 4,096 / 1,024 |
 | Markdown file | 1 MiB UTF-8 |
-| Aggregate content search index | 8 MiB source bytes per retained workspace |
+| AI reference collection / combined reference source | 16 paths / 4 MiB UTF-8 per request, current editing target excluded |
+| Aggregate metadata/link indexing input | 8 MiB source bytes per retained workspace |
 | Parsed blocks / headings / document links | 2,048 / 512 / 4,096 |
 | Rendered HTML | 3 MiB in UTF-16 code units, with bridge payload bounded separately |
 | Bridge request JSON | 6 MiB in UTF-16 code units |
 | Retained workspace contexts / selected models | 2 / 3 per context |
+| Edited document sessions | 16 per retained workspace |
+| Each document undo/redo stack | 16 entries and 4,194,304 UTF-16 code units |
 | Source editor models | 3 |
 | Visible map / projected edges | 120 nodes / 600 edges |
 | Map sidecar / stored cards / absolute logical coordinates | 1 MiB / 4,096 / 100,000 |
@@ -71,8 +114,6 @@ Connected scans are cancellable and bounded by 10,000 visited entries, 1,024 dir
 | ZIP input / directory | 32 MiB / 2 MiB |
 | ZIP entries / declared expansion | 2,048 / 64 MiB |
 | ZIP per-entry expansion / ratio | 8 MiB / 150:1 |
-| Ink sidecar / annotations / strokes per annotation | 1 MiB / 128 / 256 |
-| Aggregate ink points / captured points per stroke | 20,000 / 4,000 |
 
 Images are lazy and leases have a DOM-host owner. Aggregate intrinsic pixel accounting limits retained images in addition to blob bytes; it is not an exact decoded-heap measurement. URLs are revoked on replacement, refresh, workspace release and host disposal. Pending reads reserve from the shared asset budget before creating URLs.
 
@@ -84,34 +125,41 @@ Only stored and raw-deflate entries are accepted. Non-ASCII filenames must expli
 
 ## Local data and hosting
 
-The Windows host serves only its staged app assets through a fixed HTTPS virtual origin. Native IPC checks the top-level sender URL, protocol version and per-launch capability; only named file/session/ink/map/export operations are available. No COM host objects or shell proxy are exposed. The native service checks canonical relative paths, ignores generated directories, rejects alternate streams/reserved Windows names, and excludes reparse points and junctions. Only user-selected local roots are granted.
+The Windows host serves only its staged app assets through a fixed HTTPS virtual origin. Native IPC checks the top-level sender URL, protocol version and per-launch capability; only named file/session/map/export, appearance/font and OpenAI operations are available. No COM host objects or shell proxy are exposed. The native service checks canonical relative paths, ignores generated directories, rejects alternate streams/reserved Windows names, and excludes reparse points and junctions. Only user-selected local roots are granted.
 
-Native ink writes revalidate the Markdown fingerprint while holding a read lock;
-ink and map writes compare the loaded sidecar revision and commit through a
+Native map writes compare the loaded sidecar revision and commit through a
 temporary file with atomic replacement. This is optimistic external-change
 detection, not cross-process compare-and-swap. Conflicts keep edits in memory and
 preserve the on-disk original; export a backup or explicitly discard/reload.
 Concurrent edits from other applications still require user reconciliation.
 
-Map layouts are strictly validated in C# for version, fields, canonical Markdown
-paths, finite coordinates, 16 colors and 24 local icons. Unsupported/invalid files
-are preserved. Connected browser folders open with read access; an explicit map
+Map layouts accept only schema version 4 and are strictly validated in C# for
+fields, canonical Markdown paths, paired bounded dimensions, finite coordinates,
+16 colors and 24 local icons. Unknown fields, including legacy notes, are rejected.
+Unsupported/invalid files are preserved. Connected browser folders open with read access; an explicit map
 save click requests write permission. Browser writes check the revision before
 opening and committing a temporary writable stream. These new map routes have
 source/static review only; earlier security checks did not exercise them.
 
-Sticky-note sidecars use strict version/field validation, bounded IDs, 128 notes,
-128-character titles, 16 KiB UTF-8 Markdown bodies and a 1 MiB complete-file budget.
-Managed source-backed anchors retain per-anchor fingerprints and leave ambiguous
-targets unresolved. Native writes check both document and sidecar revisions;
-connected browser notes request permission only from an explicit save click and
-check fresh document/sidecar hashes before committing. Note HTML is derived and
-sanitized, with source identities stripped from body previews. These routes have
-source/static review only. See [sticky notes](notes-design.md).
+Edited Markdown lives in bounded managed document sessions and is saved through
+an explicit copy action. Session state distinguishes unsaved work from an exported
+copy; neither state implies that the original workspace file was replaced.
+Source revisions and parsed-model cache entries have separate ownership so
+eviction cannot discard an unsaved revision. Historical annotation designs are
+retained as retired documentation, not active security boundaries.
 
 Native PDF preparation uses a separate WebView2 with page scripts and web messaging disabled, a restrictive CSP and no external resource access. `PrintToPdfStreamAsync` writes through an atomic destination replacement after an OS save choice. Cancellation before commit preserves the previous destination; cancellation cannot undo an already completed commit. Debug smoke options require isolated directories and are rejected in Release.
 
-Local selected documents and images have no upload path in this application. The synthetic demo uses same-origin fetches. Versioned settings, a workspace descriptor, a reading-state record and optionally a connected handle are stored in browser storage; document contents are not persisted by workspace resumption. Disabling remembering clears these entries and the stored handle. Storage failure is handled as a session-only state. Browser regressions asserted no external HTTP requests initiated by the document page; unrelated browser/runtime traffic was not audited.
+Reading, map discovery, local statistics and export do not upload selected documents
+or images. An explicit AI request is the exception: it sends the prompt, current
+document or selection and collected reference text to OpenAI, including preflight.
+The synthetic demo uses same-origin fetches. Versioned settings, a workspace
+descriptor, a reading-state record and optionally a connected handle are stored
+in browser storage; document contents are not persisted by workspace resumption.
+Disabling remembering clears these entries and the stored handle. Storage failure
+is handled as a session-only state. Historical browser regressions asserted no
+external HTTP requests initiated by their document fixtures; they did not exercise
+live AI sends or audit unrelated browser/runtime traffic.
 
 Deployers must provide HTTPS, correct WebAssembly/module MIME types and complete local assets. A tested deployment-specific Content Security Policy is pending: OpenSilver interop and WebAssembly requirements must be evaluated before selecting script directives. No unverified CSP is presented as a security guarantee.
 

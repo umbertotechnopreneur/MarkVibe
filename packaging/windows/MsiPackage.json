@@ -1,0 +1,13 @@
+{
+  "manufacturer": "Umberto Giacobbi",
+  "upgradeCodes": {
+    "Debug": {
+      "x64": "{1F52027F-58B7-4495-BC82-A669B436A5CA}",
+      "arm64": "{EE44A83C-D91C-4249-AF37-75D00A89DEB7}"
+    },
+    "Release": {
+      "x64": "{2815C52B-40B3-4720-8D5F-F54B2BA0EB49}",
+      "arm64": "{8C4301F6-ED27-4B74-86A4-E124B17CA10B}"
+    }
+  }
+}

@@ -10,6 +10,7 @@
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Modified with AI: OpenAI Codex; Markdown AI UI and embedded model catalog; 2026-10-11
+  Modified with AI: OpenAI Codex; discreet publication badge and shared legal footer; 2026-10-16
   Human guidance: Umberto Giacobbi; stateless scoped edits, semantic costs and a one-minute deadline
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
@@ -25,7 +26,7 @@ VBWR E -->
  FontFamily="Segoe UI" Foreground="{StaticResource ShellText}">
  <Grid Background="{StaticResource AcrylicBackground}">
   <Grid.RowDefinitions>
-   <RowDefinition Height="60" /><RowDefinition Height="*" />
+   <RowDefinition Height="60" /><RowDefinition Height="*" /><RowDefinition Height="Auto" />
   </Grid.RowDefinitions>
   <Border Style="{StaticResource FocusHeader}">
    <Grid Margin="12,0">
@@ -46,14 +47,23 @@ VBWR E -->
      <Button x:Name="OpenFolderButton" Content="Open folder" Style="{StaticResource ToolbarButton}" Click="OpenFolder" />
      <Button x:Name="SettingsButton" Content="Settings" Style="{StaticResource ToolbarButton}" Click="ToggleSettings" AutomationProperties.Name="Appearance and settings" ToolTipService.ToolTip="Appearance and settings" />
      <Button x:Name="AboutButton" Content="ⓘ" Style="{StaticResource ToolbarButton}" Click="ShowAbout" AutomationProperties.Name="About MarkVibe" ToolTipService.ToolTip="About MarkVibe" />
+     <HyperlinkButton Style="{StaticResource AppLink}" Click="OpenManifesto" AutomationProperties.Name="Participates in VibeWare. Read the manifesto" ToolTipService.ToolTip="Participates in VibeWare. Read the manifesto" Margin="8,0,0,0" Padding="2" controls:IconLabel.HideIcon="True">
+      <Image x:Name="VibeWareHeaderLogo" Width="34" Height="34" Stretch="Uniform" IsHitTestVisible="False" />
+     </HyperlinkButton>
     </StackPanel>
    </Grid>
   </Border>
   <Grid x:Name="WorkspaceGrid" Grid.Row="1">
-   <Grid.ColumnDefinitions><ColumnDefinition x:Name="SidebarColumn" Width="220" /><ColumnDefinition x:Name="SidebarDividerColumn" Width="1" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+   <Grid.ColumnDefinitions>
+    <ColumnDefinition x:Name="SidebarColumn" Width="220" />
+    <ColumnDefinition x:Name="SidebarDividerColumn" Width="6" />
+    <ColumnDefinition x:Name="DocumentColumn" Width="*" />
+    <ColumnDefinition x:Name="AiDividerColumn" Width="0" />
+    <ColumnDefinition x:Name="AiColumn" Width="0" />
+   </Grid.ColumnDefinitions>
    <Border x:Name="Sidebar" Style="{StaticResource FocusSidebar}">
     <Grid>
-     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
      <StackPanel Margin="20,22,20,12">
       <TextBlock x:Name="WorkspaceName" Text="Sample workspace" FontSize="14" TextTrimming="CharacterEllipsis" />
      </StackPanel>
@@ -68,19 +78,12 @@ VBWR E -->
         SelectedItemChanged="OutlineSelected" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="Current document outline" />
       </TabItem>
      </TabControl>
-     <Grid Grid.Row="2" Margin="14,10,12,8">
-      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-      <HyperlinkButton x:Name="VibeWareFooterLink" Style="{StaticResource AppLink}" Click="OpenManifesto" ToolTipService.ToolTip="Read the VibeWare manifesto" controls:IconLabel.HideIcon="True" HorizontalContentAlignment="Left" VerticalAlignment="Center" Padding="0">
-       <TextBlock Text="This is VibeWare · read our manifesto" FontSize="10" TextWrapping="Wrap" />
-      </HyperlinkButton>
-      <Image x:Name="VibeWareFooterLogo" Grid.Column="1" Width="52" Height="52" Stretch="Uniform" Margin="8,0,0,0" IsHitTestVisible="False" />
-     </Grid>
     </Grid>
    </Border>
-   <GridSplitter x:Name="SidebarSplitter" Grid.Column="1" Width="1" HorizontalAlignment="Center" Background="{StaticResource ShellBorder}" />
+   <GridSplitter x:Name="SidebarSplitter" Grid.Column="1" Width="6" HorizontalAlignment="Center" Background="{StaticResource ShellBorder}" AutomationProperties.Name="Resize document sidebar" />
    <Border x:Name="DocumentPanel" Grid.Column="2" Background="Transparent">
     <Grid>
-     <Grid.RowDefinitions><RowDefinition Height="48" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+     <Grid.RowDefinitions><RowDefinition Height="56" /><RowDefinition Height="*" /></Grid.RowDefinitions>
      <Grid x:Name="DocumentToolbar" Margin="12,0">
       <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -112,12 +115,14 @@ VBWR E -->
       </StackPanel>
      </Border>
     </Grid>
-     <controls:MarkdownAiView x:Name="AiHost" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="380" Height="260" Margin="16" />
      <controls:MarkdownAiWaitView x:Name="AiWaitHost" Visibility="Collapsed" />
     </Grid>
     </Grid>
    </Border>
+   <GridSplitter x:Name="AiSplitter" Grid.Column="3" Width="6" HorizontalAlignment="Center" Background="{StaticResource ShellBorder}" Visibility="Collapsed" AutomationProperties.Name="Resize AI assistant" />
+   <controls:MarkdownAiView x:Name="AiHost" Grid.Column="4" Visibility="Collapsed" />
   </Grid>
+  <controls:AppFooter x:Name="PublicationFooter" Grid.Row="2" />
   <Border x:Name="StatusNotice" Grid.Row="1" Margin="20" Visibility="Collapsed" VerticalAlignment="Bottom" HorizontalAlignment="Right" MaxWidth="520" Padding="12" CornerRadius="8" Background="{StaticResource PanelBackground}">
   <Grid>
    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -127,5 +132,15 @@ VBWR E -->
    <Button Grid.Column="2" Content="×" controls:IconLabel.HideIcon="True" ToolTipService.ToolTip="Close" AutomationProperties.Name="Close" Click="DismissStatus" FontSize="18" Margin="8,0,0,0" />
   </Grid>
   </Border>
+  <Popup x:Name="FileMenuPopup">
+   <Border x:Name="FileMenuSurface" Width="310" Style="{StaticResource FlyoutSurface}" Padding="10" KeyDown="FileMenuKeyDown">
+    <StackPanel>
+     <TextBlock x:Name="FileMenuTitle" Margin="10,8,10,0" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+     <TextBlock x:Name="FileMenuPath" Margin="10,5,10,12" FontSize="10" FontFamily="Consolas" Foreground="{StaticResource MutedText}" TextTrimming="CharacterEllipsis"/>
+     <Border Height="1" Margin="0,0,0,6" Background="{StaticResource ShellBorder}"/>
+     <controls:FileActionsView x:Name="DocumentFileActions"/>
+    </StackPanel>
+   </Border>
+  </Popup>
  </Grid>
 </UserControl>

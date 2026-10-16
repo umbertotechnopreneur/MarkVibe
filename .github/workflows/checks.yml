@@ -1,0 +1,63 @@
+# VBWR B
+# Project: MarkVibe | Creator: Umberto Giacobbi
+# Created with AI: OpenAI Codex; manually selected verification profiles; 2026-10-16
+# Human guidance: same simple checks locally and in CI, separate from delivery
+# Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
+# VBWR E
+name: Verify MarkVibe
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Verification profile
+        type: choice
+        options: [Rapida, InterfacciaWindows, Completa]
+        default: Rapida
+        required: true
+permissions:
+  contents: read
+jobs:
+  quick:
+    if: inputs.profile == 'Rapida'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+      - name: Verify documents and local contracts
+        shell: pwsh
+        run: ./scripts/check.ps1 -Profile Rapida
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: checks-${{ matrix.os }}
+          path: artifacts/checks/
+  interface:
+    if: inputs.profile != 'Rapida'
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+      - name: Verify the selected interface profile
+        shell: pwsh
+        env:
+          MARKVIBE_CHECK_PROFILE: ${{ inputs.profile }}
+        run: ./scripts/check.ps1 -Profile $env:MARKVIBE_CHECK_PROFILE
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: checks-windows-interface
+          path: artifacts/checks/

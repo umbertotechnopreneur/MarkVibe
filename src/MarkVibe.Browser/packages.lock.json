@@ -23,9 +23,9 @@
       },
       "Microsoft.NET.Sdk.WebAssembly.Pack": {
         "type": "Direct",
-        "requested": "[10.0.12, )",
-        "resolved": "10.0.12",
-        "contentHash": "u1XrZ7IAKh4XfqSaU/MsVfi5pz7RgPNn5hZaw5750YulFaSLLc0kFsVxH9jaHxGbdBWWrkovnVA4J9emtrq8tg=="
+        "requested": "[10.0.13, )",
+        "resolved": "10.0.13",
+        "contentHash": "Jnsswa0pti2lHaOx8gx5SwqcVaZrb82fhsjjjt8xNOZ1pzNvlnzP0ivjY6xT4m+CYCbrz3UkM44s1z9Q+GGh+A=="
       },
       "OpenSilver.WebAssembly": {
         "type": "Direct",

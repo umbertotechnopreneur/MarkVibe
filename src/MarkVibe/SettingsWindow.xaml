@@ -9,6 +9,10 @@
 
   Modified with AI: OpenAI Codex; readability and OpenAI key settings; 2026-10-11
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Modified with AI: OpenAI Codex; compact API connection card and installed UI font selector; 2026-10-16
+  Human guidance: Umberto Giacobbi; clearer key management and one font choice for application controls
+  Modified with AI: OpenAI Codex; flat OpenAI settings section without cards or status badges; 2026-10-16
+  Modified with AI: OpenAI Codex; selectable Codex CLI and API connections with explicit tests; 2026-10-16
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
   Copyright (c) 2026 Umberto Giacobbi
@@ -38,6 +42,11 @@ VBWR E -->
      <ComboBox x:Name="LanguageCombo" SelectionChanged="PreferenceChanged" Height="38" AutomationProperties.Name="Application language" ToolTipService.ToolTip="Follow the system language or choose another language">
       <ComboBoxItem Content="System language" /><ComboBoxItem Content="English" /><ComboBoxItem Content="Italiano" /><ComboBoxItem Content="Français" /><ComboBoxItem Content="Tiếng Việt" /><ComboBoxItem Content="简体中文" /><ComboBoxItem Content="廣東話" /><ComboBoxItem Content="Bahasa Indonesia" /><ComboBoxItem Content="한국어" /><ComboBoxItem Content="日本語" />
      </ComboBox>
+     <TextBlock Text="UI FONT" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="UiFontCombo" SelectionChanged="PreferenceChanged" Height="38" IsEnabled="False" AutomationProperties.Name="UI font" ToolTipService.ToolTip="Choose the font for menus, toolbars and dialogs">
+      <ComboBoxItem Content="System default" Tag="system" />
+     </ComboBox>
+     <TextBlock Text="Only installed fonts are shown. Document typography stays separate." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" />
      <CheckBox x:Name="SimpleSourceCheck" Content="Use lightweight source view" Margin="0,18,0,12" Checked="CheckChanged" Unchecked="CheckChanged" ToolTipService.ToolTip="Use a simple source view instead of Monaco" />
      <CheckBox x:Name="RememberDocumentCheck" Content="Remember last workspace" Margin="0,0,0,10" Checked="CheckChanged" Unchecked="CheckChanged" ToolTipService.ToolTip="Reopen the last document at its saved reading position" />
      <TextBlock Text="Document path and reading position stay on this device. Imported files and bundles must be selected again after restarting." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" />
@@ -56,20 +65,43 @@ VBWR E -->
      <TextBlock Text="DARK CODE THEME" Style="{StaticResource DialogSectionLabel}" />
      <ComboBox x:Name="DarkCodeThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose code block colors for dark mode" />
     </StackPanel>
-    <StackPanel x:Name="OpenAiColumn" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,20,0,0">
-     <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-      <Image x:Name="OpenAiLogo" Width="28" Height="28" Stretch="Uniform" Margin="0,0,12,0" />
-      <TextBlock Text="OpenAI" FontSize="18" VerticalAlignment="Center" />
-     </StackPanel>
-     <TextBlock Text="OpenAI API key" FontWeight="SemiBold" Margin="0,0,0,8" />
-     <Grid>
-      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-      <PasswordBox x:Name="OpenAiApiKeyBox" Height="38" MaxLength="4096" Margin="0,0,12,0" AutomationProperties.Name="OpenAI API key" ToolTipService.ToolTip="Paste your OpenAI API key" />
-      <Button x:Name="ValidateOpenAiButton" Grid.Column="1" Content="Validate" Height="38" IsEnabled="False" Style="{StaticResource DialogPrimaryButton}" Click="ValidateOpenAiKey" ToolTipService.ToolTip="Validate the key with OpenAI and save it on this device" controls:IconLabel.HideIcon="True" />
-     </Grid>
-     <TextBlock Text="Validation checks access to the OpenAI model list. It does not send documents or generate text." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
-     <TextBlock x:Name="OpenAiStorageHelp" Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
-     <TextBlock x:Name="OpenAiStatus" Foreground="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
+    <StackPanel x:Name="OpenAiColumn" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,24,0,0">
+      <Border Height="1" Background="{StaticResource ShellBorder}" Margin="0,0,0,20" />
+      <Grid Margin="0,0,0,14">
+       <StackPanel Orientation="Horizontal">
+        <Image x:Name="OpenAiLogo" Width="18" Height="18" Stretch="Uniform" Margin="0,0,8,0" />
+        <TextBlock Text="OpenAI" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+       </StackPanel>
+      </Grid>
+      <Grid x:Name="CodexProviderRow" Margin="0,0,0,14">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+       <RadioButton x:Name="CodexProviderRadio" GroupName="AiProvider" Content="Codex CLI" Tag="codex-cli" Checked="ProviderChanged" VerticalAlignment="Center" Foreground="{StaticResource ShellText}" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource ShellBorder}"/>
+       <Button x:Name="CodexInfoButton" Grid.Column="1" Style="{StaticResource CompactIconButton}" Foreground="#3688D8" Click="ShowConnectionInformation" LostFocus="HideConnectionInformation" AutomationProperties.Name="Codex CLI connection information" Margin="6,0">
+        <controls:VectorIcon Symbol="about" Foreground="#3688D8" Width="16" Height="16"/>
+       </Button>
+       <Button x:Name="TestCodexButton" Grid.Column="2" Content="Test" Style="{StaticResource DialogPrimaryButton}" Click="TestCodexConnection" IsEnabled="False" MinWidth="92" Padding="12,7" FontSize="12" ToolTipService.ToolTip="Test the Codex CLI connection" AutomationProperties.Name="Test the Codex CLI connection"/>
+       <TextBlock x:Name="CodexConnectionStatus" Grid.Row="1" Grid.ColumnSpan="3" Text="Checking status…" Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
+      </Grid>
+      <Grid x:Name="ApiProviderRow">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+       <RadioButton x:Name="ApiProviderRadio" GroupName="AiProvider" Content="OpenAI API key" Tag="api-key" Checked="ProviderChanged" VerticalAlignment="Center" Foreground="{StaticResource ShellText}" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource ShellBorder}"/>
+       <Button x:Name="ApiInfoButton" Grid.Column="1" Style="{StaticResource CompactIconButton}" Foreground="#3688D8" Click="ShowConnectionInformation" LostFocus="HideConnectionInformation" AutomationProperties.Name="OpenAI API connection information" Margin="6,0">
+        <controls:VectorIcon Symbol="about" Foreground="#3688D8" Width="16" Height="16"/>
+       </Button>
+       <Button x:Name="TestApiButton" Grid.Column="2" Content="Test" Style="{StaticResource DialogPrimaryButton}" Click="TestApiConnection" IsEnabled="False" MinWidth="92" Padding="12,7" FontSize="12" ToolTipService.ToolTip="Test the OpenAI API connection" AutomationProperties.Name="Test the OpenAI API connection"/>
+       <TextBlock x:Name="ApiConnectionStatus" Grid.Row="1" Grid.ColumnSpan="3" Text="Checking status…" Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
+      </Grid>
+      <Grid x:Name="OpenAiKeyForm">
+       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+       <TextBlock x:Name="OpenAiKeyLabel" Text="API key" FontSize="12" Foreground="{StaticResource MutedText}" Margin="0,12,0,8" />
+       <PasswordBox x:Name="OpenAiApiKeyBox" Grid.Row="1" Height="38" MaxLength="4096" IsEnabled="False" PasswordChanged="OpenAiKeyChanged" AutomationProperties.Name="OpenAI API key" ToolTipService.ToolTip="Paste your OpenAI API key"/>
+       <TextBlock x:Name="OpenAiKeyHint" Grid.Row="2" Text="Paste a key to connect AI writing tools." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"/>
+      </Grid>
+      <Border x:Name="OpenAiFeedback" Visibility="Collapsed" Margin="0,10,0,0">
+       <TextBlock x:Name="OpenAiStatus" Foreground="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" />
+      </Border>
     </StackPanel>
    </Grid>
   </ScrollViewer>

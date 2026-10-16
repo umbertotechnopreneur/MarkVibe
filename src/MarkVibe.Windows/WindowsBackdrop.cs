@@ -9,6 +9,8 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; accept the composed browser through its shared interface; 2026-10-16
+ * Human guidance: Umberto Giacobbi; coordinate native material with stable Windows rendering
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -23,10 +25,13 @@ using Microsoft.Web.WebView2.Wpf;
 using Microsoft.Win32;
 
 namespace MarkVibe.Windows;
+/// <summary>Coordinates Windows backdrop material with the visible browser and WPF composition surface.</summary>
 internal static class WindowsBackdrop
 {
+    /// <summary>Reports whether this Windows version exposes the system-backdrop window attribute.</summary>
     internal static bool Supported => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621);
 
+    /// <summary>Reads the current system accent, falling back to the application accent when DWM is unavailable.</summary>
     internal static string Accent
     {
         get
@@ -41,7 +46,7 @@ internal static class WindowsBackdrop
     }
 
     /// <summary>Applies the requested Windows backdrop and keeps the host and WebView backgrounds consistent with its availability.</summary>
-    internal static bool Apply(Window window, WebView2 view, bool requested, bool dark)
+    internal static bool Apply(Window window, IWebView2 view, bool requested, bool dark)
     {
         var windowHandle = new WindowInteropHelper(window).Handle;
         if (windowHandle == IntPtr.Zero)
@@ -84,6 +89,7 @@ internal static class WindowsBackdrop
         return enabled;
     }
 
+    /// <summary>Describes the native frame extension; a negative left margin extends the entire client area.</summary>
     [StructLayout(LayoutKind.Sequential)]
     private struct Margins
     {

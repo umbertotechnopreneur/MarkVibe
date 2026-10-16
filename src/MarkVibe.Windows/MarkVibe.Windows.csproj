@@ -9,6 +9,8 @@
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Modified with AI: OpenAI Codex; target the Windows Runtime APIs needed by composition hosting; 2026-10-16
+  Human guidance: Umberto Giacobbi; stable desktop rendering with existing development tools
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
   Copyright (c) 2026 Umberto Giacobbi
@@ -18,7 +20,9 @@ VBWR E -->
 
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <!-- Composition hosting uses Windows Runtime APIs supplied by this already-installed reference pack. -->
+    <WindowsSdkPackageVersion>10.0.19041.57</WindowsSdkPackageVersion>
     <OutputType>WinExe</OutputType>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>

@@ -1,0 +1,70 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.0.0
+MinimumVisualStudioVersion = 18.0.0.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D88B212D-C74E-447A-9F10-FED56FB686E9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkVibe.Windows", "src\MarkVibe.Windows\MarkVibe.Windows.csproj", "{BF146315-FABD-4BF0-968C-7DC696D94A99}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkVibe.Core", "src\MarkVibe.Core\MarkVibe.Core.csproj", "{94D7D812-2329-4E2F-A549-8609ABBCB5A1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkVibe", "src\MarkVibe\MarkVibe.csproj", "{8A64510D-180A-46E0-8F56-328C7518D347}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkVibe.Browser", "src\MarkVibe.Browser\MarkVibe.Browser.csproj", "{87F19F41-F18D-4145-AB38-24B77D3A1737}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkVibe.Native", "src\MarkVibe.Native\MarkVibe.Native.csproj", "{772097D4-C69C-4355-BA7E-B7099832746D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B26B6F6E-F90E-40CD-8C88-AFF1F76C2B48}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkVibe.Core.Checks", "tests\MarkVibe.Core.Checks\MarkVibe.Core.Checks.csproj", "{B3C943C0-59AC-4CD6-9BCF-BBED35378164}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkVibe.Native.Checks", "tests\MarkVibe.Native.Checks\MarkVibe.Native.Checks.csproj", "{C1576575-6855-4FD3-ACF1-F55FD7EE4834}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF146315-FABD-4BF0-968C-7DC696D94A99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF146315-FABD-4BF0-968C-7DC696D94A99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF146315-FABD-4BF0-968C-7DC696D94A99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF146315-FABD-4BF0-968C-7DC696D94A99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94D7D812-2329-4E2F-A549-8609ABBCB5A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94D7D812-2329-4E2F-A549-8609ABBCB5A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94D7D812-2329-4E2F-A549-8609ABBCB5A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94D7D812-2329-4E2F-A549-8609ABBCB5A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A64510D-180A-46E0-8F56-328C7518D347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A64510D-180A-46E0-8F56-328C7518D347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A64510D-180A-46E0-8F56-328C7518D347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A64510D-180A-46E0-8F56-328C7518D347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87F19F41-F18D-4145-AB38-24B77D3A1737}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87F19F41-F18D-4145-AB38-24B77D3A1737}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87F19F41-F18D-4145-AB38-24B77D3A1737}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87F19F41-F18D-4145-AB38-24B77D3A1737}.Release|Any CPU.Build.0 = Release|Any CPU
+		{772097D4-C69C-4355-BA7E-B7099832746D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{772097D4-C69C-4355-BA7E-B7099832746D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{772097D4-C69C-4355-BA7E-B7099832746D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{772097D4-C69C-4355-BA7E-B7099832746D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3C943C0-59AC-4CD6-9BCF-BBED35378164}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3C943C0-59AC-4CD6-9BCF-BBED35378164}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3C943C0-59AC-4CD6-9BCF-BBED35378164}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3C943C0-59AC-4CD6-9BCF-BBED35378164}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1576575-6855-4FD3-ACF1-F55FD7EE4834}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1576575-6855-4FD3-ACF1-F55FD7EE4834}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1576575-6855-4FD3-ACF1-F55FD7EE4834}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1576575-6855-4FD3-ACF1-F55FD7EE4834}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BF146315-FABD-4BF0-968C-7DC696D94A99} = {D88B212D-C74E-447A-9F10-FED56FB686E9}
+		{94D7D812-2329-4E2F-A549-8609ABBCB5A1} = {D88B212D-C74E-447A-9F10-FED56FB686E9}
+		{8A64510D-180A-46E0-8F56-328C7518D347} = {D88B212D-C74E-447A-9F10-FED56FB686E9}
+		{87F19F41-F18D-4145-AB38-24B77D3A1737} = {D88B212D-C74E-447A-9F10-FED56FB686E9}
+		{772097D4-C69C-4355-BA7E-B7099832746D} = {D88B212D-C74E-447A-9F10-FED56FB686E9}
+		{B3C943C0-59AC-4CD6-9BCF-BBED35378164} = {B26B6F6E-F90E-40CD-8C88-AFF1F76C2B48}
+		{C1576575-6855-4FD3-ACF1-F55FD7EE4834} = {B26B6F6E-F90E-40CD-8C88-AFF1F76C2B48}
+	EndGlobalSection
+EndGlobal

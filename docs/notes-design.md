@@ -1,5 +1,8 @@
 > Historical design: pen, ink and sticky-note editing were removed from the app
 > on 2026-10-11. This document describes the retired feature, not the current UI.
+> The remaining codec/schema and provider enumeration were removed on 2026-10-16.
+> Map schema 4 has no notes collection. Names and schema paths below are historical;
+> no legacy files are migrated or deleted.
 
 # Reusable sticky notes
 

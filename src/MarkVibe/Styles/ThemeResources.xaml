@@ -9,6 +9,7 @@
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Modified with AI: OpenAI Codex; shared light and dark validation feedback brush; 2026-10-16
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
   Copyright (c) 2026 Umberto Giacobbi
@@ -23,6 +24,7 @@ VBWR E -->
  <SolidColorBrush x:Key="PanelBackground" Color="#FFFFFF" />
  <SolidColorBrush x:Key="ShellText" Color="#20283A" />
  <SolidColorBrush x:Key="MutedText" Color="#596579" />
+ <SolidColorBrush x:Key="ErrorText" Color="#A31F34" />
  <SolidColorBrush x:Key="ShellBorder" Color="#DDE2EA" />
  <SolidColorBrush x:Key="Accent" Color="#525CE8" />
  <SolidColorBrush x:Key="AccentSoft" Color="#ECEEFE" />

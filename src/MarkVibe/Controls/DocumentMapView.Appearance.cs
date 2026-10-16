@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; card preview, selected color swatches and icon gallery; 2026-10-16
  * Human guidance: Umberto Giacobbi; improve the appearance popup and include file context actions
+ * Modified with AI: OpenAI Codex; enlarge the repaired vector choices; 2026-10-16
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 using System.Text.Json;
@@ -15,6 +16,7 @@ using MarkVibe.Core;
 
 namespace MarkVibe.Controls;
 
+/// <summary>Builds the bounded card-appearance gallery and reflects the managed selection in its preview.</summary>
 public partial class DocumentMapView
 {
     private readonly Dictionary<string, Button> _colorChoices = new(StringComparer.Ordinal);
@@ -73,7 +75,13 @@ public partial class DocumentMapView
         for (var index = 0; index < MapLayoutCodec.Icons.Count; index++)
         {
             var choice = MapLayoutCodec.Icons[index];
-            var button = CreateAppearanceChoice(choice.Label, choice.Value, new VectorIcon { Symbol = "map-" + choice.Value, Width = 20, Height = 20 });
+            var icon = new VectorIcon
+            {
+                Symbol = "map-" + choice.Value,
+                Width = 22,
+                Height = 22
+            };
+            var button = CreateAppearanceChoice(choice.Label, choice.Value, icon);
             button.Click += async (_, _) => await ChangeAppearanceAsync(null, choice.Value);
             PlaceChoice(Icons, button, index);
             _iconChoices.Add(choice.Value, button);
@@ -107,7 +115,7 @@ public partial class DocumentMapView
         return button;
     }
 
-    /// <summary>Places one swatch or icon in the eight-column gallery.</summary>
+    /// <summary>Places one swatch or icon in the gallery's currently available columns.</summary>
     private void PlaceChoice(Grid grid, Button button, int index)
     {
         Grid.SetColumn(button, index % _appearanceColumns);

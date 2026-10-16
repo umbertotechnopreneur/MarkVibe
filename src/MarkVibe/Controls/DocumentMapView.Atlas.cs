@@ -1,11 +1,14 @@
 /* VBWR B
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; XAML atlas controls, preview and route navigation; 2026-10-16
+ * Modified with AI: OpenAI Codex; separate inspector content phases and document navigation contracts; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement all seven document atlas improvements
+ * Modified with AI: OpenAI Codex; visible inspector actions with icons and readable route spacing; 2026-10-16
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -13,11 +16,10 @@ using MarkVibe.Core;
 
 namespace MarkVibe.Controls;
 
+/// <summary>Coordinates saved viewpoints, neighborhood lenses and selected-document navigation.</summary>
 public partial class DocumentMapView
 {
     private bool _updatingAtlas;
-    private bool _inspectorOpen = true;
-    private bool _inspectorExplicit;
     private string _viewSignature = "";
     private Button? _inspectorAiButton;
     private Button? _routeEndButton;
@@ -72,11 +74,12 @@ public partial class DocumentMapView
         {
             _routeClearButton.IsEnabled = !busy && hasRouteStart;
         }
-        if (_inspectorAiButton?.Content is TextBlock aiCaption)
+        if (_inspectorAiButton?.Content is IconLabel aiCaption)
         {
             var included = _state.TryGetProperty("aiContextPaths", out var paths)
                 && paths.EnumerateArray().Any(path => path.GetString() == _selectedPath);
-            AppLocalization.SetText(aiCaption, included ? "Remove selected document from AI context" : "Add selected document to AI context");
+            aiCaption.SetCaption(included ? "Remove from AI context" : "Add to AI context");
+            AutomationProperties.SetName(_inspectorAiButton, UiStrings.T(aiCaption.CaptionKey));
             _inspectorAiButton.IsEnabled = AddToAiButton.IsEnabled;
         }
         _updatingAtlas = false;
@@ -150,27 +153,6 @@ public partial class DocumentMapView
         }
     }
 
-    /// <summary>Toggles document preview, including an explicitly opened overlay on narrow screens.</summary>
-    private void ToggleInspector(object sender, RoutedEventArgs arguments)
-    {
-        _inspectorOpen = LinksPane.Visibility != Visibility.Visible;
-        _inspectorExplicit = true;
-        ReflowMapChrome();
-    }
-
-    /// <summary>Uses a side column on desktop and an optional overlay where the map needs its full width.</summary>
-    private void ReflowInspector()
-    {
-        var wide = ActualWidth > 1000;
-        var visible = _inspectorOpen && (wide || _inspectorExplicit);
-        LinksColumn.Width = new GridLength(visible && wide ? 290 : 0);
-        LinksPane.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        Grid.SetColumn(LinksPane, wide ? 1 : 0);
-        LinksPane.Width = wide ? double.NaN : Math.Max(180, Math.Min(290, ActualWidth - 32));
-        LinksPane.HorizontalAlignment = wide ? HorizontalAlignment.Stretch : HorizontalAlignment.Right;
-        SetMapToggle(InspectorButton, visible);
-    }
-
     /// <summary>Builds a source-backed preview and section navigation for the selected catalog card.</summary>
     private void PopulateInspector(MapSnapshot map)
     {
@@ -178,95 +160,188 @@ public partial class DocumentMapView
         _inspectorAiButton = null;
         _routeEndButton = null;
         _routeClearButton = null;
+
         var card = map.Nodes.FirstOrDefault(node => node.Path == _selectedPath);
         if (card == null)
         {
             return;
         }
-        var title = new TextBlock { FontSize = 19, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
-        AppLocalization.SetRaw(title, card.Title);
-        var path = new TextBlock { FontSize = 10, Foreground = (Brush)Resources["MapChromeText"], TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 16) };
-        AppLocalization.SetRaw(path, card.Path);
-        var preview = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, LineHeight = 20, Margin = new Thickness(0, 0, 0, 14) };
-        AppLocalization.SetRaw(preview, card.Introduction);
-        Links.Children.Add(title);
-        Links.Children.Add(path);
-        Links.Children.Add(preview);
+
+        AddInspectorDocumentDetails(card);
+
+        // Capture the source workspace so stale preview actions cannot navigate a replacement workspace.
         var workspaceId = _workspaceId;
         var documentPath = card.Path;
-        AddInspectorAction("Open document", async () =>
+        AddInspectorAction("book", "Open document", async () =>
         {
             if (_workspaceId == workspaceId && NavigateRequested != null)
             {
                 await NavigateRequested(documentPath, "");
             }
         });
-        _inspectorAiButton = AddInspectorAction("Add selected document to AI context", async () =>
+        _inspectorAiButton = AddInspectorAction("sparkles", "Add to AI context", async () =>
         {
             if (_workspaceId == workspaceId && AddToAiRequested != null)
             {
                 await AddToAiRequested(workspaceId, documentPath);
             }
         });
+
+        AddInspectorHeadings(card, workspaceId);
+        AddInspectorRoute(map, workspaceId);
+    }
+
+    /// <summary>Shows catalog text as user content, leaving document titles and excerpts untranslated.</summary>
+    private void AddInspectorDocumentDetails(DocumentCard card)
+    {
+        var title = new TextBlock
+        {
+            FontSize = 19,
+            FontWeight = FontWeights.Medium,
+            TextWrapping = TextWrapping.Wrap
+        };
+        AppLocalization.SetRaw(title, card.Title);
+        Links.Children.Add(title);
+
+        var path = new TextBlock
+        {
+            FontSize = 10,
+            Foreground = (Brush)Resources["MapChromeText"],
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 8, 0, 16)
+        };
+        AppLocalization.SetRaw(path, card.Path);
+        Links.Children.Add(path);
+
+        var preview = new TextBlock
+        {
+            FontSize = 12,
+            TextWrapping = TextWrapping.Wrap,
+            LineHeight = 20,
+            Margin = new Thickness(0, 0, 0, 14)
+        };
+        AppLocalization.SetRaw(preview, card.Introduction);
+        Links.Children.Add(preview);
+    }
+
+    /// <summary>Adds spaced section links that navigate only while the source workspace remains active.</summary>
+    private void AddInspectorHeadings(DocumentCard card, string workspaceId)
+    {
+        var headings = new StackPanel { Margin = new Thickness(0, 6, 0, 16) };
         foreach (var heading in card.Headings)
         {
-            var caption = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 11,
-                Margin = new Thickness(Math.Max(0, heading.Level - 1) * 8, 2, 0, 2) };
+            var headingIndent = Math.Max(0, heading.Level - 1) * 8;
+            var caption = new TextBlock
+            {
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 11,
+                Margin = new Thickness(headingIndent, 2, 0, 2)
+            };
             AppLocalization.SetRaw(caption, heading.Text);
-            var button = new HyperlinkButton { Content = caption, HorizontalContentAlignment = HorizontalAlignment.Left };
+
+            var button = new HyperlinkButton
+            {
+                Content = caption,
+                HorizontalContentAlignment = HorizontalAlignment.Left
+            };
             button.Click += async (_, _) => await RunActionAsync(async () =>
             {
                 if (_workspaceId == workspaceId && NavigateRequested != null)
                 {
-                    await NavigateRequested(documentPath, heading.Id);
+                    await NavigateRequested(card.Path, heading.Id);
                 }
             });
-            Links.Children.Add(button);
+            headings.Children.Add(button);
         }
-        AddInspectorAction("Set route start", () => AtlasCommandAsync("atlas-route-start"));
-        _routeEndButton = AddInspectorAction("Find route to this document", () => AtlasCommandAsync("atlas-route-end"));
-        _routeClearButton = AddInspectorAction("Clear route", () => AtlasCommandAsync("atlas-route-clear"));
-        if (_state.ValueKind == JsonValueKind.Object && _state.TryGetProperty("routeStart", out var start) && start.GetString() is { Length: > 0 } startPath)
+        Links.Children.Add(headings);
+    }
+
+    /// <summary>Adds route commands and the current route's source, summary and document steps.</summary>
+    private void AddInspectorRoute(MapSnapshot map, string workspaceId)
+    {
+        AddInspectorAction("route-start", "Set route start", () => AtlasCommandAsync("atlas-route-start"));
+        _routeEndButton = AddInspectorAction("route", "Find route to this document", () => AtlasCommandAsync("atlas-route-end"));
+        _routeClearButton = AddInspectorAction("close", "Clear route", () => AtlasCommandAsync("atlas-route-clear"));
+
+        if (_state.ValueKind == JsonValueKind.Object
+            && _state.TryGetProperty("routeStart", out var routeStart)
+            && routeStart.GetString() is { Length: > 0 } startPath)
         {
-            var startLabel = new TextBlock { FontSize = 10, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
+            var startLabel = new TextBlock
+            {
+                FontSize = 10,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = LinkMutedBrush(),
+                Margin = new Thickness(0, 4, 0, 16)
+            };
             AppLocalization.SetText(startLabel, "Route start: {0}", startPath);
             Links.Children.Add(startLabel);
         }
-        if (map.RouteMessage.Length > 0)
+
+        if (map.RouteMessage.Length == 0)
         {
-            var routeLabel = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) };
-            AppLocalization.SetText(routeLabel, map.RouteMessage, Math.Max(0, (map.Route?.Count ?? 0) - 1));
-            Links.Children.Add(routeLabel);
-            var direction = new TextBlock { FontSize = 10, Foreground = (Brush)Resources["MapChromeText"], TextWrapping = TextWrapping.Wrap };
-            AppLocalization.SetText(direction, "Connections in either direction");
-            Links.Children.Add(direction);
-            foreach (var routePath in map.Route ?? [])
-            {
-                var routeCard = map.Nodes.FirstOrDefault(node => node.Path == routePath);
-                var caption = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 11 };
-                AppLocalization.SetRaw(caption, routeCard?.Title ?? routePath);
-                var button = new HyperlinkButton { Content = caption, HorizontalContentAlignment = HorizontalAlignment.Left };
-                button.Click += async (_, _) => await RunActionAsync(async () =>
-                {
-                    if (_workspaceId == workspaceId && CenterDocumentRequested != null)
-                    {
-                        await CenterDocumentRequested(workspaceId, routePath);
-                    }
-                });
-                Links.Children.Add(button);
-            }
+            return;
+        }
+
+        var routeLabel = new TextBlock
+        {
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 8, 0, 8)
+        };
+        var connectionCount = Math.Max(0, (map.Route?.Count ?? 0) - 1);
+        AppLocalization.SetText(routeLabel, map.RouteMessage, connectionCount);
+        Links.Children.Add(routeLabel);
+
+        var direction = new TextBlock
+        {
+            FontSize = 10,
+            Foreground = (Brush)Resources["MapChromeText"],
+            TextWrapping = TextWrapping.Wrap
+        };
+        AppLocalization.SetText(direction, "Connections in either direction");
+        Links.Children.Add(direction);
+
+        foreach (var routePath in map.Route ?? [])
+        {
+            var routeCard = map.Nodes.FirstOrDefault(node => node.Path == routePath);
+            AddInspectorRouteStep(workspaceId, routePath, routeCard?.Title ?? routePath);
         }
     }
 
-    /// <summary>Creates a localized inspector action whose failures use the existing managed notice.</summary>
-    private Button AddInspectorAction(string label, Func<Task> action)
+    /// <summary>Creates a route step that centers its document without opening or changing it.</summary>
+    private void AddInspectorRouteStep(string workspaceId, string documentPath, string title)
     {
-        var caption = new TextBlock();
-        AppLocalization.SetText(caption, label);
-        var button = new Button { Content = caption, Style = (Style)Resources["MapToolbarButton"],
-            HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 3, 0, 3) };
+        var caption = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 11 };
+        AppLocalization.SetRaw(caption, title);
+
+        var button = new HyperlinkButton
+        {
+            Content = caption,
+            HorizontalContentAlignment = HorizontalAlignment.Left
+        };
+        button.Click += async (_, _) => await RunActionAsync(async () =>
+        {
+            if (_workspaceId == workspaceId && CenterDocumentRequested != null)
+            {
+                await CenterDocumentRequested(workspaceId, documentPath);
+            }
+        });
+        Links.Children.Add(button);
+    }
+
+    /// <summary>Creates a bordered icon action whose localized caption wraps and whose failures use the managed notice.</summary>
+    private Button AddInspectorAction(string icon, string label, Func<Task> action)
+    {
+        var button = new Button
+        {
+            Content = new IconLabel(icon, label),
+            Style = (Style)Resources["MapInspectorAction"]
+        };
+        AutomationProperties.SetName(button, UiStrings.T(label));
         button.Click += async (_, _) => await RunActionAsync(action);
         Links.Children.Add(button);
+
         return button;
     }
 }

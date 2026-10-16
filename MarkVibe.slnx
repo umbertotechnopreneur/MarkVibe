@@ -8,6 +8,7 @@
   Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Modified with AI: OpenAI Codex; align desktop-first project order with the Visual Studio solution; 2026-10-16
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
@@ -18,11 +19,11 @@ VBWR E -->
 
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/MarkVibe.Windows/MarkVibe.Windows.csproj" />
     <Project Path="src/MarkVibe.Core/MarkVibe.Core.csproj" />
     <Project Path="src/MarkVibe/MarkVibe.csproj" />
     <Project Path="src/MarkVibe.Browser/MarkVibe.Browser.csproj" />
     <Project Path="src/MarkVibe.Native/MarkVibe.Native.csproj" />
-    <Project Path="src/MarkVibe.Windows/MarkVibe.Windows.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/MarkVibe.Core.Checks/MarkVibe.Core.Checks.csproj" />

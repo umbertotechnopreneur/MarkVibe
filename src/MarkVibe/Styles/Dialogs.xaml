@@ -8,6 +8,8 @@
   Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Modified with AI: OpenAI Codex; shared frosted modal surfaces and accessible motion; 2026-10-16
+  Modified with AI: OpenAI Codex; named backdrop independent of opening lifecycle callbacks; 2026-10-16
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
@@ -52,22 +54,26 @@ VBWR E -->
   <Setter Property="Margin" Value="0,20,0,8" />
  </Style>
  <Style x:Key="AppDialog" TargetType="ChildWindow">
+  <Setter Property="controls:DialogMotion.IsEnabled" Value="True" />
   <Setter Property="Background" Value="{StaticResource AcrylicPanel}" /><Setter Property="Foreground" Value="{StaticResource ShellText}" />
-  <Setter Property="BorderThickness" Value="0" /><Setter Property="OverlayBrush" Value="#111621" /><Setter Property="OverlayOpacity" Value="0.22" />
+  <Setter Property="BorderThickness" Value="0" /><Setter Property="OverlayBrush" Value="#38111621" /><Setter Property="OverlayOpacity" Value="1" />
   <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
   <Setter Property="FontFamily" Value="Segoe UI" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Stretch" />
   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ChildWindow">
-   <Grid x:Name="Root" controls:Backdrop.BlurRadius="16">
+   <Grid x:Name="Root">
     <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="WindowStates"><VisualState x:Name="Open" /><VisualState x:Name="Closed" /></VisualStateGroup></VisualStateManager.VisualStateGroups>
-    <Grid x:Name="Overlay" Background="{TemplateBinding OverlayBrush}" Opacity="{TemplateBinding OverlayOpacity}" />
+    <!-- The stable template name applies blur before native Loaded callbacks decorate the final DOM. -->
+    <Grid x:Name="DialogBackdrop">
+     <Grid x:Name="Overlay" Background="{TemplateBinding OverlayBrush}" Opacity="{TemplateBinding OverlayOpacity}" />
+    </Grid>
     <Border x:Name="ContentRoot" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
      <Border.RenderTransform><TransformGroup><TranslateTransform /></TransformGroup></Border.RenderTransform>
-     <Border Background="{TemplateBinding Background}" CornerRadius="16" Effect="{StaticResource DialogElevation16}">
+     <Border x:Name="DialogGlassSurface" Background="{TemplateBinding Background}" CornerRadius="16" Effect="{StaticResource DialogElevation16}">
       <Grid>
        <Grid.RowDefinitions><RowDefinition Height="48" /><RowDefinition Height="*" /></Grid.RowDefinitions>
        <Border x:Name="Chrome" Padding="20,0,10,0" Background="Transparent">
         <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-         <ContentControl Content="{TemplateBinding Title}" FontSize="13" FontWeight="SemiBold" IsTabStop="False" VerticalAlignment="Center" />
+         <ContentControl Content="{TemplateBinding Title}" FontSize="13" FontWeight="Medium" IsTabStop="False" VerticalAlignment="Center" />
          <Button x:Name="CloseButton" Grid.Column="1" Content="×" Style="{StaticResource AppBarButton}" ToolTipService.ToolTip="Close dialog" AutomationProperties.Name="Close dialog" controls:IconLabel.HideIcon="True" FontSize="22" Width="38" Padding="0" />
         </Grid>
        </Border>

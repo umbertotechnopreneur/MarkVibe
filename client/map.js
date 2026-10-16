@@ -17,6 +17,11 @@
  * Modified with AI: OpenAI Codex; graduated spatial depth and fading toward distant endpoints; 2026-10-16
  * Modified with AI: OpenAI Codex; integrate semantic zoom, folder islands, minimap and atlas routes; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement the seven approved document atlas improvements
+ * Modified with AI: OpenAI Codex; retain card content and use stable planar depth during navigation; 2026-10-16
+ * Human guidance: Umberto Giacobbi; remove gray flashes and flicker when navigating the map
+ * Modified with AI: OpenAI Codex; recognize document double activation across selection redraws; 2026-10-16
+ * Modified with AI: OpenAI Codex; integrate bounded exploration gestures and finite directional effects; 2026-10-16
+ * Modified with AI: OpenAI Codex; cancel stale graph effects and avoid repeated geometry-mode queries; 2026-10-16
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -30,12 +35,14 @@ import { iconSvg } from "./icons.js";
 import { enableMapSaving } from "./workspaces.js";
 import { makeId } from "./path.js";
 import { MapAtlasRenderer } from "./map-atlas.js";
+import { MapExplorationRenderer } from "./map-effects.js";
 
 const svgNamespace = "http://www.w3.org/2000/svg";
 // Presentation constants are shared by transforms, world bounds and search centering.
 const depthAppearance = Object.freeze({
   maximumLevel: 12,
   planeSpacing: 85,
+  perspectiveDistance: 900,
   opacityStep: .042,
   selectedScale: 1.28,
   flatSelectedScale: 1.14
@@ -51,6 +58,7 @@ function svgElement(name, attributes = {}) {
 
   return element;
 }
+/** Retains the graph's DOM, camera and pointer gestures while C# owns document and layout state. */
 export class MapHost {
   /** Mount graph controls and register the map's pointer, keyboard and resize handlers. */
   constructor(element, id, emit) {
@@ -70,6 +78,7 @@ export class MapHost {
     this.nodes = new Map();
     this.revealAnimations = [];
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    this.coarsePointer = matchMedia("(pointer:coarse)");
     this.motionChanged = () => {
       this.cancelReveal();
       this.cancelCamera();
@@ -88,6 +97,7 @@ export class MapHost {
 
     this.body.append(this.viewport);
     this.atlas = new MapAtlasRenderer(this);
+    this.effects = new MapExplorationRenderer(this);
     // Capture before card gestures as well as background panning can change their coordinate frame.
     this.viewport.addEventListener("pointerdown", () => this.cancelCamera(), { capture: true });
     this.cancelCameraOnEscape = event => {
@@ -104,6 +114,7 @@ export class MapHost {
       }
 
       this.setHoveredEdge(null);
+      this.lastCardClick = null;
       this.drag = { pointer: event.pointerId, x: event.clientX - this.x, y: event.clientY - this.y };
 
       this.viewport.setPointerCapture(event.pointerId);
@@ -150,7 +161,7 @@ export class MapHost {
 
       event.preventDefault();
       // A drag retains its starting scale; consume wheel input without changing it mid-gesture.
-      if (this.cardDrag || this.cardResize || this.drag) {
+      if (this.cardDrag || this.cardResize || this.drag || this.effects.lasso) {
         return;
       }
 
@@ -193,7 +204,7 @@ export class MapHost {
   }
   /** Choose the compact map layout for narrow containers or coarse pointer devices. */
   small() {
-    return this.container.clientWidth < 650 || matchMedia("(pointer:coarse)").matches;
+    return this.container.clientWidth < 650 || this.coarsePointer.matches;
   }
   /** Drain card edits before a whole-map arrangement and retain the originating workspace session. */
   async action(action, data = {}) {
@@ -213,6 +224,8 @@ export class MapHost {
 
     this.arranging = true;
     this.cancelCamera();
+    this.effects.cancelPulses();
+    this.effects.cancelRectangle();
     this.body.inert = true;
     this.setHoveredEdge(null);
     this.cancelCardResize();
@@ -271,6 +284,7 @@ export class MapHost {
 
     if (this.state && this.state.stateId !== state.stateId) {
       this.pendingEdits.clear();
+      this.lastCardClick = null;
     }
 
     if (state.acknowledged) {
@@ -316,6 +330,7 @@ export class MapHost {
     }
     this.syncCards();
     this.atlas.acceptState();
+    this.effects.acceptState();
     this.updateBounds();
     if (!this.cardDrag && !this.cardResize) {
       this.applyDepth();
@@ -332,6 +347,10 @@ export class MapHost {
 
     this.rendering = true;
     this.cancelCamera();
+    // Rebuilt connections must not leave pulses attached to the previous SVG or
+    // commit a rectangle measured against cards that are about to be replaced.
+    this.effects.cancelPulses();
+    this.effects.cancelRectangle();
 
     const changedWorkspace = this.workspaceId !== workspaceId;
     const previousSelected = this.selected;
@@ -346,6 +365,7 @@ export class MapHost {
 
     if (changedWorkspace) {
       this.pendingEdits.clear();
+      this.lastCardClick = null;
     }
 
     this.workspaceId = workspaceId;
@@ -385,7 +405,13 @@ export class MapHost {
     const routeMarker = marker.cloneNode(true);
     routeMarker.id = "arrow-route-" + this.id;
     routeMarker.firstElementChild.setAttribute("fill", "#e8c87a");
-    definitions.append(marker, routeMarker);
+    const incomingMarker = marker.cloneNode(true);
+    incomingMarker.id = "arrow-incoming-" + this.id;
+    incomingMarker.firstElementChild.setAttribute("fill", "#55d7cf");
+    const outgoingMarker = marker.cloneNode(true);
+    outgoingMarker.id = "arrow-outgoing-" + this.id;
+    outgoingMarker.firstElementChild.setAttribute("fill", "#b7a3ff");
+    definitions.append(marker, routeMarker, incomingMarker, outgoingMarker);
     this.graph.append(definitions);
 
     for (const edge of map.edges) {
@@ -444,11 +470,7 @@ export class MapHost {
         retained.container.classList.toggle("selected", isSelected);
         retained.card.classList.toggle("selected", isSelected);
         retained.card.setAttribute("aria-pressed", String(isSelected));
-        retained.card.querySelector(".map-card-header > strong").textContent = node.title;
-        retained.card.querySelector(".page-introduction").textContent = node.introduction;
-        const outline = retained.card.querySelector(".map-card-outline");
-        outline?.replaceChildren(...(node.headings ?? []).slice(0, 3).map(heading => textElement("span", heading.text)));
-        localize(retained.card, "Select {0}, {1}", "aria-label", node.title, node.path);
+        this.refreshCardContent(retained, node);
         fragment.append(retained.container);
         this.cards.set(node.path, retained);
         continue;
@@ -484,33 +506,24 @@ export class MapHost {
       card.append(outline);
 
       // Keyboard focus must never land on a card still waiting for its entrance delay.
-      card.addEventListener("focus", () => this.cancelReveal());
-
-      card.addEventListener("click", event => {
-
-        if (event.detail > 0 && this.suppressClick === node.path) {
-          this.suppressClick = null;
-          return;
-        }
-
-        this.selectCard(node.path);
-
+      card.addEventListener("focus", () => {
+        this.cancelReveal();
+        this.effects.focus(node.path);
       });
-      card.addEventListener("dblclick", event => {
-        event.preventDefault();
-        if (!this.suspended && !this.arranging && performance.now() >= (this.suppressOpenUntil ?? 0)) {
-          this.emit({ type: "navigate", path: node.path, anchor: "" });
-        }
-      });
+      card.addEventListener("blur", () => this.effects.focus(null));
+
+      card.addEventListener("click", event => this.activateCard(node.path, event));
       container.addEventListener("pointerenter", event => {
         if (event.pointerType !== "touch" && !this.drag && !this.cardDrag && !this.cardResize) {
           this.cancelReveal();
           container.classList.add("hovered");
+          this.effects.focus(node.path);
           this.animateConnections();
         }
       });
       container.addEventListener("pointerleave", () => {
         container.classList.remove("hovered");
+        this.effects.focus(null);
         this.animateConnections();
       });
 
@@ -518,7 +531,8 @@ export class MapHost {
 
         event.preventDefault();
         event.stopPropagation();
-        this.openPicker(node, { x: event.clientX, y: event.clientY }, card);
+        const currentNode = this.map.nodes.find(candidate => candidate.path === node.path) ?? node;
+        this.openPicker(currentNode, { x: event.clientX, y: event.clientY });
 
       });
 
@@ -526,7 +540,11 @@ export class MapHost {
         if (event.key === "Enter") { event.preventDefault(); this.emit({ type: "navigate", path: node.path, anchor: "" }); }
         if (event.key === " ") {
           event.preventDefault();
-          this.selectCard(node.path);
+          if (this.state.exploration?.selectionEnabled || event.ctrlKey || event.metaKey || event.shiftKey) {
+            void this.effects.command("toggle", { path: node.path });
+          } else {
+            this.selectCard(node.path);
+          }
         }
 
         if (event.key === "Escape" && this.cardDrag) {
@@ -539,7 +557,8 @@ export class MapHost {
 
           event.preventDefault();
           const bounds = card.getBoundingClientRect();
-          this.openPicker(node, { x: bounds.left + 20, y: bounds.top + 32 }, card);
+          const currentNode = this.map.nodes.find(candidate => candidate.path === node.path) ?? node;
+          this.openPicker(currentNode, { x: bounds.left + 20, y: bounds.top + 32 });
 
         }
 
@@ -574,7 +593,7 @@ export class MapHost {
       container.append(card, grip);
       fragment.append(container);
 
-      this.cards.set(node.path, { container, card, badge, grip, icon: "file" });
+      this.cards.set(node.path, { container, card, badge, grip, icon: "file", contentSignature: JSON.stringify(node) });
 
     }
 
@@ -607,15 +626,59 @@ export class MapHost {
     }
     this.emit({ type: "map-select", path, center, workspaceId: this.workspaceId, stateId: this.state?.stateId });
   }
+  /** Select once or open on a second nearby click, even when selection changes the DOM target. */
+  activateCard(path, event, center = false) {
+    if (this.suspended || this.arranging || this.cardResize) {
+      this.lastCardClick = null;
+      return;
+    }
+    if (event.detail > 0 && this.suppressClick === path) {
+      this.suppressClick = null;
+      this.lastCardClick = null;
+      return;
+    }
+    if (this.state.exploration?.selectionEnabled || event.ctrlKey || event.metaKey || event.shiftKey) {
+      this.lastCardClick = null;
+      void this.effects.command("toggle", { path });
+      return;
+    }
+
+    const previousClick = this.lastCardClick;
+    this.lastCardClick = null;
+
+    // Keyboard-generated clicks select only; Enter keeps its explicit opening action.
+    if (event.detail > 0 && performance.now() >= (this.suppressOpenUntil ?? 0)) {
+      const elapsed = previousClick ? event.timeStamp - previousClick.time : Infinity;
+      const repeatedCard = previousClick?.path === path
+        && elapsed >= 0 && elapsed <= 500
+        && Math.hypot(event.clientX - previousClick.x, event.clientY - previousClick.y) <= 6;
+
+      // Browser click counts honor the OS interval. The path-based fallback survives
+      // a changed child target, retained-card reparenting and native composition input.
+      if (previousClick?.path === path && event.detail === 2 || repeatedCard) {
+        event.preventDefault();
+        this.emit({ type: "navigate", path, anchor: "" });
+        return;
+      }
+      this.lastCardClick = { path, time: event.timeStamp, x: event.clientX, y: event.clientY };
+    }
+
+    this.selectCard(path, center);
+  }
   /** Apply managed selection in place, preserving pointer identity for the following double click. */
   applySelection(args) {
+    // A newly mounted renderer may receive navigation before its first full presentation.
+    if (!this.state) {
+      this.render(args);
+      return;
+    }
     if (args.workspaceId !== this.workspaceId || args.state.stateId !== this.state?.stateId) {
       return;
     }
-    const incomingPaths = new Set(args.map.nodes.map(node => node.path));
+    const incomingNodes = new Map(args.map.nodes.map(node => [node.path, node]));
     const incomingEdges = JSON.stringify(args.map.edges);
     const edgesChanged = incomingEdges !== JSON.stringify(this.map.edges);
-    if (edgesChanged || incomingPaths.size !== this.cards.size || [...this.cards.keys()].some(path => !incomingPaths.has(path))) {
+    if (edgesChanged || incomingNodes.size !== this.cards.size || [...this.cards.keys()].some(path => !incomingNodes.has(path))) {
       this.render({ ...args, preserveCamera: true });
       if (args.center) {
         this.centerCard(args.selected);
@@ -628,6 +691,7 @@ export class MapHost {
     this.selected = args.selected;
     this.cancelReveal();
     for (const [path, item] of this.cards) {
+      this.refreshCardContent(item, incomingNodes.get(path));
       const selected = path === args.selected;
       item.container.classList.toggle("selected", selected);
       item.card.classList.toggle("selected", selected);
@@ -646,6 +710,22 @@ export class MapHost {
     if (args.center) {
       this.centerCard(args.selected);
     }
+  }
+  /** Refresh changed document metadata without replacing the focusable card or replaying its entrance. */
+  refreshCardContent(item, node) {
+    const signature = JSON.stringify(node);
+    if (item.contentSignature === signature) {
+      return;
+    }
+
+    item.card.querySelector(".map-card-header > strong").textContent = node.title;
+    item.card.querySelector(".page-introduction").textContent = node.introduction;
+    const outline = item.card.querySelector(".map-card-outline");
+    outline.replaceChildren(...(node.headings ?? []).slice(0, 3).map(heading => textElement("span", heading.text)));
+    item.card.querySelector(".map-statistics").replaceWith(this.statisticsStrip(node.statistics));
+    localize(item.card, "Select {0}, {1}", "aria-label", node.title, node.path);
+    localize(item.grip, "Resize {0}", "aria-label", node.title);
+    item.contentSignature = signature;
   }
   /** Toggle the compact metadata strip without changing the document content or camera. */
   toggleDetails(advanced) {
@@ -703,7 +783,11 @@ export class MapHost {
     const levels = this.depthLevels();
     for (const [path, item] of this.cards) {
       const level = levels.get(path) ?? 0;
-      item.container.style.setProperty("--card-depth-z", -depthAppearance.planeSpacing * level + "px");
+      // A centered perspective projection is the same size as this 2D scale. Keeping
+      // hover, focus and depth in one transform space avoids recreating 3D layers on click.
+      const depthDistance = depthAppearance.planeSpacing * level;
+      const depthScale = depthAppearance.perspectiveDistance / (depthAppearance.perspectiveDistance + depthDistance);
+      item.container.style.setProperty("--card-depth-scale", String(depthScale));
       item.container.style.setProperty("--card-depth-opacity", String(1 - level * depthAppearance.opacityStep));
       item.container.style.setProperty("--card-depth-order", String(this.depth ? 30 - level : 1));
     }
@@ -869,6 +953,7 @@ export class MapHost {
     }
     if (resize.moved) {
       this.suppressOpenUntil = performance.now() + 500;
+      this.lastCardClick = null;
       this.change(resize.path, resize.current, "resize");
     }
     this.animateConnections();
@@ -893,12 +978,13 @@ export class MapHost {
     this.animateConnections();
   }
   /** Open the appearance picker for the selected map card at the requested position. */
-  openPicker(node, point, opener) {
+  openPicker(node, point) {
 
     if (this.suspended) {
       return;
     }
 
+    this.lastCardClick = null;
     this.cancelCardDrag();
 
     const value = this.nodes.get(node.path);
@@ -916,7 +1002,8 @@ export class MapHost {
 
     this.suppressClick = null;
 
-    if (this.small() || this.suspended || this.arranging || event.button !== 0 || !event.isPrimary || this.cardDrag || this.cardResize) {
+    if (this.small() || this.suspended || this.arranging || event.button !== 0 || !event.isPrimary || this.cardDrag || this.cardResize
+        || this.state.exploration?.selectionEnabled || event.ctrlKey || event.metaKey || event.shiftKey) {
       return;
     }
 
@@ -987,6 +1074,7 @@ export class MapHost {
     }
 
     if (drag.moved) {
+      this.lastCardClick = null;
       this.suppressClick = drag.path;
       this.suppressOpenUntil = performance.now() + 500;
       this.change(drag.path, drag.current, "move");
@@ -1010,6 +1098,7 @@ export class MapHost {
 
     if (drag.moved) {
 
+      this.lastCardClick = null;
       Object.assign(this.nodes.get(drag.path) ?? {}, drag.original);
       this.suppressClick = drag.path;
 
@@ -1062,6 +1151,9 @@ export class MapHost {
       return;
     }
 
+    this.lastCardClick = null;
+    this.effects.cancelPulses();
+    this.effects.cancelRectangle();
     this.cancelCardDrag();
     this.cancelCardResize();
     this.setHoveredEdge(null);
@@ -1104,17 +1196,13 @@ export class MapHost {
     }
 
   }
-  /** Draw folder frames behind their visible cards, following manual moves and resizes without storing another layout. */
-  updateFolderGroups() {
-    this.atlas.drawFolders();
-  }
   /** Fit logical card bounds plus selected-card magnification, retaining room for folder frames and shadows. */
   updateBounds() {
 
     if (!this.metrics) {
       return;
     }
-    this.updateFolderGroups();
+    this.atlas.drawFolders();
 
     const bounds = [];
     for (const path of this.cards.keys()) {
@@ -1178,10 +1266,6 @@ export class MapHost {
         continue;
       }
 
-      if (!source || !target) {
-        continue;
-      }
-
       const sourceCenterX = source.x + source.width / 2;
       const sourceCenterY = source.y + source.height / 2;
       const targetCenterX = target.x + target.width / 2;
@@ -1216,19 +1300,21 @@ export class MapHost {
       hitPath.setAttribute("d", connection);
     }
 
+    this.effects.updateGeometry(geometry);
   }
   /** Measure each card once per frame so connection endpoints follow animated magnification and custom sizes. */
   cardGeometry() {
     const geometry = new Map();
     const viewportBounds = this.viewport.getBoundingClientRect();
     const screenScale = viewportBounds.width > 0 ? this.viewport.clientWidth / viewportBounds.width : 1;
+    const compact = this.small();
     for (const [path, item] of this.cards) {
       const value = this.nodes.get(path);
       if (!value) {
         continue;
       }
       const bounds = item.container.getBoundingClientRect();
-      if (bounds.width > 0 && !this.small()) {
+      if (bounds.width > 0 && !compact) {
         geometry.set(path, {
           x: ((bounds.left - viewportBounds.left) * screenScale - this.x) / this.scale,
           y: ((bounds.top - viewportBounds.top) * screenScale - this.y) / this.scale,
@@ -1307,6 +1393,8 @@ export class MapHost {
   }
   /** Apply the current pan and zoom transform or the compact untransformed layout. */
   transform() {
+    // Rectangle bounds are captured in screen space; any camera change invalidates them.
+    this.effects.cancelRectangle();
     this.world.style.transform = this.small() ? "none" : "translate(" + this.x + "px," + this.y + "px) scale(" + this.scale + ")";
     this.world.style.setProperty("--edge-hit-width", 14 / this.scale + "px");
     this.world.style.setProperty("--edge-hover-width", 3 / this.scale + "px");
@@ -1405,14 +1493,16 @@ export class MapHost {
   }
   /** Recompute map presentation after the host's available dimensions change. */
   resize() {
-
+    this.effects.cancelRectangle();
     if (this.small()) {
+      this.effects.cancelPulses();
       this.cancelCardDrag();
       this.cancelCardResize();
     }
 
     this.body.classList.toggle("small-map", this.small());
     this.atlas.acceptState();
+    this.effects.acceptState();
     this.updateBounds();
     this.updateEdges();
     const pendingCenter = this.pendingCenter;
@@ -1435,6 +1525,7 @@ export class MapHost {
   }
   /** Cancel gestures and release observers, picker resources and the graph DOM root. */
   dispose() {
+    this.effects.dispose();
     this.cancelCamera();
     clearTimeout(this.arrangementTimer);
     document.removeEventListener("keydown", this.cancelCameraOnEscape, { capture: true });

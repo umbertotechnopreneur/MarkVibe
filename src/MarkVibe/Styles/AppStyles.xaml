@@ -9,6 +9,7 @@
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Modified with AI: OpenAI Codex; shared live input-control appearance resources; 2026-10-16
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
   Copyright (c) 2026 Umberto Giacobbi
@@ -22,6 +23,7 @@ VBWR E -->
  <ResourceDictionary.MergedDictionaries>
   <ResourceDictionary Source="/MarkVibe;component/Styles/ThemeResources.xaml" />
   <ResourceDictionary Source="/MarkVibe;component/Styles/Typography.xaml" />
+  <ResourceDictionary Source="/MarkVibe;component/Styles/InputControls.xaml" />
   <ResourceDictionary Source="/MarkVibe;component/Styles/VectorIcons.xaml" />
   <ResourceDictionary Source="/MarkVibe;component/Styles/Buttons.xaml" />
   <ResourceDictionary Source="/MarkVibe;component/Styles/Navigation.xaml" />
