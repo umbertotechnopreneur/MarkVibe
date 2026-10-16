@@ -1,0 +1,9 @@
+<!-- VBWR B
+ Project: MarkVibe | Creator: Umberto Giacobbi
+ Created with AI: OpenAI Codex; native XAML vector icon; 2026-10-11
+ Human guidance: Umberto Giacobbi; flat scalable Fluent icons, no HTML presenter
+ Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
+ VBWR E -->
+<UserControl x:Class="MarkVibe.Controls.VectorIcon" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Width="20" Height="20" IsHitTestVisible="False">
+ <Viewbox Stretch="Uniform"><ContentControl x:Name="Glyph" Width="24" Height="24" IsTabStop="False" /></Viewbox>
+</UserControl>

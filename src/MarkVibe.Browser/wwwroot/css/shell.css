@@ -1,0 +1,57 @@
+/* VBWR B
+ *
+ * Project: MarkVibe
+ * Repository: https://github.com/umbertotechnopreneur/MarkVibe
+ * Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+ *
+ * VibeWare: Human intent, AI execution, and plenty of tokens
+ * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+ *
+ * Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+ * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+ *
+ * Copyright (c) 2026 Umberto Giacobbi
+ * License: MIT (see LICENSE)
+ *
+ * VBWR E */
+
+:root{--shell:#f4f5f7;--panel:#fff;--text:#20283a;--muted:#596579;--line:#dde2ea;--accent:#525ce8;--accent-soft:#eceefe;--code:#f3f5fa;--reading-scale:1;color-scheme:light}
+:root[data-theme=dark]{--shell:#14171c;--panel:#191d23;--text:#edf0f5;--muted:#afb5c1;--line:#30353f;--accent:#a894f9;--accent-soft:#252333;--code:#14171c;color-scheme:dark}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--shell);font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text)}
+#opensilver-root{position:relative;width:100%;height:100%;overflow:hidden}
+#app:empty{display:none}#app:has(.boot-card){position:fixed;inset:0;z-index:100;background:var(--shell);display:grid;place-items:center}
+.boot-card{text-align:center;max-width:420px;padding:32px}.boot-mark{display:inline-grid;place-items:center;width:56px;height:56px;border-radius:18px;background:var(--accent);color:white;font-size:28px;font-weight:700}
+.boot-card h1{font-size:28px;letter-spacing:-.7px;margin:24px 0 10px}.boot-card p{font-size:14px;color:var(--muted);line-height:1.7}.boot-progress{height:4px;width:150px;margin:28px auto;border-radius:8px;background:var(--line);overflow:hidden}
+.boot-progress:after{content:"";display:block;width:60px;height:4px;background:var(--accent);animation:progress 1.4s ease-in-out infinite}
+@keyframes progress{from{transform:translateX(-60px)}to{transform:translateX(150px)}}
+#blazor-error-ui{display:none;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:var(--panel);border-top:1px solid var(--line);padding:16px;color:var(--text);font-size:14px}
+#blazor-error-ui a{color:var(--accent);margin-left:12px}
+#opensilver-root [tabindex]:focus-visible,#opensilver-root input:focus-visible,#opensilver-root button:focus-visible{outline:none!important;box-shadow:none!important}
+.mv-picker{position:fixed;width:1px;height:1px;opacity:0;left:-2px;bottom:0}
+html[data-acrylic=true],html[data-acrylic=true] body{background:transparent}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Modal roots blur the application behind them before their tinted dialog surface is drawn. */
+:is([class~="System.Windows.Controls.ChildWindow"], [class~="MarkVibe.SettingsWindow"], [class~="MarkVibe.AboutWindow"]) {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+/* XAML owns these surfaces; CSS supplies the browser material that OpenSilver does not expose. */
+[dataid="AiSurface"], [dataid="ModelFlyoutSurface"], [dataid="MapFlyoutSurface"],
+[class~="System.Windows.Controls.ToolTip"] {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+[dataid="AiSurface"] {
+  box-shadow: 0 16px 48px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+/* Opacity leaves the scroll gutter stable, avoiding layout jumps on hover. */
+[class~="System.Windows.Controls.Primitives.ScrollBar"] {
+  opacity: 0 !important;
+  transition: opacity .15s ease;
+}
+[class~="System.Windows.Controls.ScrollViewer"]:hover [class~="System.Windows.Controls.Primitives.ScrollBar"],
+[class~="System.Windows.Controls.ScrollViewer"]:has(:focus-visible) [class~="System.Windows.Controls.Primitives.ScrollBar"] {
+  opacity: 1 !important;
+}

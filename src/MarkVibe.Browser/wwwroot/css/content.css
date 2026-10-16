@@ -1,0 +1,625 @@
+/* VBWR B
+ *
+ * Project: MarkVibe
+ * Repository: https://github.com/umbertotechnopreneur/MarkVibe
+ * Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+ *
+ * VibeWare: Human intent, AI execution, and plenty of tokens
+ * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+ *
+ * Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+ * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; cinematic map surface and accent selection elevation; 2026-10-16
+ * Human guidance: Umberto Giacobbi; pure black science-fiction map with readable cards
+ * Modified with AI: OpenAI Codex; interactive card magnification, resize grips and monospace metadata; 2026-10-16
+ * Modified with AI: OpenAI Codex; near-black static card lighting and compact two-level statistics; 2026-10-16
+ * Modified with AI: OpenAI Codex; stronger depth focus and attenuation of distant cards and lines; 2026-10-16
+ * Modified with AI: OpenAI Codex; semantic map detail, colored islands, route emphasis and minimap overlays; 2026-10-16
+ * Human guidance: Umberto Giacobbi; implement the seven approved document atlas improvements
+ * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+ *
+ * Copyright (c) 2026 Umberto Giacobbi
+ * License: MIT (see LICENSE)
+ *
+ * VBWR E */
+
+:host{display:block;width:100%;height:100%;font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text,#20283a);background:var(--panel,#fff);--radius:10px}
+:host{background:transparent;--chrome:var(--shell,#f4f5f7)}
+:host([data-acrylic=true]){--chrome:rgba(255,255,255,.60)}
+:host([data-acrylic=true][data-theme=dark]){--chrome:rgba(27,31,38,.86)}
+.reader-layout{display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden}.reader-layout>.reader{flex:1;min-height:0;height:auto;border-radius:0}
+.source,.document-map{background:transparent}
+.source-content{background:var(--panel)}
+.map-viewport{position:relative;width:100%;height:100%;overflow:hidden;cursor:grab;touch-action:none;background-color:var(--panel)}
+*{box-sizing:border-box}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.5}
+button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
+.mv-view{width:100%;height:100%;overflow:hidden;border-radius:12px;background:var(--panel)}.reader{overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.document-meta{display:flex;justify-content:space-between;gap:20px;max-width:850px;margin:0 auto;padding:36px 52px 0;font-size:11px;color:var(--muted)}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.reading-time{flex-shrink:0}
+.markdown{max-width:850px;padding:24px 52px 100px;margin:auto;font-size:calc(16px * var(--reading-scale,1));line-height:1.78;overflow-wrap:anywhere}
+.markdown>section{scroll-margin-top:24px}.markdown h1,.markdown h2,.markdown h3,.markdown h4{line-height:1.25;color:var(--text);font-weight:650;letter-spacing:-.03em}
+.markdown h1{font-size:2.6em;letter-spacing:-.045em;margin:.1em 0 .6em}.markdown h2{font-size:1.6em;margin:1.65em 0 .65em}.markdown h3{font-size:1.15em;margin:1.5em 0 .6em}
+.markdown p{margin:0 0 1.2em}.markdown p:first-child{margin-top:0}.markdown a{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.markdown a[aria-disabled=true]{color:var(--muted);text-decoration-style:dotted;cursor:help}
+.markdown ul,.markdown ol{padding-left:1.45em;margin:.65em 0 1.25em}.markdown li{padding-left:.25em;margin:.25em 0}.markdown li>p{margin:.35em 0}
+.markdown input[type=checkbox]{accent-color:var(--accent);margin-right:8px}.markdown blockquote{margin:1.5em 0;padding:16px 22px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;color:var(--text)}
+.markdown blockquote p:last-child{margin:0}.markdown hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.markdown code,.line-text,.plain-textarea{font-family:"Cascadia Code","SFMono-Regular",Consolas,"Liberation Mono",monospace}
+.markdown code{background:var(--code);border:1px solid var(--line);border-radius:5px;font-size:.84em;padding:.13em .38em}
+.markdown pre{padding:20px 23px;overflow:auto;max-width:100%;background:var(--code);border:1px solid var(--line);border-radius:10px;line-height:1.65;margin:1.3em 0}
+.markdown pre code{background:none;border:0;padding:0;font-size:.85em;white-space:pre}.markdown table{display:block;width:100%;overflow:auto;border-collapse:collapse;margin:1.4em 0;font-size:.9em}
+.markdown th,.markdown td{border:1px solid var(--line);padding:11px 16px;text-align:left;vertical-align:top}.markdown th{font-weight:650;background:var(--code)}.markdown tbody tr:nth-child(even){background:color-mix(in srgb,var(--code),transparent 40%)}
+.markdown img{max-width:100%;height:auto;display:block;margin:1.5em auto;border-radius:10px}.markdown img:not([src]){min-height:80px;background:var(--code)}
+.mv-diagram{padding:18px 20px;background:var(--code);border:1px solid var(--line);border-radius:12px;margin:1.5em 0;overflow:auto}.mv-diagram svg{max-width:100%;height:auto;display:block;margin:auto}.mv-diagram details{margin-top:12px;font-size:11px;color:var(--muted)}.mv-diagram details pre{font-size:12px;padding:14px}
+.missing-resource{padding:22px;background:var(--code);border:1px dashed var(--line);border-radius:10px;margin:1.2em 0;font-size:13px;display:flex;flex-direction:column;gap:10px}.missing-resource span,.resource-message{color:var(--muted)}
+:host([data-document-style=editorial]) .markdown{font-family:Georgia,"Times New Roman",serif;max-width:800px;font-size:calc(18px * var(--reading-scale,1));line-height:1.85;padding-top:32px}
+:host([data-document-style=editorial]) .markdown h1{font-size:2.7em;font-weight:600;letter-spacing:-.05em}:host([data-document-style=editorial]) .markdown h2{font-size:1.65em;line-height:1.35}
+:host([data-document-style=editorial]) .markdown code,:host([data-document-style=editorial]) .markdown pre{font-family:"Cascadia Code",Consolas,monospace}
+:host([data-document-style=compact]) .markdown{max-width:980px;font-size:calc(14px * var(--reading-scale,1));line-height:1.6;padding:22px 36px 70px}
+:host([data-document-style=compact]) .markdown h1{font-size:2.25em}:host([data-document-style=compact]) .markdown h2{margin:1.3em 0 .5em}:host([data-document-style=compact]) .markdown p{margin-bottom:.85em}
+:host([data-document-style=compact]) .markdown td,:host([data-document-style=compact]) .markdown th{padding:7px 12px}
+.hljs{color:var(--text)}.hljs-comment,.hljs-quote{color:var(--muted);font-style:italic}.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-type{color:var(--accent)}
+.hljs-string,.hljs-regexp,.hljs-symbol{color:#23775c}.hljs-number,.hljs-literal,.hljs-attr{color:#a85335}.hljs-title,.hljs-section{color:#565fba}
+:host([data-theme=dark]) .hljs-string,:host([data-theme=dark]) .hljs-regexp{color:#8bcfae}:host([data-theme=dark]) .hljs-number,:host([data-theme=dark]) .hljs-literal,:host([data-theme=dark]) .hljs-attr{color:#e5b091}
+:host([data-theme=dark]) .hljs-title{color:#adb4ff}
+.source{display:flex;flex-direction:column}.source-content{flex:1;min-height:0;position:relative;overflow:hidden}.source-loading{padding:28px;color:var(--muted);font-size:13px}.plain-source{position:absolute;inset:0;overflow:auto;padding:20px 0;line-height:22px;overscroll-behavior:contain;font-size:13px}
+.source-line{position:relative;display:flex;align-items:flex-start;min-height:22px}.line-number{flex:0 0 52px;text-align:right;padding-right:14px;user-select:none;font-family:Consolas,monospace;font-size:11px;color:var(--muted)}
+.line-text{white-space:pre-wrap;overflow-wrap:anywhere;flex:1;min-width:0;padding-right:20px;line-height:22px}.source-match{background:var(--accent-soft)}.plain-textarea{width:100%;height:100%;background:var(--panel);border:0;padding:0 22px;resize:none;line-height:22px;font-size:13px;outline-offset:-4px}
+.map-help,.map-save-status{font-size:11px;color:var(--muted);margin:6px 0 0}.map-save-status{flex:1 0 100%;overflow-wrap:anywhere}.map-viewport:active{cursor:grabbing}.map-world{position:absolute;left:0;top:0;transform-origin:0 0}.map-edges{position:absolute;pointer-events:none;overflow:visible}.map-card{position:absolute;width:260px;height:166px;--card-color:var(--accent)}
+.page-card{position:absolute;inset:0;width:100%;height:100%;background:color-mix(in srgb,var(--card-color) 5%,var(--panel));border:1px solid color-mix(in srgb,var(--card-color) 35%,var(--line));border-radius:12px;text-align:left;padding:16px 18px;box-shadow:0 5px 18px #1524450a;display:flex;flex-direction:column;gap:8px;white-space:normal;overflow:hidden;cursor:grab;user-select:none;touch-action:none}
+.page-card:hover{border-color:var(--card-color);background:color-mix(in srgb,var(--card-color) 10%,var(--panel))}.page-icon{width:20px;height:20px;line-height:22px;color:var(--card-color)}
+.map-card.dragging{z-index:3}.map-card.dragging .page-card{cursor:grabbing}
+.page-card strong{font-size:14px;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.page-introduction{font-size:11px;line-height:1.55;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.page-card code{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-top:auto}
+.small-map .map-viewport{overflow:auto;cursor:auto;touch-action:pan-y}.small-map .map-world{position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:18px;width:100%!important;height:auto!important;transform:none!important}
+/* The map is a dark canvas in either application theme; inherited accent follows system preferences. */
+.document-map {
+  border-radius: 0 0 12px 12px;
+  --panel: #000;
+  --text: #edf4ff;
+  --muted: #a7b7cb;
+  --line: #213044;
+  background: #000;
+  color: var(--text);
+  color-scheme: dark;
+  font-family: var(--ui-font, "Segoe UI", system-ui, sans-serif);
+}
+.document-map .map-viewport {
+  background: #000;
+  overscroll-behavior: contain;
+}
+.map-folder-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.map-folder-group {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), #03050a90);
+  padding: 12px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  color: color-mix(in srgb, var(--accent) 65%, white);
+  font-size: 12px;
+  letter-spacing: .05em;
+}
+.map-folder-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-folder-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.document-map .map-card.in-ai-context::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  z-index: 1;
+  pointer-events: none;
+}
+.document-map .page-card {
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 5% 0%, color-mix(in srgb, var(--card-color) 12%, transparent), transparent 62%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 58%),
+    #030405;
+  border-color: color-mix(in srgb, var(--card-color) 30%, #242629);
+  box-shadow: inset 0 1px 0 #ffffff0a, 0 6px 24px #0009;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+.document-map .page-card:hover {
+  border-color: color-mix(in srgb, var(--card-color) 82%, white);
+  box-shadow: inset 0 1px 0 #ffffff12, 0 8px 28px color-mix(in srgb, var(--card-color) 20%, transparent);
+}
+.map-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+.map-card-header > strong {
+  min-width: 0;
+  flex: 1;
+  line-height: 1.3;
+}
+.map-card-header > .page-icon {
+  width: 17px;
+  height: 17px;
+}
+.document-map .map-card.selected,
+.document-map .map-card:focus-within {
+  z-index: 40;
+}
+/* Elevation 16 uses the application accent, independently of each card's custom color. */
+.document-map .page-card.selected {
+  outline: 1px solid color-mix(in srgb, var(--accent) 72%, white);
+  outline-offset: 2px;
+  border-color: var(--accent);
+  background:
+    radial-gradient(ellipse at 5% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 62%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--card-color) 10%, transparent), transparent 58%),
+    #030405;
+  box-shadow: 0 16px 48px color-mix(in srgb, var(--accent) 48%, transparent),
+    0 0 24px color-mix(in srgb, var(--accent) 26%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.depth-map .page-card.selected {
+  outline-width: 2px;
+  box-shadow: 0 16px 56px color-mix(in srgb, var(--accent) 56%, transparent),
+    0 0 30px color-mix(in srgb, var(--accent) 34%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.document-map .map-card.dragging {
+  z-index: 50;
+}
+.document-map .map-card {
+  transform-origin: center;
+  transform: perspective(900px) translateZ(var(--card-depth-z, 0px));
+  opacity: calc(var(--card-depth-opacity, 1) * var(--atlas-focus-opacity, 1));
+  z-index: var(--card-depth-order, 1);
+  transition: transform 420ms cubic-bezier(.2,.7,.2,1), opacity 420ms ease;
+}
+.document-map .map-card.hovered,
+.document-map .map-card:focus-within {
+  transform: scale(1.035);
+  opacity: 1;
+  z-index: 40;
+}
+.document-map .map-card.selected {
+  transform: scale(var(--card-selected-scale, 1.14));
+  opacity: 1;
+  z-index: 41;
+}
+.document-map .map-card.resizing {
+  transform: scale(var(--card-resize-scale, 1));
+  transition: none;
+  opacity: 1;
+  z-index: 50;
+}
+.document-map .map-card.dragging {
+  z-index: 50;
+}
+.document-map .map-card.edge-endpoint:not(.selected) .page-card {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.document-map .map-connection {
+  pointer-events: none;
+  transition: opacity 140ms ease, stroke 140ms ease;
+}
+.document-map .map-edges > g {
+  opacity: var(--atlas-edge-opacity, 1);
+  transition: opacity 240ms ease;
+}
+.document-map .map-edges > g:focus-within {
+  opacity: 1;
+}
+.document-map .map-connection.route-connection,
+.document-map.depth-map .map-connection.route-connection {
+  opacity: 1;
+  stroke: #e8c87a;
+  stroke-width: var(--edge-hover-width, 3px);
+  filter: drop-shadow(0 0 5px #e8c87a66);
+}
+.document-map .map-card.route-member:not(.selected) .page-card {
+  border-color: #e8c87a;
+  box-shadow: 0 0 22px #e8c87a22;
+}
+.document-map [hidden] {
+  display: none !important;
+}
+.map-rearranging .map-card,
+.map-rearranging .map-folder-group {
+  transition: left 420ms cubic-bezier(.2,.7,.2,1), top 420ms cubic-bezier(.2,.7,.2,1),
+    width 420ms ease, height 420ms ease, transform 420ms ease, opacity 420ms ease;
+}
+.map-folder-group.edge-endpoint {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.map-card-outline {
+  display: none;
+  color: #a7b2c4;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow: hidden;
+  flex-shrink: 1;
+}
+.map-card-outline > span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.map-detail:not(.advanced-map) .selected .map-card-outline {
+  display: block;
+}
+.map-detail:not(.advanced-map) .selected .page-card > code {
+  display: none;
+}
+.map-overview .page-introduction,
+.map-overview .page-card > code,
+.map-overview .map-statistics,
+.map-compact .page-card > code,
+.map-compact .map-statistics {
+  display: none;
+}
+.map-overview .map-card-header {
+  flex: 1;
+  align-items: center;
+}
+.map-overview .map-card-header > strong {
+  font-size: var(--overview-title-size, 24px);
+  -webkit-line-clamp: 2;
+}
+.map-overview .map-card-header > .page-icon {
+  width: 26px;
+  height: 26px;
+}
+.map-overview .map-resize-grip {
+  visibility: hidden;
+}
+.map-overview .map-connection:not(.highlighted):not(.route-connection) {
+  opacity: .08;
+}
+.map-overview-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+}
+.map-overview-label {
+  position: absolute;
+  width: 148px;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid #344256;
+  border-radius: 9px;
+  background: #080d16ed;
+  color: #b7c5db;
+  font-size: 11px;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 16px #0008;
+  pointer-events: auto;
+}
+.map-overview-label.selected {
+  color: #eef4ff;
+  border-color: var(--accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.map-folder-group {
+  display: block;
+  padding: 0;
+  border-color: color-mix(in srgb, var(--island-color) 30%, transparent);
+  background: radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--island-color) 12%, transparent), transparent 70%), #05070b80;
+  box-shadow: inset 0 1px 0 #ffffff08, 0 12px 60px color-mix(in srgb, var(--island-color) 5%, transparent);
+}
+.map-folder-toggle {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  min-height: 38px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: color-mix(in srgb, var(--island-color) 65%, white);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.map-folder-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.map-folder-group.collapsed {
+  background: radial-gradient(ellipse at 10% 0%, color-mix(in srgb, var(--island-color) 20%, transparent), transparent 90%), #080b12;
+}
+.map-folder-group.collapsed .map-folder-toggle {
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  align-items: flex-start;
+}
+.map-folder-group.collapsed .map-folder-label {
+  max-width: 100%;
+  font-size: 17px;
+  font-weight: 600;
+}
+.map-folder-group.collapsed .map-folder-count {
+  margin-left: 0;
+}
+.map-minimap {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 188px;
+  height: 120px;
+  padding: 8px;
+  z-index: 60;
+  background: #080b12eb;
+  border: 1px solid #303b4c;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px #0009;
+  backdrop-filter: blur(16px);
+  cursor: crosshair;
+  touch-action: none;
+}
+.map-minimap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.map-minimap-window {
+  fill: color-mix(in srgb, var(--accent) 12%, transparent);
+  stroke: color-mix(in srgb, var(--accent) 60%, white);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.map-zoom-label {
+  position: absolute;
+  bottom: 22px;
+  left: 20px;
+  z-index: 60;
+  padding: 7px 11px;
+  border: 1px solid #ffffff12;
+  border-radius: 18px;
+  background: #080b12dd;
+  color: #a7b2c4;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.map-edge-tooltip {
+  position: absolute;
+  left: 20px;
+  bottom: 64px;
+  width: min(350px, calc(100% - 40px));
+  box-sizing: border-box;
+  z-index: 65;
+  padding: 14px 16px;
+  border: 1px solid #45536b;
+  border-radius: 12px;
+  background: #0b1019f5;
+  box-shadow: 0 12px 40px #000b;
+  color: #dce5f4;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+.map-edge-tooltip > * {
+  display: block;
+}
+.map-edge-source {
+  margin: 4px 0;
+  color: #8f9eb3;
+  font-size: 10px;
+}
+.depth-map .map-connection:not(.hovered) {
+  opacity: var(--edge-depth-opacity, .32);
+  transition: opacity 420ms ease, stroke 140ms ease;
+}
+.document-map .map-connection-hit {
+  pointer-events: stroke;
+  stroke-width: var(--edge-hit-width, 14px);
+  cursor: grab;
+}
+.document-map .map-connection.hovered,
+.document-map .map-connection.highlighted.hovered {
+  opacity: 1;
+  stroke: color-mix(in srgb, var(--accent) 76%, white);
+  stroke-width: var(--edge-hover-width, 3px);
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+.map-resize-grip {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: nwse-resize;
+  touch-action: none;
+  opacity: .65;
+  background: linear-gradient(135deg, transparent 44%, var(--muted) 45% 49%, transparent 50% 62%, var(--muted) 63% 67%, transparent 68%);
+  background-size: 12px 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.map-resize-grip:hover,
+.map-resize-grip:focus-visible {
+  opacity: 1;
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+/* Source statistics form a quiet instrument strip; they never reuse the document's font choice. */
+.map-statistics {
+  display: none;
+  font-family: var(--ui-monospace, "Cascadia Mono"), "Cascadia Code", Consolas, monospace;
+  font-size: 9px;
+  line-height: 1.4;
+  border-top: 1px solid #ffffff0d;
+  background: #0006;
+  padding: 9px 14px 10px;
+  margin: 6px -14px -12px;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 7px;
+}
+.advanced-map .page-card {
+  padding: 12px 14px;
+  gap: 4px;
+}
+.advanced-map .page-introduction {
+  display: none;
+}
+.advanced-map .map-statistics {
+  display: flex;
+}
+.map-statistics-primary,
+.map-statistics-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+}
+.map-statistics-secondary {
+  color: var(--muted);
+}
+.map-statistic {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.map-statistic > .mv-icon {
+  width: 11px;
+  height: 11px;
+  opacity: .65;
+}
+/* Keep labels available to assistive technology instead of truncating localized text into tiny cells. */
+.map-statistic-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.page-card .map-statistic > strong {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  overflow: visible;
+  text-overflow: clip;
+}
+.page-card .map-statistics-primary .map-statistic > strong {
+  font-size: 11px;
+}
+.map-statistic-tokens {
+  color: color-mix(in srgb, var(--accent) 65%, white);
+}
+.map-statistic-tokens > .mv-icon {
+  width: 13px;
+  height: 13px;
+  opacity: 1;
+}
+.page-card .map-statistic-tokens > strong {
+  font-weight: 650;
+}
+.map-statistic-unavailable {
+  color: var(--muted);
+}
+.advanced-map .compact-card .page-card > code {
+  display: none;
+}
+.document-map .page-icon {
+  color: color-mix(in srgb, var(--card-color) 78%, white);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--card-color) 30%, transparent));
+}
+.document-map .map-connection.highlighted {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 55%, transparent));
+}
+/* Compact devices keep a readable scrollable list and never inherit absolute canvas coordinates. */
+.small-map .map-card {
+  position: relative;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  transform: none !important;
+  opacity: 1;
+}
+.small-map .map-resize-grip {
+  display: none;
+}
+.small-map .map-edges {
+  display: none;
+}
+.small-map .map-folder-layer {
+  display: none;
+}
+.small-map .map-world {
+  padding-top: 150px;
+}
+.small-map .page-card {
+  cursor: pointer;
+  touch-action: pan-y;
+}
+@media(max-width:760px){.document-meta{padding:24px 24px 0}.markdown{padding:22px 24px 65px;font-size:calc(15px * var(--reading-scale,1))}.markdown h1{font-size:2.15em}
+:host([data-document-style=editorial]) .markdown{padding:24px;font-size:calc(17px * var(--reading-scale,1))}:host([data-document-style=compact]) .markdown{padding:20px}
+.markdown pre{padding:15px}.markdown th,.markdown td{padding:9px 12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Chrome reveals the native Acrylic; reading and editing surfaces stay opaque. */
+.source,.document-map{background:transparent}
+.source-content,.map-viewport{position:relative;width:100%;height:100%;overflow:hidden;cursor:grab;touch-action:none;background-color:var(--panel)}
+
+/* Reveal native DOM scrollbars on interaction without resizing the content. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*:hover,
+*:focus-visible {
+  scrollbar-color: var(--muted) transparent;
+}
+.monaco-scrollable-element > .scrollbar {
+  opacity: 0 !important;
+}
+.monaco-scrollable-element:hover > .scrollbar {
+  opacity: 1 !important;
+}
+
+
+/* Only specialized content surfaces are styled here; application chrome is XAML. */
+.reader-layout{height:100%;border:0;border-radius:0;background:var(--panel)}
+.reader>.document-meta{display:none}
+.reader>.markdown{max-width:1120px;padding:28px 40px calc(80px + var(--ai-dock-height,0px))}
+:host([data-document-style=technical]) .reader>.markdown{max-width:1120px;padding:28px 40px calc(80px + var(--ai-dock-height,0px))}
+.markdown h1{font-size:2.25em;font-weight:600;line-height:1.18}
+@media(max-width:760px){.reader>.markdown,:host([data-document-style=technical]) .reader>.markdown{padding:24px 26px calc(80px + var(--ai-dock-height,0px))}}

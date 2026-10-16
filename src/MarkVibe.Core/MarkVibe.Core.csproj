@@ -1,0 +1,29 @@
+<!-- VBWR B
+
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+
+  Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Modified with AI: OpenAI Codex; Markdown AI UI and embedded model catalog; 2026-10-11
+  Human guidance: Umberto Giacobbi; stateless scoped edits, semantic costs and a one-minute deadline
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+
+VBWR E -->
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup><PackageReference Include="Markdig" Version="[1.4.0]" /></ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/strings.json" LogicalName="MarkVibe.Core.Localization.strings.json" />
+    <EmbeddedResource Include="Presentation/themes.json" LogicalName="MarkVibe.Core.Presentation.themes.json" />
+    <EmbeddedResource Include="AI/openai-models.json" LogicalName="MarkVibe.Core.AI.openai-models.json" />
+  </ItemGroup>
+</Project>

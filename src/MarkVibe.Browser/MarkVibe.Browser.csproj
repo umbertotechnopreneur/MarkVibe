@@ -1,0 +1,38 @@
+<!-- VBWR B
+
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+
+  Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+
+VBWR E -->
+
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <NoXamlPreprocessor>true</NoXamlPreprocessor>
+    <OpenSilverType>7</OpenSilverType>
+    <PublishTrimmed>false</PublishTrimmed>
+    <WasmEnableSIMD>false</WasmEnableSIMD>
+    <WasmEnableWebcil>false</WasmEnableWebcil>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenSilver.WebAssembly" Version="[3.3.3]" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="[10.0.10]" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="[10.0.10]" PrivateAssets="all" />
+    <ProjectReference Include="../MarkVibe/MarkVibe.csproj" />
+  </ItemGroup>
+  <Target Name="RequireClientBundle" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('wwwroot/js/markvibe.js')" Text="Client assets are missing. After authorization, run npm install and npm run bundle from the repository root. See README.md." />
+  </Target>
+</Project>

@@ -1,0 +1,36 @@
+<!-- VBWR B
+
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+
+  Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+
+VBWR E -->
+
+<Application x:Class="MarkVibe.App"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:modern="http://opensilver.net/themes/modern"
+ xmlns:controls="clr-namespace:MarkVibe.Controls">
+ <Application.Theme>
+  <modern:ModernTheme CurrentPalette="Light">
+   <modern:ModernTheme.LightPalette>
+    <modern:LightPalette BackgroundColor="#F4F5F7" ContainerBackgroundColor="#FFFFFF" ControlBackgroundColor="#FFFFFF" TextColor="#20283A" WatermarkColor="#596579" BorderColor="#DDE2EA" PrimaryColor="#525CE8" AlternateRowColor="#ECEEFE" />
+   </modern:ModernTheme.LightPalette>
+   <modern:ModernTheme.DarkPalette>
+    <modern:DarkPalette BackgroundColor="#111621" ContainerBackgroundColor="#181F2D" ControlBackgroundColor="#181F2D" TextColor="#E5EAF4" WatermarkColor="#A4B0C4" BorderColor="#303C52" PrimaryColor="#929AFF" AlternateRowColor="#2A3155" TextOnPrimaryColor="#111621" />
+   </modern:ModernTheme.DarkPalette>
+  </modern:ModernTheme>
+ </Application.Theme>
+ <!-- App.xaml.cs loads AppStyles into the live application resources so each
+      merged dictionary can resolve brushes and styles loaded before it. -->
+</Application>

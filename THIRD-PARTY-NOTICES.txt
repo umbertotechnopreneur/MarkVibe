@@ -1,0 +1,121 @@
+MarkVibe reader theme assets
+===========================
+
+Snapshot: Markdown Preview Enhanced 0.8.40, Crossnote preview_theme and
+prism_theme CSS. Local modifications: preview font imports removed. The
+MarkVibe runtime scopes selectors, drops site chrome and external resources,
+preserves document typography, and adapts highlight.js classes to Prism tokens.
+
+Markdown Preview Enhanced
+https://github.com/shd101wyy/markdown-preview-enhanced
+Copyright (c) 2017 Yiyi Wang. All rights reserved.
+Developed by Yiyi Wang and many other contributors.
+
+Crossnote
+https://github.com/shd101wyy/crossnote
+Copyright (c) 2017 ~ 2023 Yiyi Wang. All rights reserved.
+Developed by Yiyi Wang.
+
+University of Illinois/NCSA Open Source License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+with the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimers.
+
+Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimers in the documentation
+and/or other materials provided with the distribution.
+
+Neither the names of Yiyi Wang, nor the names of its contributors may be used
+to endorse or promote products derived from this Software without specific
+prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH
+THE SOFTWARE.
+
+Additional upstream credits
+===========================
+
+Prism - Copyright (c) 2012 Lea Verou
+https://github.com/PrismJS/prism
+
+Prism themes - Copyright (c) 2015 PrismJS
+https://github.com/PrismJS/prism-themes
+
+Docsify (Vue theme lineage)
+Copyright (c) 2016 - present Docsify Contributors
+https://github.com/docsifyjs/docsify/graphs/contributors
+
+The MIT License applies to the above three upstream projects:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Crossnote's Gothic, Newsprint and Night preview sources credit Typora's
+default themes: https://github.com/typora/typora-default-themes
+These assets are Crossnote's adaptations from the packaged MPE distribution.
+
+Pen Paper Coffee syntax theme by nylki, CC0 1.0 Universal.
+Crossnote adapts the palette from https://github.com/nylki/pen-paper-coffee-syntax
+Original dedication: https://github.com/nylki/pen-paper-coffee-syntax/blob/master/LICENSE
+CC0 terms: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Theme names identify upstream styles. No endorsement by their authors is implied.
+
+OpenAI Blossom logo (black and white SVG originals)
+Source: https://cdn.openai.com/brand/openai-logos.zip
+Guidelines and usage terms: https://openai.com/brand/
+The OpenAI name and logo are trademarks of OpenAI. These unmodified assets identify
+the OpenAI API configuration in Settings; they are not covered by MarkVibe's MIT
+license and do not imply sponsorship or endorsement.
+
+Fluent UI System Icons: arrow_left_24_regular, arrow_right_24_regular, chevron_down_24_regular
+Source: https://github.com/microsoft/fluentui-system-icons/tree/a347af95478f989038cccbf085978865264c048a
+Retained SVG paths adapted only for XAML geometry and inherited color.
+MIT License
+
+Copyright (c) 2020 Microsoft Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

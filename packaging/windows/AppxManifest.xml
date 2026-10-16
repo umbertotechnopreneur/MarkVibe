@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- VBWR B
+
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+
+  Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+
+VBWR E -->
+
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+ xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+ xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+ xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+ IgnorableNamespaces="uap uap10 rescap">
+ <Identity Name="UmbertoGiacobbi.MarkVibe" Publisher="CN=Umberto Giacobbi" Version="0.1.0.0" ProcessorArchitecture="x64"/>
+ <Properties>
+  <DisplayName>MarkVibe</DisplayName>
+  <PublisherDisplayName>Umberto Giacobbi</PublisherDisplayName>
+  <Description>Read local Markdown, add handwritten notes and export HTML or PDF.</Description>
+  <Logo>Assets\StoreLogo.png</Logo>
+ </Properties>
+ <Resources><Resource Language="en-US"/></Resources>
+ <Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0" MaxVersionTested="10.0.26100.0"/></Dependencies>
+ <Applications>
+  <Application Id="MarkVibe" Executable="MarkVibe.Windows.exe" uap10:RuntimeBehavior="packagedClassicApp" uap10:TrustLevel="mediumIL">
+   <uap:VisualElements DisplayName="MarkVibe" Description="Read. Annotate. Keep it yours." BackgroundColor="transparent" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png"/>
+  </Application>
+ </Applications>
+ <Capabilities><rescap:Capability Name="runFullTrust"/></Capabilities>
+</Package>

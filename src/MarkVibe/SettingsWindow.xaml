@@ -1,0 +1,83 @@
+<!-- VBWR B
+
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+
+  Modified with AI: OpenAI Codex; readability and OpenAI key settings; 2026-10-11
+  Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+
+VBWR E -->
+
+<ChildWindow x:Class="MarkVibe.SettingsWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="clr-namespace:MarkVibe.Controls"
+ Title="Settings" Width="1000" Height="700" Style="{StaticResource AppDialog}">
+ <Grid>
+  <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+   <Grid x:Name="SettingsColumns" Margin="28,4,28,24">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="36" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+    <StackPanel x:Name="PreferencesColumn">
+     <TextBlock Text="Make MarkVibe yours" FontSize="24" FontWeight="SemiBold" Margin="0,8,0,4" />
+     <TextBlock Text="Changes are saved automatically." Foreground="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" />
+     <TextBlock Text="APPEARANCE" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="AppearanceCombo" SelectionChanged="PreferenceChanged" Height="38" AutomationProperties.Name="Application appearance" ToolTipService.ToolTip="Follow the system theme or choose light or dark"><ComboBoxItem Content="System" /><ComboBoxItem Content="Light" /><ComboBoxItem Content="Dark" /></ComboBox>
+     <CheckBox x:Name="AcrylicCheck" Content="Acrylic window background" Margin="0,14,0,0" Checked="CheckChanged" Unchecked="CheckChanged" ToolTipService.ToolTip="Use Acrylic outside the document on supported Windows systems" />
+     <TextBlock x:Name="AcrylicHelp" Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" />
+     <TextBlock Text="LANGUAGE" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="LanguageCombo" SelectionChanged="PreferenceChanged" Height="38" AutomationProperties.Name="Application language" ToolTipService.ToolTip="Follow the system language or choose another language">
+      <ComboBoxItem Content="System language" /><ComboBoxItem Content="English" /><ComboBoxItem Content="Italiano" /><ComboBoxItem Content="Français" /><ComboBoxItem Content="Tiếng Việt" /><ComboBoxItem Content="简体中文" /><ComboBoxItem Content="廣東話" /><ComboBoxItem Content="Bahasa Indonesia" /><ComboBoxItem Content="한국어" /><ComboBoxItem Content="日本語" />
+     </ComboBox>
+     <CheckBox x:Name="SimpleSourceCheck" Content="Use lightweight source view" Margin="0,18,0,12" Checked="CheckChanged" Unchecked="CheckChanged" ToolTipService.ToolTip="Use a simple source view instead of Monaco" />
+     <CheckBox x:Name="RememberDocumentCheck" Content="Remember last workspace" Margin="0,0,0,10" Checked="CheckChanged" Unchecked="CheckChanged" ToolTipService.ToolTip="Reopen the last document at its saved reading position" />
+     <TextBlock Text="Document path and reading position stay on this device. Imported files and bundles must be selected again after restarting." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" />
+     <Button Content="Reset preferences" Style="{StaticResource ToolbarButton}" Click="ResetPreferences" ToolTipService.ToolTip="Restore the default appearance, language and reading preferences" HorizontalAlignment="Left" Margin="0,12,0,0" />
+    </StackPanel>
+    <StackPanel x:Name="ActionsColumn" Grid.Column="2">
+     <TextBlock Text="DOCUMENT STYLE" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="StyleCombo" SelectionChanged="PreferenceChanged" Height="38" AutomationProperties.Name="Document presentation" ToolTipService.ToolTip="Choose the document reading style"><ComboBoxItem Content="Technical documentation" /><ComboBoxItem Content="Editorial reading" /><ComboBoxItem Content="Compact reading" /></ComboBox>
+     <TextBlock Text="LIGHT DOCUMENT THEME" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="LightDocumentThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose document colors and fonts for light mode" />
+     <TextBlock Text="DARK DOCUMENT THEME" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="DarkDocumentThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose document colors and fonts for dark mode" />
+     <TextBlock Text="Themes include their own typography. Fonts use what is installed on this device." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+     <TextBlock Text="LIGHT CODE THEME" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="LightCodeThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose code block colors for light mode" />
+     <TextBlock Text="DARK CODE THEME" Style="{StaticResource DialogSectionLabel}" />
+     <ComboBox x:Name="DarkCodeThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose code block colors for dark mode" />
+    </StackPanel>
+    <StackPanel x:Name="OpenAiColumn" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,20,0,0">
+     <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+      <Image x:Name="OpenAiLogo" Width="28" Height="28" Stretch="Uniform" Margin="0,0,12,0" />
+      <TextBlock Text="OpenAI" FontSize="18" VerticalAlignment="Center" />
+     </StackPanel>
+     <TextBlock Text="OpenAI API key" FontWeight="SemiBold" Margin="0,0,0,8" />
+     <Grid>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+      <PasswordBox x:Name="OpenAiApiKeyBox" Height="38" MaxLength="4096" Margin="0,0,12,0" AutomationProperties.Name="OpenAI API key" ToolTipService.ToolTip="Paste your OpenAI API key" />
+      <Button x:Name="ValidateOpenAiButton" Grid.Column="1" Content="Validate" Height="38" IsEnabled="False" Style="{StaticResource DialogPrimaryButton}" Click="ValidateOpenAiKey" ToolTipService.ToolTip="Validate the key with OpenAI and save it on this device" controls:IconLabel.HideIcon="True" />
+     </Grid>
+     <TextBlock Text="Validation checks access to the OpenAI model list. It does not send documents or generate text." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+     <TextBlock x:Name="OpenAiStorageHelp" Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+     <TextBlock x:Name="OpenAiStatus" Foreground="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
+    </StackPanel>
+   </Grid>
+  </ScrollViewer>
+  <Border Grid.Row="1" Padding="28,14,28,18" BorderThickness="0,1,0,0" BorderBrush="{StaticResource ShellBorder}">
+   <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+    <TextBlock x:Name="SettingsStatus" FontSize="12" Foreground="{StaticResource MutedText}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,20,0" />
+    <Button Grid.Column="1" Content="Close" Style="{StaticResource DialogPrimaryButton}" Click="Dismiss" ToolTipService.ToolTip="Close settings" controls:IconLabel.HideIcon="True" />
+   </Grid>
+  </Border>
+ </Grid>
+</ChildWindow>

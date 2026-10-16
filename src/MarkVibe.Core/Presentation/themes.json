@@ -1,0 +1,434 @@
+{
+  "schemaVersion": 1,
+  "document": [
+    {
+      "id": "markvibe",
+      "label": "MarkVibe",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "codeTheme": "auto"
+    },
+    {
+      "id": "atom-light",
+      "label": "Atom Light",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#fff",
+        "foreground": "#555",
+        "muted": "#7e7e7e",
+        "border": "#d6d6d6",
+        "code": "#f0f0f0",
+        "accent": "#08c",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "atom-light"
+    },
+    {
+      "id": "github-light",
+      "label": "GitHub Light",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#fff",
+        "foreground": "#333",
+        "muted": "#5c5c5c",
+        "border": "#d6d6d6",
+        "code": "#f0f0f0",
+        "accent": "#08c",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "github"
+    },
+    {
+      "id": "gothic",
+      "label": "Gothic",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#fcfcfc",
+        "foreground": "#111",
+        "muted": "#64748b",
+        "border": "#d6d6d6",
+        "code": "#f0f0f0",
+        "accent": "#08c",
+        "fontFamily": "Raleway,sans-serif"
+      },
+      "codeTheme": "default"
+    },
+    {
+      "id": "medium",
+      "label": "Medium",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#fff",
+        "foreground": "#333333",
+        "muted": "#64748b",
+        "border": "#d6d6d6",
+        "code": "#f0f0f0",
+        "accent": "#08c",
+        "fontFamily": "'San Francisco',Roboto,'Segoe UI','Helvetica Neue','Lucida Grande',sans-serif"
+      },
+      "codeTheme": "default"
+    },
+    {
+      "id": "newsprint",
+      "label": "Newsprint",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#f3f2ee",
+        "foreground": "#1f0909",
+        "muted": "#64748b",
+        "border": "#d6d6d6",
+        "code": "#f0f0f0",
+        "accent": "#08c",
+        "fontFamily": "'PT Serif','Times New Roman',Times"
+      },
+      "codeTheme": "pen-paper-coffee"
+    },
+    {
+      "id": "one-light",
+      "label": "One Light",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#f9f9f9",
+        "foreground": "#383942",
+        "muted": "#5d606e",
+        "border": "#d0d0d1",
+        "code": "#eaeaea",
+        "accent": "#0184bc",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "one-light"
+    },
+    {
+      "id": "solarized-light",
+      "label": "Solarized Light",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#fdf6e3",
+        "foreground": "#657b83",
+        "muted": "#90a3a9",
+        "border": "#f8de97",
+        "code": "#fbedc6",
+        "accent": "#08c",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "solarized-light"
+    },
+    {
+      "id": "vue",
+      "label": "Vue",
+      "modes": [
+        "light"
+      ],
+      "palette": {
+        "background": "#fff",
+        "foreground": "#34495e",
+        "muted": "#64748b",
+        "border": "#f66",
+        "code": "#f8f8f8",
+        "accent": "#42b983",
+        "fontFamily": "Source Sans Pro,Helvetica Neue,Arial,sans-serif"
+      },
+      "codeTheme": "vue"
+    },
+    {
+      "id": "atom-dark",
+      "label": "Atom Dark",
+      "modes": [
+        "dark"
+      ],
+      "palette": {
+        "background": "#1d1f21",
+        "foreground": "#c5c8c6",
+        "muted": "#9ba09d",
+        "border": "#43484c",
+        "code": "#303337",
+        "accent": "#ddd",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "atom-dark"
+    },
+    {
+      "id": "atom-material",
+      "label": "Atom Material",
+      "modes": [
+        "dark"
+      ],
+      "palette": {
+        "background": "#263238",
+        "foreground": "#eff",
+        "muted": "#9cffff",
+        "border": "#475d69",
+        "code": "#364850",
+        "accent": "#82aaff",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "atom-material"
+    },
+    {
+      "id": "github-dark",
+      "label": "GitHub Dark",
+      "modes": [
+        "dark"
+      ],
+      "palette": {
+        "background": "#24292e",
+        "foreground": "#ccc",
+        "muted": "#a3a3a3",
+        "border": "#48525c",
+        "code": "#363d45",
+        "accent": "#08c",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "github-dark"
+    },
+    {
+      "id": "monokai",
+      "label": "Monokai",
+      "modes": [
+        "dark"
+      ],
+      "palette": {
+        "background": "#282828",
+        "foreground": "#f8f8f2",
+        "muted": "#dbdbbd",
+        "border": "#515151",
+        "code": "#3c3c3c",
+        "accent": "#08c",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "monokai"
+    },
+    {
+      "id": "night",
+      "label": "Night",
+      "modes": [
+        "dark"
+      ],
+      "palette": {
+        "background": "#363b40",
+        "foreground": "#b8bfc6",
+        "muted": "#a3adb9",
+        "border": "#48525c",
+        "code": "#30363d",
+        "accent": "#69b9ef",
+        "fontFamily": "'Helvetica Neue',Helvetica,Arial,sans-serif"
+      },
+      "codeTheme": "dark"
+    },
+    {
+      "id": "one-dark",
+      "label": "One Dark",
+      "modes": [
+        "dark"
+      ],
+      "palette": {
+        "background": "#272b33",
+        "foreground": "#aab1bf",
+        "muted": "#7c869c",
+        "border": "#4b5261",
+        "code": "#393f4a",
+        "accent": "#56b6c2",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "one-dark"
+    },
+    {
+      "id": "solarized-dark",
+      "label": "Solarized Dark",
+      "modes": [
+        "dark"
+      ],
+      "palette": {
+        "background": "#002b36",
+        "foreground": "#839496",
+        "muted": "#afbabb",
+        "border": "#006c88",
+        "code": "#004b5f",
+        "accent": "#08c",
+        "fontFamily": "'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif"
+      },
+      "codeTheme": "solarized-dark"
+    }
+  ],
+  "code": [
+    {
+      "id": "auto",
+      "label": "Automatic",
+      "modes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "default",
+      "label": "Default",
+      "modes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "atom-light",
+      "label": "Atom Light",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "coy",
+      "label": "Coy",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "funky",
+      "label": "Funky",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "github",
+      "label": "GitHub",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "one-light",
+      "label": "One Light",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "pen-paper-coffee",
+      "label": "Pen Paper Coffee",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "solarized-light",
+      "label": "Solarized Light",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "vue",
+      "label": "Vue",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "vs",
+      "label": "Visual Studio",
+      "modes": [
+        "light"
+      ]
+    },
+    {
+      "id": "atom-dark",
+      "label": "Atom Dark",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "atom-material",
+      "label": "Atom Material",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "dark",
+      "label": "Dark",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "github-dark",
+      "label": "GitHub Dark",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "hopscotch",
+      "label": "Hopscotch",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "monokai",
+      "label": "Monokai",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "okaidia",
+      "label": "Okaidia",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "one-dark",
+      "label": "One Dark",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "pojoaque",
+      "label": "Pojoaque",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "solarized-dark",
+      "label": "Solarized Dark",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "twilight",
+      "label": "Twilight",
+      "modes": [
+        "dark"
+      ]
+    },
+    {
+      "id": "xonokai",
+      "label": "Xonokai",
+      "modes": [
+        "dark"
+      ]
+    }
+  ]
+}

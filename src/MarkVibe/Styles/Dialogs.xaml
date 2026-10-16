@@ -1,0 +1,82 @@
+<!-- VBWR B
+
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+
+  Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+
+VBWR E -->
+
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="clr-namespace:MarkVibe.Controls">
+ <DropShadowEffect x:Key="DialogElevation16" Color="{Binding Color, Source={StaticResource SystemAccent}}" BlurRadius="48" ShadowDepth="16" Direction="270" Opacity="0.34" />
+ <Style x:Key="DialogPrimaryButton" TargetType="Button" BasedOn="{StaticResource AppBarButton}">
+  <Setter Property="Background" Value="{StaticResource Accent}" /><Setter Property="Foreground" Value="White" />
+  <Setter Property="MinWidth" Value="112" /><Setter Property="Padding" Value="22,10" />
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+   <Grid x:Name="PrimaryRoot" Background="Transparent">
+    <VisualStateManager.VisualStateGroups>
+     <VisualStateGroup x:Name="CommonStates">
+      <VisualState x:Name="Normal" />
+      <VisualState x:Name="MouseOver"><Storyboard><DoubleAnimation Storyboard.TargetName="PrimaryHover" Storyboard.TargetProperty="Opacity" To="0.12" Duration="0" /></Storyboard></VisualState>
+      <VisualState x:Name="Pressed"><Storyboard><DoubleAnimation Storyboard.TargetName="PrimaryHover" Storyboard.TargetProperty="Opacity" To="0.2" Duration="0" /></Storyboard></VisualState>
+      <VisualState x:Name="Disabled"><Storyboard><DoubleAnimation Storyboard.TargetName="PrimaryRoot" Storyboard.TargetProperty="Opacity" To="0.4" Duration="0" /></Storyboard></VisualState>
+     </VisualStateGroup>
+     <VisualStateGroup x:Name="FocusStates">
+      <VisualState x:Name="Unfocused" />
+      <VisualState x:Name="Focused"><Storyboard><DoubleAnimation Storyboard.TargetName="PrimaryFocus" Storyboard.TargetProperty="Opacity" To="1" Duration="0" /></Storyboard></VisualState>
+     </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+    <Border Background="{TemplateBinding Background}" CornerRadius="8" />
+    <Border x:Name="PrimaryHover" Background="White" CornerRadius="8" Opacity="0" />
+    <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <Border x:Name="PrimaryFocus" BorderBrush="White" BorderThickness="2" Margin="3" CornerRadius="5" Opacity="0" IsHitTestVisible="False" />
+   </Grid>
+  </ControlTemplate></Setter.Value></Setter>
+ </Style>
+ <Style x:Key="DialogActionButton" TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
+  <Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  <Setter Property="FontSize" Value="12" /><Setter Property="Padding" Value="8,8" /><Setter Property="MinHeight" Value="48" />
+ </Style>
+ <Style x:Key="DialogSectionLabel" TargetType="TextBlock" BasedOn="{StaticResource SectionLabel}">
+  <Setter Property="Margin" Value="0,20,0,8" />
+ </Style>
+ <Style x:Key="AppDialog" TargetType="ChildWindow">
+  <Setter Property="Background" Value="{StaticResource AcrylicPanel}" /><Setter Property="Foreground" Value="{StaticResource ShellText}" />
+  <Setter Property="BorderThickness" Value="0" /><Setter Property="OverlayBrush" Value="#111621" /><Setter Property="OverlayOpacity" Value="0.22" />
+  <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
+  <Setter Property="FontFamily" Value="Segoe UI" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Stretch" />
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ChildWindow">
+   <Grid x:Name="Root" controls:Backdrop.BlurRadius="16">
+    <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="WindowStates"><VisualState x:Name="Open" /><VisualState x:Name="Closed" /></VisualStateGroup></VisualStateManager.VisualStateGroups>
+    <Grid x:Name="Overlay" Background="{TemplateBinding OverlayBrush}" Opacity="{TemplateBinding OverlayOpacity}" />
+    <Border x:Name="ContentRoot" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+     <Border.RenderTransform><TransformGroup><TranslateTransform /></TransformGroup></Border.RenderTransform>
+     <Border Background="{TemplateBinding Background}" CornerRadius="16" Effect="{StaticResource DialogElevation16}">
+      <Grid>
+       <Grid.RowDefinitions><RowDefinition Height="48" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+       <Border x:Name="Chrome" Padding="20,0,10,0" Background="Transparent">
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+         <ContentControl Content="{TemplateBinding Title}" FontSize="13" FontWeight="SemiBold" IsTabStop="False" VerticalAlignment="Center" />
+         <Button x:Name="CloseButton" Grid.Column="1" Content="×" Style="{StaticResource AppBarButton}" ToolTipService.ToolTip="Close dialog" AutomationProperties.Name="Close dialog" controls:IconLabel.HideIcon="True" FontSize="22" Width="38" Padding="0" />
+        </Grid>
+       </Border>
+       <ContentPresenter x:Name="ContentPresenter" Grid.Row="1" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+      </Grid>
+     </Border>
+    </Border>
+   </Grid>
+  </ControlTemplate></Setter.Value></Setter>
+ </Style>
+ <Style TargetType="ChildWindow" BasedOn="{StaticResource AppDialog}" />
+</ResourceDictionary>

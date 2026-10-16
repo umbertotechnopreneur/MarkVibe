@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MarkVibe document map layout",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "nodes"],
+  "properties": {
+    "schemaVersion": { "const": 4 },
+    "atlas": { "$ref": "#/$defs/atlas" },
+    "nodes": {
+      "type": "object",
+      "maxProperties": 4096,
+      "propertyNames": { "minLength": 1, "maxLength": 1024, "pattern": "\\.[mM](?:[dD]|[aA][rR][kK][dD][oO][wW][nN]|[dD][oO][wW][nN])$" },
+      "additionalProperties": { "$ref": "#/$defs/card" }
+    }
+  },
+  "$defs": {
+    "folders": {
+      "type": "array", "maxItems": 1024, "uniqueItems": true,
+      "items": { "type": "string", "maxLength": 1024 }
+    },
+    "camera": {
+      "type": "object", "additionalProperties": false,
+      "required": ["centerX", "centerY", "scale"],
+      "properties": {
+        "centerX": { "type": "number", "minimum": -1000000, "maximum": 1000000 },
+        "centerY": { "type": "number", "minimum": -1000000, "maximum": 1000000 },
+        "scale": { "type": "number", "minimum": 0.001, "maximum": 1.8 }
+      }
+    },
+    "view": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "camera", "selectedPath", "focusDepth", "folderGroups", "collapsedFolders"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "camera": { "$ref": "#/$defs/camera" },
+        "selectedPath": { "type": "string", "maxLength": 1024 },
+        "focusDepth": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "folderGroups": { "type": "boolean" },
+        "collapsedFolders": { "$ref": "#/$defs/folders" }
+      }
+    },
+    "atlas": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "focusDepth": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "folderGroups": { "type": "boolean" },
+        "collapsedFolders": { "$ref": "#/$defs/folders" },
+        "views": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/view" } }
+      }
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "color", "icon"],
+      "dependentRequired": { "width": ["height"], "height": ["width"] },
+      "properties": {
+        "x": { "type": "number", "minimum": -100000, "maximum": 100000 },
+        "y": { "type": "number", "minimum": -100000, "maximum": 100000 },
+        "width": { "type": "number", "minimum": 180, "maximum": 780 },
+        "height": { "type": "number", "minimum": 120, "maximum": 600 },
+        "color": {
+          "enum": ["#5b557f", "#ff4141", "#ff7020", "#ffc400", "#00bd55", "#0085ff", "#914bff", "#ff59ad", "#748094", "#d64578", "#e88263", "#84ad18", "#008f83", "#009fbd", "#5865d9", "#a56d46"]
+        },
+        "icon": {
+          "enum": ["file", "folder", "coin", "book", "graduation", "pencil", "pen-tool", "code", "terminal", "music", "flower", "palette", "stethoscope", "sparkles", "briefcase", "chart", "kettlebell", "dumbbell", "notebook", "balance", "moon", "plane", "globe", "heart"]
+        }
+      }
+    }
+  }
+}

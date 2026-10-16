@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "OpenSilver": {
+        "type": "Direct",
+        "requested": "[3.3.3, 3.3.3]",
+        "resolved": "3.3.3",
+        "contentHash": "0V3+8ukvq0Z2ARs1raLh/AhzZs1wSr8Bho3xaO+Q3PrscFglUBW1offzNrXB42abZYqnjZks75FRQfA+ugPN9g==",
+        "dependencies": {
+          "Microsoft.JSInterop": "3.1.28",
+          "System.ComponentModel.Annotations": "5.0.0",
+          "System.ComponentModel.Composition": "6.0.0",
+          "System.ServiceModel.Primitives": "8.1.0"
+        }
+      },
+      "OpenSilver.Themes.Modern": {
+        "type": "Direct",
+        "requested": "[3.3.0, 3.3.0]",
+        "resolved": "3.3.0",
+        "contentHash": "eBVcsqBgOyYVCr/HIKgvUU6DEDLt4fANe0E7kZS2DDmiDGbcjR2iFYlwagSuetH27XIf/fH3tCcdYfb23l8AcQ==",
+        "dependencies": {
+          "OpenSilver": "3.3.0"
+        }
+      },
+      "System.Security.Cryptography.Xml": {
+        "type": "Direct",
+        "requested": "[8.0.4, 8.0.4]",
+        "resolved": "8.0.4",
+        "contentHash": "1y+ROEEmEOACrQWqRi37GkGHOThPc31m7vezOySpPE9xXN2nTN6ndLYjylvy42aCtQq4owlYhcqaKpQKMDFKFg==",
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "8.0.1"
+        }
+      },
+      "Markdig": {
+        "type": "Transitive",
+        "resolved": "1.4.0",
+        "contentHash": "lLhaiI/mNDTNzgLqnmknhf4LjgTqOAyjx5+GNz0X3AxYMxUhmFppF2WVMdER+SDqwhE5wUF1pzs/cuLwFxs7xA=="
+      },
+      "Microsoft.Extensions.ObjectPool": {
+        "type": "Transitive",
+        "resolved": "8.0.10",
+        "contentHash": "u7gAG7JgxF8VSJUGPSudAcPxOt+ymJKQCSxNRxiuKV+klCQbHljQR75SilpedCTfhPWDhtUwIJpnDVtspr9nMg=="
+      },
+      "Microsoft.JSInterop": {
+        "type": "Transitive",
+        "resolved": "3.1.28",
+        "contentHash": "wvO13eO1oq66o11fH3hnYfysk/nestBODMnE5dER/GRjR/XsbbkeBmPtWt2MSAo2T3Ksvi4B34ipOnf012clqA=="
+      },
+      "System.ComponentModel.Annotations": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "dMkqfy2el8A8/I76n2Hi1oBFEbG1SfxD2l5nhwXV3XjlnOmwxJlQbYpJH4W51odnU9sARCSAgv7S3CyAFMkpYg=="
+      },
+      "System.ComponentModel.Composition": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "60Qv+F7oxomOjJeTDA5Z4iCyFbQ0B/2Mi5HT+13pxxq0lVnu2ipbWMzFB+RWKr3wWKA8BSncXr9PH/fECwMX5Q=="
+      },
+      "System.Security.Cryptography.Pkcs": {
+        "type": "Transitive",
+        "resolved": "8.0.1",
+        "contentHash": "CoCRHFym33aUSf/NtWSVSZa99dkd0Hm7OCZUxORBjRB16LNhIEOf8THPqzIYlvKM0nNDAPTRBa1FxEECrgaxxA=="
+      },
+      "System.ServiceModel.Primitives": {
+        "type": "Transitive",
+        "resolved": "8.1.0",
+        "contentHash": "/NGnzQSp2lmTlCfKzcD2PVKRnx6bQCbEqlb5sXo31TA2C7oA8g5I7Wfjk8dNRNUo1uSqZUcj3htED6tWA/mX9w==",
+        "dependencies": {
+          "Microsoft.Extensions.ObjectPool": "8.0.10",
+          "System.Security.Cryptography.Xml": "8.0.2"
+        }
+      },
+      "markvibe.core": {
+        "type": "Project",
+        "dependencies": {
+          "Markdig": "[1.4.0, 1.4.0]"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+<!-- VBWR B
+
+  Project: MarkVibe
+  Repository: https://github.com/umbertotechnopreneur/MarkVibe
+  Creator: Umberto Giacobbi | https://umbertogiacobbi.biz
+
+  VibeWare: Human intent, AI execution, and plenty of tokens
+  Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
+
+  Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+
+  Copyright (c) 2026 Umberto Giacobbi
+  License: MIT (see LICENSE)
+
+VBWR E -->
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-label="MarkVibe: Read. Annotate. Keep it yours.">
+ <rect width="1200" height="340" rx="28" fill="#111621"/>
+ <circle cx="1150" cy="35" r="210" fill="#242a49"/><circle cx="860" cy="360" r="190" fill="#193336"/>
+ <rect x="62" y="56" width="64" height="64" rx="18" fill="#525ce8"/>
+ <path d="M76 102V74h8l10 16 10-16h8v28h-8V87l-10 15-10-15v15z" fill="#fff"/>
+ <text x="62" y="187" fill="#f5f7fc" font-family="Segoe UI,system-ui,sans-serif" font-size="62" font-weight="700">MarkVibe</text>
+ <text x="66" y="234" fill="#b6c3db" font-family="Segoe UI,system-ui,sans-serif" font-size="24">Read. Annotate. Keep it yours.</text>
+ <text x="66" y="286" fill="#76cfbc" font-family="Segoe UI,system-ui,sans-serif" font-size="16">LOCAL MARKDOWN  ·  HANDWRITTEN NOTES  ·  HTML / PDF</text>
+ <g transform="translate(710 40) rotate(-5 135 132)"><rect x="0" y="0" width="260" height="264" rx="14" fill="#eef2fa"/><rect x="22" y="26" width="146" height="12" rx="6" fill="#525ce8"/><rect x="22" y="53" width="210" height="7" rx="3.5" fill="#cbd5e3"/><rect x="22" y="69" width="165" height="7" rx="3.5" fill="#cbd5e3"/><rect x="22" y="100" width="216" height="73" rx="8" fill="#fff" stroke="#cbd5e3"/><path d="m42 150 16-23 13 15 16-17 18 26 23-31 14 27 18-16 14 11 32-17" fill="none" stroke="#29a8a1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="22" y="193" width="74" height="42" rx="8" fill="#e4dff8"/><rect x="106" y="193" width="132" height="42" rx="8" fill="#d9f4ef"/><text x="120" y="220" fill="#18796f" font-family="Segoe UI,system-ui,sans-serif" font-size="17" font-weight="600">Export PDF</text></g>
+ <g transform="translate(1010 192) rotate(14)"><path d="M0 0h92l22 22v86H0z" fill="#e8e0fa" stroke="#9471d3" stroke-width="3"/><path d="M22 0h58v40H22zM22 65h70v43H22z" fill="#fff" stroke="#9471d3" stroke-width="3"/><path d="M62 10v20M38 85h38" stroke="#29a8a1" stroke-width="6" stroke-linecap="round"/></g>
+</svg>

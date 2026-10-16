@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-10-11T09:03:03.963Z",
+  "source": "https://developers.openai.com/api/docs/pricing",
+  "pricingMode": "standard",
+  "currency": "USD",
+  "costClassification": {
+    "basis": "Standard output-token price; app-defined qualitative categories, not a quote",
+    "cheapMaximumOutputUsdPerMillion": 5,
+    "affordableMaximumOutputUsdPerMillion": 20
+  },
+  "models": [
+    {
+      "id": "gpt-6.1-sol",
+      "label": "GPT-6.1 Sol",
+      "description": "Quality and cost in balance",
+      "contextWindow": 1050000,
+      "maxInputTokens": 922000,
+      "maxOutputTokens": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "standardUsdPerMillionTokens": {
+        "input": 2,
+        "cachedInput": 0.1,
+        "cacheWrite": 2.5,
+        "output": 10
+      },
+      "longContext": {
+        "thresholdInputTokens": 272000,
+        "inputMultiplier": 2,
+        "outputMultiplier": 1.5
+      },
+      "costTier": "affordable",
+      "longContextCostTier": "affordable",
+      "promotionalPricingThrough": null,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+    },
+    {
+      "id": "gpt-6-astra",
+      "label": "GPT-6 Astra",
+      "description": "For demanding revisions",
+      "contextWindow": 1050000,
+      "maxInputTokens": 922000,
+      "maxOutputTokens": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "standardUsdPerMillionTokens": {
+        "input": 10,
+        "cachedInput": 1,
+        "cacheWrite": 12.5,
+        "output": 50
+      },
+      "longContext": {
+        "thresholdInputTokens": 272000,
+        "inputMultiplier": 2,
+        "outputMultiplier": 1.5
+      },
+      "costTier": "prohibitive",
+      "longContextCostTier": "prohibitive",
+      "promotionalPricingThrough": null,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6-astra"
+    },
+    {
+      "id": "gpt-6-sol",
+      "label": "GPT-6 Sol",
+      "description": "General-purpose reasoning",
+      "contextWindow": 1050000,
+      "maxInputTokens": 922000,
+      "maxOutputTokens": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "standardUsdPerMillionTokens": {
+        "input": 2,
+        "cachedInput": 0.2,
+        "cacheWrite": 2.5,
+        "output": 10
+      },
+      "longContext": {
+        "thresholdInputTokens": 272000,
+        "inputMultiplier": 2,
+        "outputMultiplier": 1.5
+      },
+      "costTier": "affordable",
+      "longContextCostTier": "affordable",
+      "promotionalPricingThrough": null,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6-sol"
+    },
+    {
+      "id": "gpt-6-luna",
+      "label": "GPT-6 Luna",
+      "description": "Lightweight everyday editing",
+      "contextWindow": 1050000,
+      "maxInputTokens": 922000,
+      "maxOutputTokens": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "standardUsdPerMillionTokens": {
+        "input": 0.1,
+        "cachedInput": 0.01,
+        "cacheWrite": 0.125,
+        "output": 0.5
+      },
+      "longContext": {
+        "thresholdInputTokens": 272000,
+        "inputMultiplier": 2,
+        "outputMultiplier": 1.5
+      },
+      "costTier": "cheap",
+      "longContextCostTier": "cheap",
+      "promotionalPricingThrough": null,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6-luna"
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "label": "GPT-5.6 Sol",
+      "description": "Complex document work",
+      "contextWindow": 1050000,
+      "maxInputTokens": 922000,
+      "maxOutputTokens": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "standardUsdPerMillionTokens": {
+        "input": 4,
+        "cachedInput": 0.4,
+        "cacheWrite": 5,
+        "output": 20
+      },
+      "longContext": {
+        "thresholdInputTokens": 272000,
+        "inputMultiplier": 2,
+        "outputMultiplier": 1.5
+      },
+      "costTier": "affordable",
+      "longContextCostTier": "prohibitive",
+      "promotionalPricingThrough": "November 21, 2026",
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.6-sol"
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "label": "GPT-5.6 Terra",
+      "description": "A balanced smaller model",
+      "contextWindow": 1050000,
+      "maxInputTokens": 922000,
+      "maxOutputTokens": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "standardUsdPerMillionTokens": {
+        "input": 2,
+        "cachedInput": 0.2,
+        "cacheWrite": 2.5,
+        "output": 12
+      },
+      "longContext": {
+        "thresholdInputTokens": 272000,
+        "inputMultiplier": 2,
+        "outputMultiplier": 1.5
+      },
+      "costTier": "affordable",
+      "longContextCostTier": "affordable",
+      "promotionalPricingThrough": null,
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.6-terra"
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "label": "GPT-5.6 Luna",
+      "description": "Efficient focused revisions",
+      "contextWindow": 1050000,
+      "maxInputTokens": 922000,
+      "maxOutputTokens": 128000,
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "standardUsdPerMillionTokens": {
+        "input": 0.2,
+        "cachedInput": 0.02,
+        "cacheWrite": 0.25,
+        "output": 1.2
+      },
+      "longContext": {
+        "thresholdInputTokens": 272000,
+        "inputMultiplier": 2,
+        "outputMultiplier": 1.5
+      },
+      "costTier": "cheap",
+      "longContextCostTier": "cheap",
+      "promotionalPricingThrough": null,
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.6-luna"
+    }
+  ]
+}
