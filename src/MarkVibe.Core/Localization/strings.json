@@ -905,6 +905,16 @@
       "간결하게 읽기",
       "コンパクト"
     ],
+    "Native window transparency is disabled for stable rendering.": [
+      "La trasparenza della finestra è disattivata per garantire un rendering stabile.",
+      "La transparence native de la fenêtre est désactivée pour stabiliser le rendu.",
+      "Đã tắt độ trong suốt của cửa sổ để hiển thị ổn định.",
+      "已禁用窗口原生透明效果以保持渲染稳定。",
+      "已停用視窗原生透明效果，確保顯示穩定。",
+      "Transparansi jendela dinonaktifkan agar rendering stabil.",
+      "안정적인 렌더링을 위해 창 투명도를 비활성화했습니다.",
+      "描画を安定させるため、ウィンドウの透過表示を無効にしています。"
+    ],
     "Acrylic window background": [
       "Sfondo Acrylic",
       "Arrière-plan Acrylic",

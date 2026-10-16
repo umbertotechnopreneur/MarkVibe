@@ -19,6 +19,8 @@
  * Human guidance: Umberto Giacobbi; correct gray redraw corruption during map selection
  * Modified with AI: OpenAI Codex; selectable native API and Codex CLI connection routing; 2026-10-16
  * Human guidance: Umberto Giacobbi; independent provider tests and explicit document-only sends
+ * Modified with AI: OpenAI Codex; opaque direct browser presentation; 2026-10-16
+ * Human guidance: Umberto Giacobbi; prevent missing window regions while panning the document map
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -44,7 +46,7 @@ using Microsoft.Win32.SafeHandles;
 using static MarkVibe.Core.UiStrings;
 
 namespace MarkVibe.Windows;
-/// <summary>Owns the composed desktop browser, isolated print host and authenticated native operations.</summary>
+/// <summary>Owns the opaque desktop browser, isolated print host and authenticated native operations.</summary>
 internal sealed class DesktopWindow : Window
 {
     private const string Host = "markvibe.local";
@@ -53,9 +55,12 @@ internal sealed class DesktopWindow : Window
     private readonly NativeFiles _files;
     private readonly AiConnectionService _aiConnections;
     private readonly WebViewDiagnostics _diagnostics = new();
-    // Compose the visible browser with WPF instead of presenting a separate child HWND.
-    // Animated transparent content then shares the window's redraw and clipping lifecycle.
-    private readonly WebView2CompositionControl _view = new();
+    // All application overlays live inside the browser. Direct HWND presentation avoids
+    // the capture-to-WPF texture path, which exposed missing regions during map movement.
+    private readonly WebView2 _view = new()
+    {
+        DefaultBackgroundColor = System.Drawing.Color.FromArgb(244, 245, 247)
+    };
     private readonly WebView2 _print = new()
     {
         Width = 960,
@@ -72,7 +77,7 @@ internal sealed class DesktopWindow : Window
     private int _pending;
     private CoreWebView2Environment? _environment;
     private readonly string _systemLanguage = CultureInfo.CurrentUICulture.Name;
-    private bool _acrylicRequested = true, _dark;
+    private bool _dark;
     /// <summary>Creates the visible and print WebViews, native file service and desktop lifetime handlers.</summary>
     public DesktopWindow(DesktopOptions options)
     {
@@ -82,6 +87,7 @@ internal sealed class DesktopWindow : Window
         _startupDocument = options.Document;
         UiStrings.SetLanguage("system", _systemLanguage);
         Title = "MarkVibe";
+        Background = System.Windows.Media.Brushes.WhiteSmoke;
         Width = 1250;
         Height = 820;
         MinWidth = 480;
@@ -130,7 +136,7 @@ internal sealed class DesktopWindow : Window
 
             _environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(_options.DataDirectory, "WebView2"), new() { AdditionalBrowserArguments = arguments });
             await _view.EnsureCoreWebView2Async(_environment);
-            WindowsBackdrop.Apply(this, _view, _acrylicRequested, _dark);
+            WindowsBackdrop.Apply(this, _view, _dark);
             var core = _view.CoreWebView2;
             core.SetVirtualHostNameToFolderMapping(Host, _options.AssetsDirectory, CoreWebView2HostResourceAccessKind.Deny);
             Secure(core, true);
@@ -394,12 +400,11 @@ internal sealed class DesktopWindow : Window
                 return UiFontCatalog.Installed(System.Windows.Media.Fonts.SystemFontFamilies
                     .SelectMany(family => family.FamilyNames.Values.Append(family.Source)));
             case "window.appearance":
-                _acrylicRequested = args.GetProperty("acrylic").GetBoolean();
                 _dark = args.GetProperty("dark").GetBoolean();
                 UiStrings.SetLanguage(Text("language"), _systemLanguage);
                 return new
                 {
-                    acrylic = WindowsBackdrop.Apply(this, _view, _acrylicRequested, _dark),
+                    acrylic = WindowsBackdrop.Apply(this, _view, _dark),
                     acrylicAvailable = WindowsBackdrop.Supported,
                     accent = WindowsBackdrop.Accent
                 };
@@ -930,7 +935,7 @@ internal sealed class DesktopWindow : Window
             return;
         }
 
-        WindowsBackdrop.Apply(this, _view, _acrylicRequested, _dark);
+        WindowsBackdrop.Apply(this, _view, _dark);
         _view.CoreWebView2.PostWebMessageAsJson(Wire.Encode(new { version = 1, notification = "appearance" }));
     });
 }

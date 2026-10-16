@@ -1,5 +1,23 @@
 # AI development disclosure
 
+## Opaque desktop presentation — 2026-10-16
+
+The owner supplied a new screenshot showing missing shell regions while moving
+the document map in the installed 0.1.0.24 app. This disproves completion of the
+earlier composed-host redraw repair. Codex replaced capture-to-WPF browser
+presentation with direct HWND WebView2 hosting and made the browser, WPF surface
+and native client backgrounds opaque. Native Acrylic availability is disabled
+with a localized Settings explanation; the saved preference and browser modal
+blur are retained. No GPU-disable flag or continuous forced redraw was added.
+The screenshot does not by itself identify the exact runtime/driver failure;
+native pan/zoom and modal acceptance remain with the owner.
+
+Debug x64 0.1.0.25 compiled and packaged successfully, with the pre-existing
+transitive dependency advisories still present. Its MSIX was installed and the
+installed executable launched; Windows reports exact version, x64 and Status Ok.
+MSI and portable outputs were also generated. No automated suites, GUI checks,
+provider test or inference was run, and no functional resolution is claimed.
+
 ## Repository delivery and copy — 2026-10-16
 
 With the owner's explicit branch and Git approval, Codex consolidated the 18

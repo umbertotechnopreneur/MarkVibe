@@ -14,7 +14,7 @@ separate. See the task archive for the current build and launch evidence.
 | Appearance | System | Light/Dark override, or live system color-scheme changes |
 | Language | System | Apply the system language or an available translation immediately |
 | UI font | System default | Use a supported monospace family installed on Windows, without changing document/editor fonts |
-| Acrylic | On | Request the native backdrop when available |
+| Acrylic | On | Retained preference; unavailable in the opaque Windows host for rendering stability |
 | Document presentation | Technical | Technical, Editorial or Compact reading |
 | Light/dark document themes | MarkVibe | Select independent reader themes for the two appearances |
 | Light/dark code themes | Automatic | Follow the selected reader theme or choose a code theme |

@@ -11,6 +11,8 @@
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; accept the composed browser through its shared interface; 2026-10-16
  * Human guidance: Umberto Giacobbi; coordinate native material with stable Windows rendering
+ * Modified with AI: OpenAI Codex; keep native presentation opaque; 2026-10-16
+ * Human guidance: Umberto Giacobbi; remove compositing holes during map navigation
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -22,14 +24,13 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Microsoft.Web.WebView2.Wpf;
-using Microsoft.Win32;
 
 namespace MarkVibe.Windows;
-/// <summary>Coordinates Windows backdrop material with the visible browser and WPF composition surface.</summary>
+/// <summary>Applies native theme colors while keeping the browser and desktop surface opaque.</summary>
 internal static class WindowsBackdrop
 {
-    /// <summary>Reports whether this Windows version exposes the system-backdrop window attribute.</summary>
-    internal static bool Supported => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621);
+    /// <summary>Reports native Acrylic availability; this host deliberately uses opaque presentation.</summary>
+    internal static bool Supported => false;
 
     /// <summary>Reads the current system accent, falling back to the application accent when DWM is unavailable.</summary>
     internal static string Accent
@@ -45,8 +46,8 @@ internal static class WindowsBackdrop
         }
     }
 
-    /// <summary>Applies the requested Windows backdrop and keeps the host and WebView backgrounds consistent with its availability.</summary>
-    internal static bool Apply(Window window, IWebView2 view, bool requested, bool dark)
+    /// <summary>Applies the title-bar theme and opaque client colors, returning false for native Acrylic.</summary>
+    internal static bool Apply(Window window, IWebView2 view, bool dark)
     {
         var windowHandle = new WindowInteropHelper(window).Handle;
         if (windowHandle == IntPtr.Zero)
@@ -56,40 +57,29 @@ internal static class WindowsBackdrop
 
         var darkMode = dark ? 1 : 0;
         _ = DwmSetWindowAttribute(windowHandle, 20, ref darkMode, sizeof(int));
-        var transparency = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "EnableTransparency", 1);
-        var enabled = requested && Supported && !SystemParameters.HighContrast && !Equals(transparency, 0);
-        var backdropType = enabled ? 3 : 1;
-        if (Supported && DwmSetWindowAttribute(windowHandle, 38, ref backdropType, sizeof(int)) < 0)
+        // Do not extend glass behind the document browser. Partial native repaints
+        // must never reveal the desktop beneath an otherwise opaque application.
+        var backdropType = 1;
+        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621))
         {
-            enabled = false;
+            _ = DwmSetWindowAttribute(windowHandle, 38, ref backdropType, sizeof(int));
         }
 
-        var margins = new Margins
-        {
-            Left = enabled ? -1 : 0
-        };
-        if (DwmExtendFrameIntoClientArea(windowHandle, ref margins) < 0)
-        {
-            enabled = false;
-            backdropType = 1;
-            if (Supported)
-            {
-                _ = DwmSetWindowAttribute(windowHandle, 38, ref backdropType, sizeof(int));
-            }
-        }
+        var margins = new Margins();
+        _ = DwmExtendFrameIntoClientArea(windowHandle, ref margins);
 
         var color = dark ? Color.FromRgb(17, 22, 33) : Color.FromRgb(244, 245, 247);
-        window.Background = enabled ? Brushes.Transparent : new SolidColorBrush(color);
+        window.Background = new SolidColorBrush(color);
         if (HwndSource.FromHwnd(windowHandle)?.CompositionTarget is { } compositionTarget)
         {
-            compositionTarget.BackgroundColor = enabled ? Colors.Transparent : color;
+            compositionTarget.BackgroundColor = color;
         }
 
-        view.DefaultBackgroundColor = enabled ? System.Drawing.Color.Transparent : System.Drawing.Color.FromArgb(color.R, color.G, color.B);
-        return enabled;
+        view.DefaultBackgroundColor = System.Drawing.Color.FromArgb(color.R, color.G, color.B);
+        return false;
     }
 
-    /// <summary>Describes the native frame extension; a negative left margin extends the entire client area.</summary>
+    /// <summary>Describes native frame margins; zero values keep glass outside the client area.</summary>
     [StructLayout(LayoutKind.Sequential)]
     private struct Margins
     {

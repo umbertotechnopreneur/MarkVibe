@@ -217,7 +217,17 @@ public partial class SettingsWindow : ChildWindow
         var dark = Application.Current.Theme is OpenSilver.Themes.Modern.ModernTheme theme
             && theme.CurrentPalette == OpenSilver.Themes.Modern.ModernTheme.Palettes.Dark;
         OpenAiLogo.Source = IconLabel.Asset("images/openai-blossom-" + (dark ? "white" : "black") + ".svg");
-        AppLocalization.SetText(AcrylicHelp, availability.Desktop && availability.AcrylicAvailable ? "Windows transparency settings are respected. The document stays opaque." : "Acrylic is available in the Windows app on Windows 11. A solid background is used here.");
+        var acrylicHelp = "Acrylic is available in the Windows app on Windows 11. A solid background is used here.";
+        if (availability.Desktop)
+        {
+            acrylicHelp = "Native window transparency is disabled for stable rendering.";
+            if (availability.AcrylicAvailable)
+            {
+                acrylicHelp = "Windows transparency settings are respected. The document stays opaque.";
+            }
+        }
+
+        AppLocalization.SetText(AcrylicHelp, acrylicHelp);
         _updating = false;
         RefreshOpenAiConnection();
         RefreshLanguage();

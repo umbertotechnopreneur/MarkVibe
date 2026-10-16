@@ -98,19 +98,26 @@ The native authoring script and table definitions live under `packaging/windows/
 Keep component identities stable across upgrades and never add wildcard deletion
 of user data to the uninstall tables.
 
-The visible desktop browser uses `WebView2CompositionControl`; the isolated PDF
-host keeps the standard hidden WebView2 control. Both use the same authenticated
-bridge and resource boundaries. The visible control participates in WPF painting
-instead of presenting a separate child HWND. Its native Acrylic background and
-the in-app modal blur remain separate materials. See Microsoft's
-[WPF WebView2 hosting documentation](https://learn.microsoft.com/en-us/microsoft-edge/webview2/platforms/wpf).
-The composition control may have lower frame rates than HWND hosting; inspect
-selection, scrolling, window resizing and modal opening in a visible window
-when changing this path. Browser-only captures cannot prove native redraw behavior.
+The visible desktop browser uses the standard HWND-hosted `WebView2` with opaque
+browser, WPF and native client backgrounds. Native Acrylic is unavailable and
+Settings explains why; the saved preference is retained. All application dialogs,
+menus and tooltips live inside the browser, so they do not need WPF-over-browser
+composition. The isolated PDF host remains hidden with its existing boundaries.
+
+This removes the transparent capture-to-WPF presentation path after the owner
+reported missing shell regions during map movement in 0.1.0.24. Microsoft documents
+that `WebView2CompositionControl` adds a graphics-capture step and can have lower
+frame rates than standard hosting; see its
+[composition-control specification](https://github.com/MicrosoftEdge/WebView2Feedback/blob/main/specs/WPF_WebView2CompositionControl.md).
+In-app modal blur remains a separate browser effect. No GPU-disable flag, redraw
+polling loop or document-map animation removal is introduced. Owner acceptance of
+pan/zoom, selection, resize, themes and modal opening remains necessary;
+browser-only captures cannot prove native redraw behavior.
 The Windows project targets `net10.0-windows10.0.19041.0` and pins the existing
 Windows SDK .NET reference pack `10.0.19041.57`. A bare `net10.0-windows` target
 defaults to Windows 7 APIs and does not deploy the Windows Runtime assembly that
-composition hosting loads at startup. The MSIX's Windows 11 minimum is unchanged.
+the former composition host loaded at startup. The compatible Windows target and
+MSIX's Windows 11 minimum are retained; no SDK/package update is needed for this fix.
 
 ## GitHub and Microsoft Store
 

@@ -2,6 +2,15 @@
 
 Keep durable, repository-specific findings here; omit temporary commands and plans.
 
+- A composition host is not inherently a redraw fix. WebView2CompositionControl
+  adds graphics capture and WPF presentation; use it only when actual WPF overlays
+  require that path. MarkVibe overlays are browser content, so direct opaque HWND
+  hosting avoids that extra path. Keep the browser, WPF target and native client
+  opaque together; native Acrylic and browser modal blur are separate decisions.
+- Missing native shell regions in an owner screenshot invalidate earlier redraw
+  acceptance. A successful build or a correct DOM background cannot establish
+  that native presentation is fixed; keep owner interaction acceptance separate.
+
 - A local CLI login status is not proof of a remote response. Keep the explicit
   synthetic connection test separate, explain its possible usage cost and never
   label static model IDs as verified account availability. API model-list access

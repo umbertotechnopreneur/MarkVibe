@@ -3,6 +3,17 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
+- [ ] Owner acceptance of installed Debug x64 0.1.0.25 and the opaque desktop
+  presentation repair: the 0.1.0.24
+  screenshot shows missing shell regions while panning, despite the previous
+  composed-host change. Use direct HWND WebView2, opaque host/browser backgrounds
+  and no full-client DWM glass. Disable native Acrylic availability with localized
+  explanation; retain the preference and browser modal blur. Confirm map pan/zoom,
+  selection, resizing, themes and modals manually. Build/sign/MSIX installation
+  and final launch succeeded; Windows reports version 0.1.0.25, x64 and Status Ok.
+  No GUI checks, suites, provider tests or inference ran. Existing NU1902/NU1903
+  transitive dependency advisories remain outside this rendering correction.
+
 - [ ] Owner acceptance of installed Debug x64 0.1.0.24: persisted Codex CLI/API
   radio selection, separate Test buttons and explicit pass/fail dialogs. API tests
   check model-list authentication; CLI tests request a tiny synthetic response and

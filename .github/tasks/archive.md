@@ -3,6 +3,29 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-16 — Opaque direct presentation and Debug 0.1.0.25
+
+- Treat the owner's screenshot of missing shell regions during map movement in
+  0.1.0.24 as evidence that the earlier redraw change was insufficient. Replace
+  visible WebView2CompositionControl with standard HWND-hosted WebView2. All app
+  overlays are browser content, so WPF-over-browser composition is unnecessary.
+- Remove full-client DWM glass and keep the WebView, WPF background and native
+  composition target opaque from startup through theme changes. Report native
+  Acrylic unavailable and explain it in all supported Settings languages; retain
+  the saved preference and browser modal blur. Preserve accelerated rendering and
+  existing map effects without forced-refresh timers or GPU-disable flags.
+- Clean artifacts and build/sign Debug x64 0.1.0.25: MSI 0.1.25, MSIX/bundle and
+  portable. Existing NU1902/NU1903 advisories for transitive Pkcs 8.0.1 and Xml
+  8.0.4 remain; no dependency versions or SDKs were changed for this correction.
+- Trust the matching development certificate
+  31789C47C760EE203E260AF7601B72E44FA99D43, replace the MSIX and launch the installed
+  app. Windows confirms 0.1.0.25, x64 and Status Ok. Record deployment separately
+  in artifacts/INSTALL-INFO.json. No suites, GUI automation, desktop capture,
+  provider tests or inference ran. Native pan/zoom and modal acceptance remains
+  with the owner; the screenshot alone does not establish the driver/runtime cause.
+- Maintain the fix in the copied repository `E:\MarkVibe`; the original checkout
+  at `E:\Research\MarkVibe` remains the preserved pre-fix copy.
+
 ## 2026-10-16 — Initial consolidation, protected master, PR and repository copy
 
 - Reuse the owner's explicit approval for `codex/prepare-public-repository`.
