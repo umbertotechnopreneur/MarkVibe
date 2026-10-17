@@ -10,18 +10,21 @@
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; Markdown AI toolbar entry; 2026-10-11
+ * Modified with AI: OpenAI Codex; map arrangement, metadata and reset icon captions; 2026-10-16
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
+ * Modified with AI: OpenAI Codex; idempotent icon lifecycle and shared declared UI traversal; 2026-10-16
+ * Human guidance: Umberto Giacobbi; avoid repeated event handlers and preserve caller-owned labels
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
  * License: MIT (see LICENSE)
  *
  * VBWR E */
-using System.Security;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MarkVibe.Core;
@@ -32,6 +35,7 @@ public sealed class IconLabel : Grid
 {
     private readonly TextBlock _caption;
     private readonly VectorIcon _glyph;
+    private ButtonBase? _ownerButton;
     public static readonly DependencyProperty HideIconProperty = DependencyProperty.RegisterAttached("HideIcon", typeof(bool), typeof(IconLabel), new PropertyMetadata(false));
     /// <summary>Reads the explicit opt-out used by text-only close and footer links.</summary>
     public static bool GetHideIcon(DependencyObject element) => (bool)element.GetValue(HideIconProperty);
@@ -59,12 +63,14 @@ public sealed class IconLabel : Grid
         SetColumn(_caption, 1);
         Children.Add(_caption);
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
         Compact = text.Length == 0;
     }
 
     /// <summary>Inherits the owning button's text colors and font settings.</summary>
     private void OnLoaded(object sender, RoutedEventArgs arguments)
     {
+        DetachOwner();
         DependencyObject? parent = this;
         while (parent != null && parent is not ButtonBase)
         {
@@ -73,12 +79,51 @@ public sealed class IconLabel : Grid
 
         if (parent is ButtonBase button)
         {
+            _ownerButton = button;
             _glyph.SetBinding(Control.ForegroundProperty, new Binding("Foreground") { Source = button });
-            button.MouseEnter += (_, _) => _glyph.Foreground = (Brush)Application.Current.Resources["SystemAccent"];
-            button.MouseLeave += (_, _) => _glyph.SetBinding(Control.ForegroundProperty, new Binding("Foreground") { Source = button });
+            button.MouseEnter += OwnerMouseEntered;
+            button.MouseLeave += OwnerMouseLeft;
             _caption.SetBinding(TextBlock.ForegroundProperty, new Binding("Foreground") { Source = button });
             _caption.SetBinding(TextBlock.FontSizeProperty, new Binding("FontSize") { Source = button });
             _caption.SetBinding(TextBlock.FontWeightProperty, new Binding("FontWeight") { Source = button });
+        }
+    }
+
+    /// <summary>Releases subscriptions and owner bindings when the caption leaves its button's visual tree.</summary>
+    private void OnUnloaded(object sender, RoutedEventArgs arguments)
+    {
+        DetachOwner();
+    }
+
+    /// <summary>Removes the previous owner's handlers before unloading or attaching to a new button.</summary>
+    private void DetachOwner()
+    {
+        if (_ownerButton == null)
+        {
+            return;
+        }
+
+        _ownerButton.MouseEnter -= OwnerMouseEntered;
+        _ownerButton.MouseLeave -= OwnerMouseLeft;
+        _ownerButton = null;
+        _glyph.ClearValue(Control.ForegroundProperty);
+        _caption.ClearValue(TextBlock.ForegroundProperty);
+        _caption.ClearValue(TextBlock.FontSizeProperty);
+        _caption.ClearValue(TextBlock.FontWeightProperty);
+    }
+
+    /// <summary>Highlights the glyph while its owning action is hovered.</summary>
+    private void OwnerMouseEntered(object sender, MouseEventArgs arguments)
+    {
+        _glyph.Foreground = (Brush)Application.Current.Resources["SystemAccent"];
+    }
+
+    /// <summary>Restores the owner's foreground binding after its hover highlight ends.</summary>
+    private void OwnerMouseLeft(object sender, MouseEventArgs arguments)
+    {
+        if (_ownerButton != null)
+        {
+            _glyph.SetBinding(Control.ForegroundProperty, new Binding("Foreground") { Source = _ownerButton });
         }
     }
 
@@ -113,6 +158,17 @@ internal static class ButtonIcons
     /// <summary>Decorates declared content, including controls not yet in the visual tree.</summary>
     public static void Decorate(DependencyObject parent)
     {
+        Walk(parent, new HashSet<DependencyObject>());
+    }
+
+    /// <summary>Visits each application child once while leaving caller-owned labels and declared-content templates intact.</summary>
+    private static void Walk(DependencyObject parent, HashSet<DependencyObject> visited)
+    {
+        if (!visited.Add(parent) || AppLocalization.IsRaw(parent))
+        {
+            return;
+        }
+
         if (parent is ButtonBase button && parent is (Button or HyperlinkButton) && button.Content is string caption)
         {
             var(icon, text) = Describe(caption);
@@ -133,43 +189,21 @@ internal static class ButtonIcons
         }
 
         // Declared children may belong to a collapsed tab without a template yet.
-        if (parent is Panel panel)
+        var declaredChildren = UiTree.DeclaredChildren(parent).ToArray();
+        foreach (var child in declaredChildren)
         {
-            foreach (var child in panel.Children)
-            {
-                Decorate(child);
-            }
-
-            return;
+            Walk(child, visited);
         }
 
-        if (parent is Border border)
+        // Content templates own their glyphs; decorate application content without reinterpreting template controls.
+        if (parent is Panel or Border or UserControl or Popup || parent is ContentControl && declaredChildren.Length > 0)
         {
-            if (border.Child != null)
-            {
-                Decorate(border.Child);
-            }
-
             return;
-        }
-
-        if (parent is ContentControl content && content.Content is DependencyObject declared)
-        {
-            Decorate(declared);
-            return;
-        }
-
-        if (parent is ItemsControl items)
-        {
-            foreach (var item in items.Items.OfType<DependencyObject>())
-            {
-                Decorate(item);
-            }
         }
 
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
         {
-            Decorate(VisualTreeHelper.GetChild(parent, index));
+            Walk(VisualTreeHelper.GetChild(parent, index), visited);
         }
     }
 
@@ -213,6 +247,11 @@ internal static class ButtonIcons
         "Source" => ("code", text),
         "Split" => ("split", text),
         "Map" => ("map", text),
+        "Star" => ("layout-star", text),
+        "Circle" => ("layout-circle", text),
+        "Grid" => ("layout-grid", text),
+        "Advanced view" => ("review", text),
+        "Reset" or "Reset all" => ("reset", text),
         "AI" => ("sparkles", text),
         "Pages" => ("pages", text),
         "Outline" => ("outline", text),

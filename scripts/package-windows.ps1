@@ -7,8 +7,10 @@
 # VibeWare: Human intent, AI execution, and plenty of tokens
 # Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 #
-# Modified with AI: OpenAI Codex; readability revision; 2026-10-11
-# Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+# Modified with AI: OpenAI Codex; Debug and architecture defaults; 2026-10-16
+# Human guidance: Umberto Giacobbi; local x64 Debug builds and explicit wider packaging
+# Modified with AI: OpenAI Codex; real MSI distribution using native Windows authoring; 2026-10-16
+# Human guidance: Umberto Giacobbi; an MSI installer alongside MSIX and portable files
 # Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 #
 # Copyright (c) 2026 Umberto Giacobbi
@@ -25,13 +27,16 @@ Build the requested Windows distribution using existing tools, with temporary da
 # creates branches/worktrees, or publishes anything.
 [CmdletBinding()]
 param(
-    [ValidateSet('Release', 'Debug')][string]$Configuration = 'Release',
+    [ValidateSet('Release', 'Debug')][string]$Configuration = 'Debug',
+    [ValidateNotNullOrEmpty()][ValidateSet('x64', 'arm64')][string[]]$Architectures = @('x64'),
     [string]$Version,
     [switch]$Unsigned,
     [string]$IdentityName,
     [string]$Publisher
 )
 $ErrorActionPreference = 'Stop'
+# Keep the first occurrence of each requested architecture so it is published once.
+$Architectures = @($Architectures | Select-Object -Unique)
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts'))
 $workRoot = Join-Path $artifactsRoot '.work'
@@ -40,7 +45,7 @@ $versionFile = Join-Path $windowsPackaging 'version.json'
 $packageMetadata = Get-Content -LiteralPath $versionFile -Raw | ConvertFrom-Json
 $previousVersion = [version]$packageMetadata.version
 if (-not $Version) {
-    $Version = if ($previousVersion.Revision -lt 65535) {
+    $Version = if ($previousVersion.Revision -lt 999) {
         '{0}.{1}.{2}.{3}' -f $previousVersion.Major, $previousVersion.Minor, $previousVersion.Build, ($previousVersion.Revision + 1)
     } else {
 
@@ -57,6 +62,9 @@ if ($packageVersion -le $previousVersion -or @(
             $_ -gt 65535 }).Count) {
     throw "Use a version greater than $previousVersion, with each component at most 65535."
 }
+# Validate MSI's stricter version range before cleaning the previous artifacts.
+$msiProductVersion = & (Join-Path $windowsPackaging 'New-MsiPackage.ps1') `
+    -Version $packageVersion -ValidateVersionOnly
 if (-not $IdentityName) {
 
     $IdentityName = $packageMetadata.identityName
@@ -142,12 +150,8 @@ try {
     Write-Host "Cleaning $artifactsRoot before $Configuration $Version."
     Remove-BuildDirectory $artifactsRoot
     [System.IO.Directory]::CreateDirectory($workRoot) | Out-Null
-    if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'node_modules/esbuild'))) {
-        Invoke-BuildTool 'npm.cmd' @(
-            'ci', '--ignore-scripts', '--no-audit', '--no-fund')
-    }
-    Invoke-BuildTool 'npm.cmd' @(
-        'run', 'bundle')
+    # A pre-existing esbuild directory does not prove that the npm lock was restored.
+    & (Join-Path $PSScriptRoot 'prepare-client.ps1')
     Invoke-BuildTool 'dotnet' @(
         'restore', 'src/MarkVibe.Windows/MarkVibe.Windows.csproj', '--locked-mode')
     $icons = Join-Path $workRoot 'icons'
@@ -181,8 +185,7 @@ try {
     }
     $bundleInput = Join-Path $workRoot 'bundle'
     [System.IO.Directory]::CreateDirectory($bundleInput) | Out-Null
-    foreach ($architecture in @(
-            'x64', 'arm64')) {
+    foreach ($architecture in $Architectures) {
         $runtimeIdentifier = "win-$architecture"
         $payload = Join-Path $workRoot $runtimeIdentifier
         Invoke-BuildTool 'dotnet' @(
@@ -249,9 +252,24 @@ try {
         Add-Content -LiteralPath $notices -Value "`n.NET runtime: https://github.com/dotnet/runtime/blob/main/LICENSE.TXT`n.NET WPF: https://github.com/dotnet/wpf/blob/main/LICENSE.TXT`nWebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/`n" -Encoding utf8
         $portableMarker = Join-Path $payload 'portable.flag'
         Set-Content -LiteralPath $portableMarker -Value 'Keep settings and WebView2 data beside this executable.' -Encoding utf8NoBOM
-        Set-Content -LiteralPath (Join-Path $payload 'PORTABLE-README.txt') -Value "MarkVibe $Version ($Configuration, $architecture)`nExtract the entire ZIP to a writable folder, then open MarkVibe.Windows.exe.`n.NET is included. Windows 11 and Microsoft Edge WebView2 Runtime are required.`nSettings and last document stay in the data folder. Ink stays beside your Markdown.`nhttps://github.com/umbertotechnopreneur/MarkVibe`nCopyright (c) 2026 Umberto Giacobbi. MIT. VibeWare." -Encoding utf8NoBOM
+        Set-Content -LiteralPath (Join-Path $payload 'PORTABLE-README.txt') -Value "MarkVibe $Version ($Configuration, $architecture)`nExtract the entire ZIP to a writable folder, then open MarkVibe.Windows.exe.`n.NET is included. Windows 11 and Microsoft Edge WebView2 Runtime are required.`nSettings and last document stay in the data folder. Source documents and previous sidecars are left untouched.`nhttps://github.com/umbertotechnopreneur/MarkVibe`nCopyright (c) 2026 Umberto Giacobbi. MIT. VibeWare." -Encoding utf8NoBOM
         [System.IO.Compression.ZipFile]::CreateFromDirectory($payload, (Join-Path $artifactsRoot "$namePrefix-$runtimeIdentifier-portable.zip"), [System.IO.Compression.CompressionLevel]::Optimal, $false)
         Remove-Item -LiteralPath $portableMarker, (Join-Path $payload 'PORTABLE-README.txt') -Force
+        $msiPath = Join-Path $artifactsRoot "$namePrefix-$runtimeIdentifier.msi"
+        & (Join-Path $windowsPackaging 'New-MsiPackage.ps1') `
+            -PayloadDirectory $payload `
+            -OutputPath $msiPath `
+            -WorkDirectory (Join-Path $workRoot "msi-$architecture") `
+            -Version $packageVersion `
+            -Configuration $Configuration `
+            -Architecture $architecture `
+            -IconPath (Join-Path $icons 'MarkVibe.ico')
+
+        if (-not $Unsigned) {
+            Invoke-BuildTool $signTool @(
+                'sign', '/fd', 'SHA256', '/f', $signingFile, '/p', $signingPassword, $msiPath)
+        }
+
         $assetsFolder = Join-Path $payload 'Assets'
 
         [System.IO.Directory]::CreateDirectory($assetsFolder) | Out-Null
@@ -300,8 +318,11 @@ try {
 
         builtAtUtc=$builtAt
 
-        architectures=@(
-            'x64', 'arm64')
+        architectures=$Architectures
+
+        packageFormats=@('msi', 'msix', 'portable')
+
+        msiProductVersion=$msiProductVersion
 
         selfContained=$true
 
@@ -323,7 +344,14 @@ try {
     $readme = @"
 MarkVibe $Version - $Configuration
 
-INSTALL: MSIX bundle chooses x64/ARM64 automatically. For this development-signed build,
+MSI: choose the matching .msi for a conventional per-user Windows installation.
+Double-click it, or run msiexec /i "<matching-file>.msi" /qb for basic progress UI.
+The app is installed under LocalAppData/Programs, with a Start menu shortcut.
+Remove it through Installed apps. Documents and profile data are retained.
+MSI and MSIX are separate installations; choose one installer format.
+MSI version $msiProductVersion maps application version $Version without losing its revision.
+
+MSIX: bundle contains $($Architectures -join ', '). For this development-signed build,
 open PowerShell as administrator and run .\Install-MarkVibe.ps1 -TrustDevelopmentCertificate.
 Then open MarkVibe from Start. The public CER is included; the private key is not distributed.
 Each signed build uses a fresh development certificate; trust its supplied CER for installation.
@@ -331,9 +359,9 @@ Each signed build uses a fresh development certificate; trust its supplied CER f
 PORTABLE: choose the matching ZIP, extract everything to a writable folder,
 and open MarkVibe.Windows.exe. Profile/settings stay in its data folder.
 
-Both include .NET. Microsoft Edge WebView2 Runtime and Windows 11 are required.
+All formats include .NET. Microsoft Edge WebView2 Runtime and Windows 11 are required.
 Packaging does not install the app/certificate or run tests. BUILD-INFO.json records this.
-Unsigned builds are intended for later signing/Store preparation, not double-click installation.
+Unsigned MSIX builds are intended for later signing/Store preparation, not double-click installation.
 
 Created by Umberto Giacobbi. MIT license. VibeWare.
 https://github.com/umbertotechnopreneur/MarkVibe
@@ -348,7 +376,7 @@ https://umbertogiacobbi.biz/vibeware/manifesto
     Set-Content -LiteralPath (Join-Path $artifactsRoot 'SHA256SUMS.txt') -Value $hashes -Encoding utf8NoBOM
     $packageMetadata.version = $Version
     $packageMetadata | ConvertTo-Json | Set-Content -LiteralPath $versionFile -Encoding utf8NoBOM
-    Write-Host "Created $Version $Configuration x64/ARM64 MSIX and portable files in $artifactsRoot. Tests were not run."
+    Write-Host "Created $Version $Configuration $($Architectures -join '/') MSI, MSIX and portable files in $artifactsRoot. Tests were not run by packaging."
 } finally {
     if (Test-Path -LiteralPath $workRoot) {
 

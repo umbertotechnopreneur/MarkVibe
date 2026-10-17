@@ -1,17 +1,20 @@
 # Windows distribution
 
-`scripts/package-windows.ps1` creates self-contained Windows 11 x64 and ARM64
-packages. The desktop .NET runtime is included; WebView2 uses the installed Evergreen
+`scripts/package-windows.ps1` defaults to self-contained Windows 11 **x64 Debug**
+packages. Release and ARM64 require an explicit selection. The desktop .NET runtime is included; WebView2 uses the installed Evergreen
 Runtime. No SDK, workload, app or certificate is installed by packaging.
 
 ## Requested Release or Debug build
 
-Use PowerShell 7, existing Node >=22.12, .NET SDK 10.0.401 and Windows SDK tools
+Use PowerShell 7, existing Node >=22.12, .NET SDK 10.0.402 and Windows SDK tools
 `makeappx.exe`/`signtool.exe`. The script discovers tools already installed on the machine.
 
 ```powershell
-./scripts/package-windows.ps1 -Configuration Release
-./scripts/package-windows.ps1 -Configuration Debug
+./scripts/package-windows.ps1
+# Explicit wider distribution:
+./scripts/package-windows.ps1 -Configuration Release -Architectures x64,arm64
+# Launch the local Debug build after packaging:
+Start-Process ./src/MarkVibe.Windows/bin/Debug/net10.0-windows10.0.19041.0/win-x64/MarkVibe.Windows.exe
 ```
 
 Run one requested configuration at a time: each invocation **deletes the repository's
@@ -26,10 +29,16 @@ Default packaging increments its final component, across both configurations.
 after packaging succeeds. Build settings include version, configuration and UTC timestamp;
 the About window displays the version and timestamp.
 
-Outputs: x64/ARM64 portable ZIPs, x64/ARM64 MSIX files, one architecture-selecting
+Outputs: portable ZIPs, MSI installers and MSIX files for the selected architectures, one
 MSIX bundle, public development certificate, installation helper, README,
 `BUILD-INFO.json` and `SHA256SUMS.txt`. No tests, installation, branch/worktree creation,
-commit or publication are performed by this script.
+commit or publication are performed by this script. For local Debug delivery,
+the owner has authorized closing MarkVibe, discarding unsaved in-app work,
+trusting the generated MarkVibe certificate in LocalMachine/TrustedPeople and
+installing/replacing the Debug package without another confirmation. Launch the
+installed app afterward. This does not authorize deleting source documents or
+unrelated data/certificates. Release installation and publication remain separate.
+Run tests only when the owner explicitly requests them for the current task.
 
 ## Install the development bundle
 
@@ -51,9 +60,64 @@ See Microsoft's [MSIX signing and certificate trust guidance](https://learn.micr
 
 Extract the matching ZIP completely into a writable folder; run `MarkVibe.Windows.exe`.
 `portable.flag` selects a sibling `data/` directory for the WebView2 profile, settings
-and native session. `--data-dir` overrides it. Ink remains beside the selected Markdown.
+and native session. `--data-dir` overrides it. Existing annotation sidecars are left
+untouched; the application no longer edits ink or sticky notes.
 The portable directory can be moved together with `data/`; remembered document paths
 still refer to their original absolute locations.
+
+## MSI installer
+
+The same packaging command creates a real Windows Installer `.msi` for each
+selected architecture, in addition to MSIX and portable. It uses Windows Installer
+COM and the existing Windows `makecab.exe`; no additional packaging tool or EULA
+acceptance is required. The MSI includes the self-contained app and licenses,
+installs for the current user under LocalAppData, and creates a Start menu shortcut.
+WebView2 Runtime remains a prerequisite. It is not installed by the MSI.
+
+Debug/Release and x64/ARM64 have separate stable upgrade identities. The MSI
+compares three version fields, so application version `major.minor.build.revision`
+maps to `major.minor.(build * 1000 + revision)`; for example, `0.1.0.23` becomes
+`0.1.23`. Packaging rejects revisions above 999 or values beyond MSI's numeric
+limits before cleaning artifacts. The four-part app version remains in build
+metadata and the application's About window.
+
+Open the MSI normally or use Windows Installer's standard command line:
+
+```powershell
+msiexec.exe /i "MarkVibe-<version>-debug-win-x64.msi"
+```
+
+MSI upgrades replace the same channel/architecture; uninstall removes installed
+payload files and shortcuts, retaining the separate user profile and source
+documents. MSI and MSIX are separate products and can coexist. Local Debug
+delivery on this workstation continues to replace the existing MSIX; generating
+an MSI does not establish its installation, upgrade or uninstall acceptance.
+Do not install a second distribution implicitly.
+
+The native authoring script and table definitions live under `packaging/windows/`.
+Keep component identities stable across upgrades and never add wildcard deletion
+of user data to the uninstall tables.
+
+The visible desktop browser uses the standard HWND-hosted `WebView2` with opaque
+browser, WPF and native client backgrounds. Native Acrylic is unavailable and
+Settings explains why; the saved preference is retained. All application dialogs,
+menus and tooltips live inside the browser, so they do not need WPF-over-browser
+composition. The isolated PDF host remains hidden with its existing boundaries.
+
+This removes the transparent capture-to-WPF presentation path after the owner
+reported missing shell regions during map movement in 0.1.0.24. Microsoft documents
+that `WebView2CompositionControl` adds a graphics-capture step and can have lower
+frame rates than standard hosting; see its
+[composition-control specification](https://github.com/MicrosoftEdge/WebView2Feedback/blob/main/specs/WPF_WebView2CompositionControl.md).
+In-app modal blur remains a separate browser effect. No GPU-disable flag, redraw
+polling loop or document-map animation removal is introduced. Owner acceptance of
+pan/zoom, selection, resize, themes and modal opening remains necessary;
+browser-only captures cannot prove native redraw behavior.
+The Windows project targets `net10.0-windows10.0.19041.0` and pins the existing
+Windows SDK .NET reference pack `10.0.19041.57`. A bare `net10.0-windows` target
+defaults to Windows 7 APIs and does not deploy the Windows Runtime assembly that
+the former composition host loaded at startup. The compatible Windows target and
+MSIX's Windows 11 minimum are retained; no SDK/package update is needed for this fix.
 
 ## GitHub and Microsoft Store
 

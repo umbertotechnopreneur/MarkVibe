@@ -8,6 +8,7 @@
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
+ * Modified with AI: OpenAI Codex; publication links, local vector icons and readable version metadata; 2026-10-16
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
@@ -22,19 +23,32 @@ using MarkVibe.Controls;
 using MarkVibe.Core;
 
 namespace MarkVibe;
+
+/// <summary>Explains MarkVibe's origin, human responsibility and publication links without implying release acceptance.</summary>
 public partial class AboutWindow : ChildWindow
 {
-    private const string RepositoryUrl = "https://github.com/umbertotechnopreneur/MarkVibe";
     /// <summary>Initializes the About dialog, local images, version text and language refresh handlers.</summary>
     public AboutWindow()
     {
         InitializeComponent();
         HeroImage.Source = IconLabel.Asset("images/about-hero.png");
         VibeWareLogo.Source = IconLabel.Asset("images/vibeware-logo.png");
+        ManifestoLink.Content = new IconLabel("file", "Manifesto");
+        RepositoryLink.Content = new IconLabel("github", "MarkVibe on GitHub");
+        InitiativeLink.Content = new IconLabel("github", "VibeWare on GitHub");
+        AuthorLink.Content = new IconLabel("map-globe", "umbertogiacobbi.biz");
+
         var assembly = typeof(AboutWindow).Assembly;
-        VersionText.Text = (assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? UiStrings.T("Development")).Split('+')[0];
-        var built = assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(item => item.Key == "BuildTimestamp")?.Value;
-        AppLocalization.SetText(BuiltText, string.IsNullOrEmpty(built) ? "Local development build" : "{0}", built);
+        var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        var version = informationalVersion ?? assembly.GetName().Version?.ToString() ?? UiStrings.T("Development");
+        VersionText.Text = version.Split('+')[0];
+        var buildTimestamp = assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(item => item.Key == "BuildTimestamp")?.Value;
+        AppLocalization.SetText(
+            BuiltText,
+            string.IsNullOrEmpty(buildTimestamp) ? "Local development build" : "{0}",
+            buildTimestamp);
+
         var root = Application.Current.RootVisual as FrameworkElement;
         Width = Math.Max(280, Math.Min(1000, (root?.ActualWidth ?? 1048) - 48));
         Height = Math.Max(300, Math.Min(680, (root?.ActualHeight ?? 728) - 48));
@@ -63,20 +77,27 @@ public partial class AboutWindow : ChildWindow
         AppLocalization.Apply(this);
     }
 
-    /// <summary>Opens an About link in a separate browser context with opener access disabled.</summary>
-    private static void Open(string url) => OpenSilver.Interop.ExecuteJavaScriptVoid("window.open($0, '_blank', 'noopener,noreferrer')", url);
     /// <summary>Opens the maintainer's website.</summary>
-    private void Author(object sender, RoutedEventArgs e) => Open("https://umbertogiacobbi.biz");
+    private void Author(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Author);
+
     /// <summary>Opens the project's GitHub repository.</summary>
-    private void Repository(object sender, RoutedEventArgs e) => Open(RepositoryUrl);
+    private void Repository(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Repository);
+
     /// <summary>Opens the repository's MIT license page.</summary>
-    private void License(object sender, RoutedEventArgs e) => Open(RepositoryUrl + "/blob/master/LICENSE");
-    /// <summary>Opens the repository's issue tracker.</summary>
-    private void ReportIssue(object sender, RoutedEventArgs e) => Open(RepositoryUrl + "/issues");
-    /// <summary>Opens the VibeWare initiative page.</summary>
-    private void VibeWare(object sender, RoutedEventArgs e) => Open("https://umbertogiacobbi.biz/vibeware");
+    private void License(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Repository + "/blob/master/LICENSE");
+
+    /// <summary>Opens the initiative's own repository, distinct from the application's authorship.</summary>
+    private void InitiativeRepository(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.InitiativeRepository);
+
     /// <summary>Opens the VibeWare manifesto.</summary>
-    private void Manifesto(object sender, RoutedEventArgs e) => Open("https://umbertogiacobbi.biz/vibeware/manifesto");
+    private void Manifesto(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Manifesto);
+
+    /// <summary>Opens the shared terms page only after the user activates its link.</summary>
+    private void Terms(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Terms);
+
+    /// <summary>Opens the shared privacy page only after the user activates its link.</summary>
+    private void Privacy(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Privacy);
+
     /// <summary>Closes the About dialog.</summary>
-    private void Dismiss(object sender, RoutedEventArgs e) => Close();
+    private void Dismiss(object sender, RoutedEventArgs arguments) => Close();
 }

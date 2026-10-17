@@ -2,6 +2,92 @@
 
 Keep durable, repository-specific findings here; omit temporary commands and plans.
 
+- Give internal AI commands one provider-explicit contract and change every caller
+  and dispatcher together. Do not retain a second family of names as speculative
+  compatibility. Reject unknown providers instead of silently using another key.
+- A useful readability pass names domain predicates and phases, rather than
+  introducing a temporary for every expression. Keep raw JSON validation separate
+  from typed model invariants, and keep mutable session state out of codec files.
+- Shared request plumbing must preserve policy differences. Credential validation
+  and document editing have different deadlines/messages and save semantics;
+  deduplication must not erase those contracts or weaken response bounds.
+
+- A composition host is not inherently a redraw fix. WebView2CompositionControl
+  adds graphics capture and WPF presentation; use it only when actual WPF overlays
+  require that path. MarkVibe overlays are browser content, so direct opaque HWND
+  hosting avoids that extra path. Keep the browser, WPF target and native client
+  opaque together; native Acrylic and browser modal blur are separate decisions.
+- Missing native shell regions in an owner screenshot invalidate earlier redraw
+  acceptance. A successful build or a correct DOM background cannot establish
+  that native presentation is fixed; keep owner interaction acceptance separate.
+
+- A local CLI login status is not proof of a remote response. Keep the explicit
+  synthetic connection test separate, explain its possible usage cost and never
+  label static model IDs as verified account availability. API model-list access
+  proves neither inference access nor quota. Preserve provider selection on failure.
+- CLI read-only sandboxing restricts writes, not every filesystem read. Keep the
+  selected workspace out of the process working directory, pass captured text on
+  stdin, disable tools/plugins and reject unexpected tool events without claiming
+  complete OS isolation. API store:false does not describe CLI retention.
+
+- VibeWare branding follows its canonical publication templates: the approved
+  floppy remains unchanged, identifies participation, and never replaces the app
+  icon or actual creator. Keep first-person About disclosure and legal links
+  available; a timed footer fades opacity while retaining space and focus access.
+- An MIT application can include separately licensed components only while
+  retaining their own obligations. The actual Mermaid bundle includes EPL-2.0
+  elkjs 0.9.3: retain its complete license and versioned source-availability notice.
+  Missing package.json license metadata is not proof that no license file exists.
+- MSI compares three version fields. Preserve revision ordering explicitly and
+  keep channel/architecture upgrade identities stable. An MSI build is not proof
+  of installation, repair, upgrade, downgrade handling or uninstall acceptance.
+- A Git bundle contains committed objects and refs, not dirty or untracked files.
+  Preserve those separately before a history rewrite, keep backup outside the
+  packaging cleanup boundary, and never force-update published release tags.
+
+- Cache full-catalog attention facts by metadata revision and index completeness.
+  Unindexed/failed metadata must not create isolation claims. First observation
+  of a fingerprint establishes a baseline; it is not proof of a changed file.
+- Useful link animation is bounded by duration and count, follows source-to-target
+  geometry and stops without an idle frame loop. Cancel it when suspended, hidden,
+  disposed or when reduced motion is selected. Keep temporary exploration state
+  separate from layout autosave and document source.
+
+- A transparent Path without a Stroke is invisible; filling an outline's outer
+  shape can also hide its inner marks. Preserve inherited SVG fill/stroke rules
+  when carrying graph symbols into XAML, including circle and ellipse geometry.
+- Selection can change a card's descendant target or reparent the retained card
+  before the second click. Recognize document activation by path, timestamp and
+  pointer proximity as well as the browser's click count. Clear pending activation
+  after gestures/session changes and emit navigation once from the click handler.
+
+- A black browser screenshot and retained DOM nodes do not prove that a visible
+  transparent Windows host repaints correctly. Check native presentation at the
+  real DPI with the diagnostic window in front. Skip screen capture if it loses
+  foreground focus, so unrelated windows are never included.
+- WebView2CompositionControl needs the Windows Runtime .NET projection at startup.
+  Target Windows 10 APIs explicitly and include their runtime assembly through the
+  framework reference; compiling against a bare Windows target can still launch
+  with FileNotFoundException. Keep the hidden PDF WebView independent.
+
+- Local Debug delivery has standing owner authorization to close MarkVibe even
+  with unsaved in-app work, trust that build's MarkVibe development certificate in
+  LocalMachine/TrustedPeople, replace/install the package and launch it without
+  another confirmation. Preserve source documents and unrelated data/certificates.
+  This supersedes earlier per-certificate approval notes for local Debug only.
+- Keep shell geometry in a separate versioned local setting. Save completed
+  splitter gestures and explicit open/close choices; temporary responsive widths
+  must not overwrite user preferences or rerender document content.
+- OpenSilver's final DOM setup can replace Loaded-time classes and inline material
+  styles. Give modal backdrop/surface elements stable template names and target
+  those in CSS. Verify computed styles while the dialog remains open: a closing
+  animation applying blur does not establish that the opening state has it.
+- Treat map navigation as a selection update within the existing layout session.
+  Recreating cards replays entry animations and loses pointer identity. Keep the
+  canvas opaque and use centered 2D scale for the equivalent perspective size;
+  switching transform spaces during hover forces avoidable compositor changes.
+  A replacement workspace/session still requires a full presentation.
+
 - Keep atlas lenses, collapsed folders and named camera views in managed,
   validated sidecar state. Camera-only pan/zoom updates existing minimap marks;
   semantic zoom and collapse must never rewrite document coordinates. Compute

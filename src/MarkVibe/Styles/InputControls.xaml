@@ -1,0 +1,24 @@
+<!-- VBWR B
+ Project: MarkVibe | Creator: Umberto Giacobbi
+ Created with AI: OpenAI Codex; live shared input-control brushes; 2026-10-16
+ Human guidance: Umberto Giacobbi; update existing labels when changing the application theme
+ Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
+ VBWR E -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <!-- ModernTheme controls retain palette brushes captured when their templates load.
+      Keep the native templates and supply the same mutable brushes as the shell. -->
+ <Style x:Key="AppInput" TargetType="Control">
+  <Setter Property="Foreground" Value="{StaticResource ShellText}" />
+  <Setter Property="Background" Value="{StaticResource PanelBackground}" />
+  <Setter Property="BorderBrush" Value="{StaticResource ShellBorder}" />
+ </Style>
+ <Style TargetType="ComboBox" BasedOn="{StaticResource AppInput}" />
+ <Style TargetType="CheckBox" BasedOn="{StaticResource AppInput}" />
+ <Style TargetType="PasswordBox" BasedOn="{StaticResource AppInput}" />
+ <!-- Popup entries have their own control palette; keep their idle captions live,
+      leaving the template's selected and hover states responsible for emphasis. -->
+ <Style TargetType="ComboBoxItem">
+  <Setter Property="Foreground" Value="{StaticResource ShellText}" />
+ </Style>
+</ResourceDictionary>

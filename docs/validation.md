@@ -1,129 +1,53 @@
-# Local validation
+# Verification
 
-Historical checks from 2026-10-11, before the icon/About and distribution changes. They ran under the earlier explicit authorization using synthetic documents. Current policy: run tests only on a current explicit user request. New packages record build-only evidence in [Windows distribution](windows-packaging.md); prior fixtures were removed by the requested artifact cleanup.
+Double-click `Verifica-MarkVibe.cmd` on Windows and choose a profile. The same menu is available with `npm run check`. These commands **prepare and run checks**; use them only when verification is explicitly requested. A request to build or package alone does not authorize running them.
 
-## Observed results
-
-| Stage | Result |
+| Profile | Checks |
 | --- | --- |
-| Client bundle | Pass using existing Node 24.19.0; local chunks, CSS, worker and notices generated |
-| NuGet restore | Pass, including locked mode; no restore warnings |
-| Solution build | Pass, 0 warnings and 0 errors |
-| Core checks | 7/7 pass |
-| Client path/ZIP checks | 9/9 pass |
-| Edge browser checks at root | 19/19 pass, Edge 155.0.4283.45 headless |
-| Edge browser checks at /markvibe/ | 19/19 pass against the same build and browser |
-| Native file/ink service checks | 10/10 pass |
-| Windows WebView2 checks | 11/11 pass, installed runtime 154.0.4258.62 |
-| Native PDF | Direct API output, 6 A4 pages visually inspected |
-| Root startup | Pass; static-assets endpoint manifest exists; preview listens on loopback port 5080 |
+| Rapida | Core document revisions, navigation, map contracts, native file persistence, client paths and ZIP boundaries |
+| InterfacciaWindows | Debug x64 desktop startup, native file containment, map selection/resize/autosave/conflicts, settings, HTML/PDF and restart |
+| Completa | Rapida and InterfacciaWindows, plus browser navigation, source views, providers, map interaction, preferences, export and content boundaries |
 
-See [the validation report](validation-results-2026-10-11.md) for fixes, artifacts, subpath results and evidence limits. Earlier reports that compilation and dependencies were unverified are historical and have been superseded by these local results.
+The runner writes a standalone `report.html`, `results.json`, stage logs and any UI screenshots under `artifacts/checks/<UTC time>-<process id>/`. **Passed** means that stage completed successfully; **Failed** identifies a problem; **NotRun** identifies a dependent stage or missing prerequisite that was not checked. Exit codes are 0 for success, 1 for failure and 2 for incomplete verification. There is no coverage-percentage claim.
 
-## Reproducing the current local build
+## Prerequisites and isolation
 
-Run only the stages explicitly requested for the current task. The examples below include optional test commands; do not run those merely because a build was requested. Stop at a failed stage; never proceed to --no-build after a failed Browser build. Use an existing Node >=22.12:
+Use an existing PowerShell 7, Node >=22.12 and the exact .NET SDK in `global.json`. UI profiles require Windows, installed Microsoft Edge and WebView2 Runtime. Missing tools produce an actionable report; the runner never installs an SDK, browser, app or certificate.
 
-~~~powershell
-node --version
-~~~
+The runner restores JavaScript packages from the committed npm lock with lifecycle scripts disabled and restores the selected .NET projects in locked mode. Playwright is a pinned development dependency, so no machine-specific module path is needed. It uses installed Edge and does not download browsers.
 
-The historical run used v24.19.0 through a process-local PATH change. No global Node configuration was changed. Do not create output in Codex directories.
+Windows UI checks build Debug x64 and explicitly pass the resulting executable to an isolated smoke process. The profile, document fixtures and export destinations are synthetic. Smoke mode reports no configured OpenAI key and rejects AI operations before reading user credentials. Browser checks start with a fresh profile and no saved key. No API calls, packaging, version increment, installation or publication belong to verification.
 
-~~~powershell
-npm run bundle
-if ($LASTEXITCODE -ne 0) { throw 'Client bundle failed.' }
+The existing packaging command still cleans the entire repository `artifacts/` directory by owner policy, including old check evidence. Keep any required reports before requesting another package.
+
+## Command-line and manual CI
+
+```powershell
+./scripts/check.ps1 -Profile Rapida
+./scripts/check.ps1 -Profile InterfacciaWindows
+./scripts/check.ps1 -Profile Completa -OpenReport
+```
+
+The manually dispatched **Verify MarkVibe** workflow uses these same profiles. Rapida runs on Windows and Linux; interface profiles run on Windows. It uploads reports even after failure. The packaging workflow remains separate and runs no tests.
+
+For targeted diagnosis, `npm run test:client`, `npm run test:browser` and `npm run test:windows` remain available. Browser checks require an already prepared running host; `MARKVIBE_BASE_URL` selects it. The Windows harness accepts `MARKVIBE_WINDOWS_EXECUTABLE` and defaults to `src/MarkVibe.Windows/bin/Debug/net10.0-windows10.0.19041.0/win-x64/MarkVibe.Windows.exe`. The menu handles these details automatically.
+
+## Build freshness
+
+Both packaging and verification restore npm dependencies deterministically. `scripts/prepare-client.ps1` provides the explicit dependency-and-bundle step for a normal build:
+
+```powershell
+./scripts/prepare-client.ps1
 dotnet restore MarkVibe.slnx --locked-mode
-if ($LASTEXITCODE -ne 0) { throw 'Restore failed.' }
 dotnet build MarkVibe.slnx --no-restore
-if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
-# Run the following checks only on an explicit current test request:
-dotnet run --project tests/MarkVibe.Core.Checks/MarkVibe.Core.Checks.csproj --no-build
-if ($LASTEXITCODE -ne 0) { throw 'Core checks failed.' }
-dotnet run --project tests/MarkVibe.Native.Checks/MarkVibe.Native.Checks.csproj --no-build
-if ($LASTEXITCODE -ne 0) { throw 'Native checks failed.' }
-npm run test:client
-if ($LASTEXITCODE -ne 0) { throw 'Client checks failed.' }
-dotnet run --project src/MarkVibe.Browser/MarkVibe.Browser.csproj --no-build --launch-profile MarkVibe
-~~~
+```
 
-Open [http://localhost:5080/](http://localhost:5080/). Stop an existing preview first if the port is occupied. A fresh authorized dependency reproduction uses npm ci --ignore-scripts --no-audit --no-fund with the existing npm lock. Changing dependencies requires updating the relevant lock through an authorized restore. If an SDK/workload is missing, do not install it implicitly.
+The browser project checks a fingerprint of client sources, shared JSON catalogs, scripts and dependency locks before building. Missing, stale or incomplete bundles stop the build with preparation instructions. This guard only reads files; it does not silently install or bundle anything.
 
-## Browser regression harness
+## Evidence boundaries
 
-With the preview running, the local harness uses the already available Playwright package and installed Microsoft Edge. No browser download was required:
+The updated runner and scenarios were authored on 2026-10-16. They have **not been executed as part of this cleanup**, and no new passing results are claimed.
 
-~~~powershell
-$env:MARKVIBE_PLAYWRIGHT_PATH = 'C:\Tools\playwright\node_modules\playwright'
-npm run test:browser
-~~~
+Historical checks from 2026-10-11 are recorded in [the historical validation report](validation-results-2026-10-11.md). Those results preceded retired ink controls, the current map interactions and document revision changes. They are not evidence that the current application passes these scenarios.
 
-The package path is machine-specific. Alternatively supply another existing Playwright package, and choose an installed browser channel through MARKVIBE_BROWSER_CHANNEL. This validation did not change package dependencies to install Playwright.
-
-The 19 browser checks cover:
-
-1. Visible demo reader, local image and Mermaid.
-2. Real document links and browser Back/Forward.
-3. Repeated Source/Split/Read switching, read-only Monaco and a far-away source Find match.
-4. Real map cards/connections, focus, zoom and navigation.
-5. Selected files, duplicate anchors, a missing page and source-location Split synchronization.
-6. Readable layouts at 320/390/768/1024/1440px and narrow source fallback.
-7. Folder-prefix normalization and nested ZIP pages, including restart/reselection of both providers.
-8. Synthetic hostile Markdown: scripts, executable links and remote images blocked.
-9. Modern Theme, Monaco, Mermaid, all reading styles, zoom, Light/Dark/System, reload, rapid theme changes, reset and small settings layout.
-10. Last document/anchor/source position after restart, import resumption and opt-out.
-11. A real Monaco module worker calculating a diff from local assets.
-12. Forced Monaco module failure with a usable read-only fallback and Find.
-13. Legacy settings migration, malformed JSON and unknown future versions.
-14. Unavailable localStorage with usable session preferences.
-15. Genuine persisted directory-handle resumption using synthetic origin-private files.
-16. Standalone HTML download, below-fold embedded images, readable Mermaid, local anchors, neighboring-page notices, offline loading and script/remote-resource boundaries.
-17. Actual PDF action from Map while the app is dark, print-frame cleanup, clean light output and Chromium PDF generation.
-18. Ink sidecar download, reimport and vector inclusion in standalone HTML.
-19. Unsupported ink preserved as a read-only original with an exact backup download.
-
-The native print dialog is intercepted during automation. The prepared document is printed with the same browser engine to `export-fixture.pdf`, then all pages are rendered with Poppler and visually inspected. This checks layout, selectable text, Unicode, page numbers, code, tables, images and diagram labels; it does not verify an OS dialog choice or physical printer. No PDF accessibility tagging audit is claimed.
-
-Each isolated test rejects unexpected page/console errors, failed HTTP assets and external HTTP requests originating from the page. That assertion does not audit unrelated browser/runtime network traffic. Screenshots and results.json are written under ignored artifacts/browser/.
-
-## Development subpath
-
-Start a separate loopback host from the current build:
-
-~~~powershell
-dotnet run --project src/MarkVibe.Browser/MarkVibe.Browser.csproj --no-build --no-launch-profile -- --urls http://127.0.0.1:5081 --pathbase=/markvibe
-~~~
-
-In another PowerShell session using the same Node/Playwright environment:
-
-~~~powershell
-$env:MARKVIBE_BASE_URL = 'http://127.0.0.1:5081/markvibe/'
-$env:MARKVIBE_ARTIFACTS_DIR = 'artifacts/browser-subpath'
-npm run test:browser
-~~~
-
-The worker check explicitly asserts that its URL includes the configured base path. This exercises local development hosting, not release publishing or a deployed static site.
-
-## Remaining acceptance
-
-Windows packaging is described in [distribution](windows-packaging.md). Installer acceptance is a requested manual installation. Other browsers/devices, OS pickers, physical pen/palm input, printers, accessibility, large workspaces and production hosting remain possible acceptance work; suggest relevant checks and wait for a request before running tests. Touch-size and injected pen checks are not physical-device evidence. macOS/Linux wrappers and text overlays remain future work.
-
-## Windows regression harness
-
-After the solution build, with existing Playwright and WebView2 Runtime:
-
-~~~powershell
-dotnet run --project src/MarkVibe.Windows --no-build
-npm run test:windows
-~~~
-
-Close any manually launched desktop instance before running automation. The harness
-launches a Debug host offscreen with isolated `--data-dir`, `--export-dir` and a
-loopback debugging port; Release rejects smoke options. It exercises the real
-WebView2 runtime, native file/sidecar operations and direct PDF API. OS dialogs are
-bypassed only by explicit smoke destinations. Results and synthetic fixtures live
-under ignored `artifacts/windows/`; native service checks use `artifacts/native-core/`.
-
-The 11 Windows cases include rapid consecutive stroke autosaves and cold restart
-after switching from a native folder to a browser workspace. Navigation and export
-wait for completed stroke events before reading the ink model.
+UI automation uses synthetic documents and software pointer events. Physical pen/touch, OS picker choices, printer output, installation, ARM64 hardware, accessibility certification and production deployment remain separate acceptance work.

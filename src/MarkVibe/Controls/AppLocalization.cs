@@ -7,8 +7,12 @@
  * VibeWare: Human intent, AI execution, and plenty of tokens
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  *
- * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
+ * Modified with AI: OpenAI Codex; preserve response-owned text during localization; 2026-10-16
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; apply the selected font to newly localized UI and dialogs; 2026-10-16
+ * Human guidance: Umberto Giacobbi; independent font preference for application controls
+ * Modified with AI: OpenAI Codex; durable raw content markers and shared declared UI traversal; 2026-10-16
+ * Human guidance: Umberto Giacobbi; preserve document labels and remove duplicated UI traversal
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -29,6 +33,7 @@ internal static class AppLocalization
 {
     private sealed class Labels
     {
+        public bool Raw;
         public string? Text;
         public string? Tooltip;
         public string? Automation;
@@ -48,37 +53,53 @@ internal static class AppLocalization
         "MessageTitle",
         "MessageText",
         "ExportHelp",
-        "WorkspaceHelp"
+        "WorkspaceHelp",
+        "Status",
+        "ReviewText"
     ];
     /// <summary>Register a dynamic catalog label and retain its arguments for later refreshes.</summary>
     public static void SetText(TextBlock element, string key, params object? [] arguments)
     {
         var labels = Originals.GetOrCreateValue(element);
+        labels.Raw = false;
         labels.Text = key;
         labels.Arguments = arguments;
         element.Text = UiStrings.T(key, arguments);
     }
 
-    /// <summary>Display caller-owned text and discard any previously registered translation.</summary>
+    /// <summary>Displays caller-owned text and keeps it excluded from every subsequent language refresh.</summary>
     public static void SetRaw(TextBlock element, string text)
     {
-        var labels = Originals.GetOrCreateValue(element);
-        labels.Text = null;
-        labels.Arguments = [];
+        SetRaw(element);
         element.Text = text;
     }
+
+    /// <summary>Excludes caller-owned content, tooltips and accessible labels from translation and icon decoration.</summary>
+    public static void SetRaw(DependencyObject element)
+    {
+        var labels = Originals.GetOrCreateValue(element);
+        labels.Raw = true;
+        labels.Text = null;
+        labels.Tooltip = null;
+        labels.Automation = null;
+        labels.Arguments = [];
+    }
+
+    /// <summary>Reports an explicit caller-owned subtree without allocating translation metadata.</summary>
+    internal static bool IsRaw(DependencyObject element) => Originals.TryGetValue(element, out var labels) && labels.Raw;
 
     /// <summary>Decorate button captions before refreshing their text and accessible labels.</summary>
     public static void Apply(DependencyObject root)
     {
         ButtonIcons.Decorate(root);
+        AppTypography.Apply(root);
         Walk(root, new HashSet<DependencyObject>());
     }
 
     /// <summary>Visit declared and visual children once, translating only recognized UI labels.</summary>
     private static void Walk(DependencyObject element, HashSet<DependencyObject> visited)
     {
-        if (!visited.Add(element))
+        if (!visited.Add(element) || IsRaw(element))
         {
             return;
         }
@@ -151,30 +172,9 @@ internal static class AppLocalization
             checkBox.Content = UiStrings.T(labels.Text);
         }
 
-        if (element is Panel panel)
+        foreach (var child in UiTree.DeclaredChildren(element))
         {
-            foreach (var child in panel.Children)
-            {
-                Walk(child, visited);
-            }
-        }
-
-        if (element is Border border && border.Child != null)
-        {
-            Walk(border.Child, visited);
-        }
-
-        if (element is ContentControl contentControl && contentControl.Content is DependencyObject declaredContent)
-        {
-            Walk(declaredContent, visited);
-        }
-
-        if (element is ItemsControl itemsControl)
-        {
-            foreach (var item in itemsControl.Items.OfType<DependencyObject>())
-            {
-                Walk(item, visited);
-            }
+            Walk(child, visited);
         }
 
         for (var childIndex = 0; childIndex < VisualTreeHelper.GetChildrenCount(element); childIndex++)

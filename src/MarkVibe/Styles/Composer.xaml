@@ -1,6 +1,7 @@
 <!-- VBWR B
  Project: MarkVibe | Creator: Umberto Giacobbi
  Created with AI: OpenAI Codex; reusable XAML composer resources; 2026-10-11
+ Modified with AI: OpenAI Codex; budget disclosure direction; 2026-10-16
  Human guidance: Umberto Giacobbi; flat Fluent controls and elevation 16
  Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  VBWR E -->
@@ -34,6 +35,38 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="Padding" Value="0,9"/>
         <Setter Property="Margin" Value="0"/>
+    </Style>
+    <Style x:Key="FileMenuButton" TargetType="Button" BasedOn="{StaticResource FlyoutChoiceButton}">
+        <Setter Property="Padding" Value="10,9"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+            <Grid x:Name="FileActionRoot" Background="Transparent">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal"/>
+                        <VisualState x:Name="MouseOver"><Storyboard><DoubleAnimation Storyboard.TargetName="FileActionHover" Storyboard.TargetProperty="Opacity" To="0.1" Duration="0"/></Storyboard></VisualState>
+                        <VisualState x:Name="Pressed"><Storyboard><DoubleAnimation Storyboard.TargetName="FileActionHover" Storyboard.TargetProperty="Opacity" To="0.18" Duration="0"/></Storyboard></VisualState>
+                        <VisualState x:Name="Disabled"><Storyboard><DoubleAnimation Storyboard.TargetName="FileActionRoot" Storyboard.TargetProperty="Opacity" To="0.38" Duration="0"/></Storyboard></VisualState>
+                    </VisualStateGroup>
+                    <VisualStateGroup x:Name="FocusStates">
+                        <VisualState x:Name="Unfocused"/>
+                        <VisualState x:Name="Focused"><Storyboard><DoubleAnimation Storyboard.TargetName="FileActionFocus" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/></Storyboard></VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6"/>
+                <Border x:Name="FileActionHover" Background="{StaticResource SystemAccent}" CornerRadius="6" Opacity="0"/>
+                <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Margin="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                <Border x:Name="FileActionFocus" CornerRadius="6" BorderBrush="{StaticResource SystemAccent}" BorderThickness="1" Opacity="0" IsHitTestVisible="False"/>
+            </Grid>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="AppearanceChoiceButton" TargetType="Button" BasedOn="{StaticResource FileMenuButton}">
+        <Setter Property="Width" Value="34"/>
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="MinHeight" Value="34"/>
+        <Setter Property="MinWidth" Value="34"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Margin" Value="2"/>
     </Style>
     <Style x:Key="ComposerSendButton" TargetType="Button" BasedOn="{StaticResource CompactIconButton}">
         <Setter Property="Background" Value="#236F52"/>
@@ -138,11 +171,25 @@
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
                                     <Grid Background="Transparent">
+                                        <VisualStateManager.VisualStateGroups>
+                                            <VisualStateGroup x:Name="CheckStates">
+                                                <VisualState x:Name="Unchecked"/>
+                                                <VisualState x:Name="Checked">
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="DisclosureRotation" Storyboard.TargetProperty="Angle" To="0" Duration="0"/>
+                                                    </Storyboard>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateManager.VisualStateGroups>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="16"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <controls:VectorIcon Symbol="chevron-down" Width="12" Height="12" VerticalAlignment="Center"/>
+                                        <controls:VectorIcon Symbol="chevron-down" Width="12" Height="12" VerticalAlignment="Center">
+                                            <controls:VectorIcon.RenderTransform>
+                                                <RotateTransform x:Name="DisclosureRotation" Angle="180" CenterX="6" CenterY="6"/>
+                                            </controls:VectorIcon.RenderTransform>
+                                        </controls:VectorIcon>
                                         <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </ControlTemplate>

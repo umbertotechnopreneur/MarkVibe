@@ -8,6 +8,8 @@
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  *
  * Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+ * Modified with AI: OpenAI Codex; frosted modal surfaces with 300 ms entry and exit; 2026-10-16
+ * Modified with AI: OpenAI Codex; stable template selectors for persistent modal blur; 2026-10-16
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
@@ -32,19 +34,50 @@
 html[data-acrylic=true],html[data-acrylic=true] body{background:transparent}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-/* Modal roots blur the application behind them before their tinted dialog surface is drawn. */
-:is([class~="System.Windows.Controls.ChildWindow"], [class~="MarkVibe.SettingsWindow"], [class~="MarkVibe.AboutWindow"]) {
+/* Template names survive OpenSilver's initial DOM setup; Loaded-time classes can be overwritten. */
+/* Keep the portal root unfiltered and fully opaque so the backdrop can sample the application. */
+[dataid="DialogBackdrop"] {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  animation: dialog-backdrop-in 300ms ease both;
+}
+.mv-dialog-closing {
+  pointer-events: auto;
+}
+.mv-dialog-closing [dataid="DialogBackdrop"] {
+  animation: dialog-backdrop-out 300ms ease both;
+}
+[dataid="DialogGlassSurface"] {
+  background: color-mix(in srgb, var(--panel) 92%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
+  animation: dialog-surface-in 300ms cubic-bezier(.2,.8,.2,1) both;
+}
+.mv-dialog-closing [dataid="DialogGlassSurface"] {
+  animation: dialog-surface-out 300ms ease both;
+}
+@keyframes dialog-backdrop-in {
+  from { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); }
+  to { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+}
+@keyframes dialog-backdrop-out {
+  from { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  to { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); }
+}
+@keyframes dialog-surface-in {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dialog-surface-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(6px) scale(.985); }
 }
 /* XAML owns these surfaces; CSS supplies the browser material that OpenSilver does not expose. */
-[dataid="AiSurface"], [dataid="ModelFlyoutSurface"], [dataid="MapFlyoutSurface"],
+[dataid="ModelFlyoutSurface"], [dataid="MapFlyoutSurface"],
 [class~="System.Windows.Controls.ToolTip"] {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-}
-[dataid="AiSurface"] {
-  box-shadow: 0 16px 48px color-mix(in srgb, var(--accent) 34%, transparent);
 }
 /* Opacity leaves the scroll gutter stable, avoiding layout jumps on hover. */
 [class~="System.Windows.Controls.Primitives.ScrollBar"] {

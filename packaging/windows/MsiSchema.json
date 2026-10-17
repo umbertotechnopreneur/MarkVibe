@@ -1,0 +1,138 @@
+{
+  "Property": {
+    "columns": { "Property": "s72", "Value": "l0" },
+    "keys": ["Property"]
+  },
+  "Directory": {
+    "columns": { "Directory": "s72", "Directory_Parent": "S72", "DefaultDir": "l255" },
+    "keys": ["Directory"]
+  },
+  "Component": {
+    "columns": {
+      "Component": "s72",
+      "ComponentId": "S38",
+      "Directory_": "s72",
+      "Attributes": "i2",
+      "Condition": "S255",
+      "KeyPath": "S72"
+    },
+    "keys": ["Component"]
+  },
+  "Feature": {
+    "columns": {
+      "Feature": "s38",
+      "Feature_Parent": "S38",
+      "Title": "L64",
+      "Description": "L255",
+      "Display": "I2",
+      "Level": "i2",
+      "Directory_": "S72",
+      "Attributes": "i2"
+    },
+    "keys": ["Feature"]
+  },
+  "FeatureComponents": {
+    "columns": { "Feature_": "s38", "Component_": "s72" },
+    "keys": ["Feature_", "Component_"]
+  },
+  "File": {
+    "columns": {
+      "File": "s72",
+      "Component_": "s72",
+      "FileName": "l255",
+      "FileSize": "i4",
+      "Version": "S72",
+      "Language": "S20",
+      "Attributes": "I2",
+      "Sequence": "i2"
+    },
+    "keys": ["File"]
+  },
+  "Registry": {
+    "columns": {
+      "Registry": "s72",
+      "Root": "i2",
+      "Key": "l255",
+      "Name": "L255",
+      "Value": "L0",
+      "Component_": "s72"
+    },
+    "keys": ["Registry"]
+  },
+  "RemoveFile": {
+    "columns": {
+      "FileKey": "s72",
+      "Component_": "s72",
+      "FileName": "L255",
+      "DirProperty": "s72",
+      "InstallMode": "i2"
+    },
+    "keys": ["FileKey"]
+  },
+  "Shortcut": {
+    "columns": {
+      "Shortcut": "s72",
+      "Directory_": "s72",
+      "Name": "l128",
+      "Component_": "s72",
+      "Target": "s255",
+      "Arguments": "S255",
+      "Description": "L255",
+      "Hotkey": "I2",
+      "Icon_": "S72",
+      "IconIndex": "I2",
+      "ShowCmd": "I2",
+      "WkDir": "S72"
+    },
+    "keys": ["Shortcut"]
+  },
+  "Media": {
+    "columns": {
+      "DiskId": "i2",
+      "LastSequence": "i2",
+      "DiskPrompt": "L64",
+      "Cabinet": "S255",
+      "VolumeLabel": "S32",
+      "Source": "S72"
+    },
+    "keys": ["DiskId"]
+  },
+  "Icon": {
+    "columns": { "Name": "s72", "Data": "v0" },
+    "keys": ["Name"]
+  },
+  "AppSearch": {
+    "columns": { "Property": "s72", "Signature_": "s72" },
+    "keys": ["Property", "Signature_"]
+  },
+  "RegLocator": {
+    "columns": {
+      "Signature_": "s72",
+      "Root": "i2",
+      "Key": "s255",
+      "Name": "S255",
+      "Type": "I2"
+    },
+    "keys": ["Signature_"]
+  },
+  "Upgrade": {
+    "columns": {
+      "UpgradeCode": "s38",
+      "VersionMin": "S20",
+      "VersionMax": "S20",
+      "Language": "S255",
+      "Attributes": "i2",
+      "Remove": "S255",
+      "ActionProperty": "s72"
+    },
+    "keys": ["UpgradeCode", "VersionMin", "VersionMax", "Language", "Attributes"]
+  },
+  "LaunchCondition": {
+    "columns": { "Condition": "s255", "Description": "l255" },
+    "keys": ["Condition"]
+  },
+  "InstallExecuteSequence": {
+    "columns": { "Action": "s72", "Condition": "S255", "Sequence": "I2" },
+    "keys": ["Action"]
+  }
+}

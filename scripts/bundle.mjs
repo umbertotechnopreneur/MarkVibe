@@ -19,9 +19,12 @@
 import { build } from "esbuild";
 import { mkdir, readFile, writeFile, readdir, copyFile, rm, lstat } from "node:fs/promises";
 import { dirname, resolve, join, relative } from "node:path";
+import { clientFingerprint, verifyInstalledPackages } from "./client-inputs.mjs";
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const bundleDirectory = join(repositoryRoot, "src/MarkVibe.Browser/wwwroot/js");
+await verifyInstalledPackages();
+const inputFingerprint = await clientFingerprint();
 if (!bundleDirectory.startsWith(repositoryRoot + "/") && !bundleDirectory.startsWith(repositoryRoot + "\\")) {
   throw new Error("Unsafe generated output directory");
 }
@@ -95,4 +98,9 @@ for (const folder of [...bundledPackages].sort()) {
   notices.push("");
 }
 await writeFile(join(bundleDirectory, "THIRD_PARTY_NOTICES.txt"), notices.join("\n"));
+// Publish freshness evidence only after every bundle output and notice has been written.
+await writeFile(join(bundleDirectory, "input-fingerprint.json"), JSON.stringify({
+  fingerprint: inputFingerprint,
+  outputs: Object.keys(result.metafile.outputs)
+}, null, 2));
 console.log("Client modules, editor worker, CSS, fonts and third-party notices bundled at " + relative(repositoryRoot, bundleDirectory));

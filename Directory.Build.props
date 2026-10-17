@@ -8,6 +8,7 @@
   Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Modified with AI: OpenAI Codex; default Visual Studio desktop previews to the x64 runtime; 2026-10-16
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
@@ -27,6 +28,11 @@ VBWR E -->
     <Company>VibeWare</Company>
     <Copyright>Copyright (c) 2026 Umberto Giacobbi</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+  <!-- Visual Studio previews the Windows desktop host as x64 unless an explicit RID is selected.
+       Browser project references remove this native RID before their WebAssembly build. -->
+  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'true' and '$(MSBuildProjectName)' == 'MarkVibe.Windows'">
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup Condition="'$(MarkVibeBuildTime)' != ''">
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">

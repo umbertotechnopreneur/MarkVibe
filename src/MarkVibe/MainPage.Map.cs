@@ -17,6 +17,7 @@
  * Human guidance: Umberto Giacobbi; resize map cards and restore their default arrangement and appearance
  * Modified with AI: OpenAI Codex; serialize atlas state, route selection and viewpoint persistence; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement the seven approved document atlas improvements
+ * Modified with AI: OpenAI Codex; include workspace-local exploration separately from saved layout; 2026-10-16
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -32,6 +33,7 @@ public partial class MainPage
 {
     private readonly SemaphoreSlim _mapGate = new(1, 1);
     private sealed record MapCopyResult(bool Saved);
+    /// <summary>Keeps persistent layout, save capabilities and temporary exploration within one workspace session.</summary>
     private sealed class MapWorkspaceState
     {
         public MapLayoutSession Session { get; set; } = new();
@@ -55,6 +57,7 @@ public partial class MainPage
         public MapCamera? Camera { get; set; }
         public int CameraRevision { get; set; }
         public string SelectedPath { get; set; } = "";
+        public MapExploration Exploration { get; } = new();
     }
 
     /// <summary>Loads the persistent map layout and preserves unsupported originals and file revision state.</summary>
@@ -125,6 +128,7 @@ public partial class MainPage
         cameraRevision = state.CameraRevision,
         aiContextPaths = AiContextPaths(),
         aiContextBusy = _aiContextBusy || _aiBusy,
+        exploration = state.Exploration.Snapshot(),
         generation = ++state.Generation
     };
     /// <summary>Publishes the active workspace's current map session state to the browser host.</summary>

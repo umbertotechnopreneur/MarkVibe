@@ -9,6 +9,8 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; stop importing retired annotation sidecars; 2026-10-16
+ * Human guidance: Umberto Giacobbi; remove unreleased legacy compatibility without deleting user files
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -113,6 +115,17 @@ public sealed class NativeFiles
     public WorkspaceInfo Resume() => Session != null ? Open(Session.Root) : throw Error("missing-folder", "Open the last document's folder again.");
     /// <summary>Returns a registered native workspace root or requires the folder to be reopened.</summary>
     public string Root(string id) => _roots.TryGetValue(id, out var root) ? root : throw Error("workspace-unavailable", "Open this folder again.");
+    /// <summary>Resolves an existing local file or folder for an explicit shell action, including the registered root.</summary>
+    public string ResolveLocation(string id, string path)
+    {
+        if (path.Length > 0)
+        {
+            return Resolve(id, path);
+        }
+        var root = Root(id);
+        RejectLinks(root);
+        return root;
+    }
     /// <summary>Enumerates bounded relevant files while excluding ignored directories and symbolic links.</summary>
     public IReadOnlyList<WorkspaceEntry> Entries(string id)
     {
@@ -165,7 +178,7 @@ public sealed class NativeFiles
                 }
 
                 _ = Resolve(id, path);
-                var kind = WorkspacePath.IsMarkdown(path) ? "document" : Sidecar(path) || path == MapLayoutCodec.FileName ? "sidecar" : "asset";
+                var kind = WorkspacePath.IsMarkdown(path) ? "document" : path == MapLayoutCodec.FileName ? "sidecar" : "asset";
                 if (kind == "document" && ++documents > Limits.Documents || entries.Count >= Limits.Entries)
                 {
                     throw Error("folder-too-large", "Choose a folder with fewer than 1,024 pages and 4,096 relevant files.");
@@ -187,7 +200,7 @@ public sealed class NativeFiles
         }
 
         var fullPath = Resolve(id, path);
-        var maximum = WorkspacePath.IsMarkdown(path) || Sidecar(path) || path == MapLayoutCodec.FileName ? Limits.DocumentBytes : 8 * 1048576;
+        var maximum = WorkspacePath.IsMarkdown(path) || path == MapLayoutCodec.FileName ? Limits.DocumentBytes : 8 * 1048576;
         await using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, FileOptions.Asynchronous);
         if (stream.Length > maximum)
         {
@@ -314,15 +327,9 @@ public sealed class NativeFiles
     private static string Id(string root) => "native:" + Hash(Encoding.UTF8.GetBytes(Path.TrimEndingDirectorySeparator(Path.GetFullPath(root)).ToUpperInvariant()));
     /// <summary>Computes the lowercase SHA-256 revision of exact file bytes.</summary>
     public static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
-    /// <summary>Recognizes only annotation sidecars whose complete stem is a Markdown document path.</summary>
-    private static bool Sidecar(string path) => path.EndsWith(".ink.json", StringComparison.OrdinalIgnoreCase) &&
-        WorkspacePath.IsMarkdown(path[..^9]) ||
-        path.EndsWith(NotesCodec.SidecarSuffix, StringComparison.OrdinalIgnoreCase) &&
-        WorkspacePath.IsMarkdown(path[..^NotesCodec.SidecarSuffix.Length]);
-    /// <summary>Checks whether a native file is a supported document, annotation, map or local image.</summary>
+    /// <summary>Includes supported documents, the current map sidecar and local images; retired annotation files stay untouched.</summary>
     private static bool Relevant(string path) => path == MapLayoutCodec.FileName ||
         WorkspacePath.IsMarkdown(path) ||
-        Sidecar(path) ||
         Path.GetExtension(path).ToLowerInvariant()is ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp" or ".svg";
     /// <summary>Creates a workspace error with the native service's existing code and message contract.</summary>
     private static WorkspaceException Error(string code, string message) => new(code, message);

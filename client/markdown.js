@@ -24,6 +24,7 @@ import { acquireAsset, releaseAssets, getWorkspace, addFiles } from "./workspace
 import { resourceUrl, safeExternal, checkCancelled, nextFrame } from "./path.js";
 import { t, localize, refreshTranslations } from "./i18n.js";
 import { applyReaderTheme, resolveReaderTheme } from "./themes.js";
+import { attachFileContext } from "./file-context.js";
 
 const allowedTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "a", "em", "strong", "del", "s", "sup", "sub", "mark",
   "ul", "ol", "li", "blockquote", "pre", "code", "table", "thead", "tbody", "tr", "th", "td", "hr", "br", "img", "input", "section", "div", "span"];
@@ -141,6 +142,14 @@ export class MarkdownHost {
     this.body.setAttribute("role", "document");
     localize(this.body, "Rendered Markdown document", "aria-label");
     this.body.addEventListener("click", event => this.click(event));
+    this.disposeFileContext = attachFileContext(this.body, emit, target => {
+      const link = target.closest?.("a");
+      if (link?.dataset.mvExternal) {
+        return null;
+      }
+      const path = link?.dataset.mvPath || target.closest?.("img[data-mv-asset]")?.dataset.mvAsset || this.model?.path;
+      return { workspaceId: this.workspaceId, path, title: path?.split("/").at(-1) };
+    });
     this.body.addEventListener("scroll", () => {
       this.scrollListener?.();
       clearTimeout(this.historyTimer);
@@ -368,17 +377,15 @@ export class MarkdownHost {
     if (!this.article) {
       return;
     }
-    const position = this.capture();
+    const revision = this.revision;
+    const article = this.article;
+    /** Reject diagram work after navigation, disposal or a newer appearance operation. */
+    const current = () => revision === this.revision && article === this.article && !this.abort.signal.aborted && isCurrent();
     applyReaderTheme(this.root, this.article, resolveReaderTheme(this.preferences, this.container.dataset.theme));
     const diagrams = [...this.article.querySelectorAll(".mv-diagram")];
     if (diagrams.length) {
       const { renderDiagrams } = await import("./diagrams.js");
-      const revision = this.revision;
-      await renderDiagrams(diagrams, () => revision === this.revision && !this.abort.signal.aborted && isCurrent());
-    }
-    await nextFrame();
-    if (isCurrent()) {
-      this.restore(position);
+      await renderDiagrams(diagrams, current);
     }
   }
   /** Refresh the captured position after the reader host's layout changes. */
@@ -387,11 +394,10 @@ export class MarkdownHost {
   }
 
 
-  /** Retains suspension across reader rebuilds while managed navigation drains editor drafts. */
-
-  /** Cancel reader work and release local asset leases, annotations, observers and DOM resources. */
+  /** Cancel reader work and release local asset leases, observers and DOM resources. */
   dispose() {
     this.revision++;
+    this.disposeFileContext();
     this.abort.abort();
     this.observer?.disconnect();
     clearTimeout(this.historyTimer);

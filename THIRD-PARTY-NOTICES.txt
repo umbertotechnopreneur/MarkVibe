@@ -1,3 +1,58 @@
+MarkVibe third-party materials
+=============================
+
+MarkVibe application code is MIT licensed, Copyright (c) 2026 Umberto Giacobbi.
+That license does not replace the licenses or brand terms below. Distribution
+also includes generated JavaScript/NuGet notices and their retained license files.
+
+ELK / elkjs source availability
+==============================
+
+Mermaid 12.1.0 includes elkjs 0.9.3, an Eclipse Layout Kernel module distributed
+under the Eclipse Public License 2.0 (EPL-2.0), not MarkVibe's MIT license.
+The bundled module remains available under EPL-2.0, including when minified.
+MarkVibe makes no algorithm changes to ELK; bundling/minification is performed
+by esbuild. Preserve the module's license, source availability and upstream notices
+when redistributing this component or a modified version of it.
+
+The source code and build instructions are available free of charge:
+- Versioned elkjs source, including its published JavaScript and build scripts:
+  https://github.com/kieler/elkjs/tree/0.9.3
+  https://github.com/kieler/elkjs/archive/refs/tags/0.9.3.tar.gz
+- Upstream release notes identify the ELK 0.9.1 baseline and included ELK change:
+  https://github.com/kieler/elkjs/releases/tag/0.9.3
+  https://github.com/eclipse-elk/elk/tree/v0.9.1
+  https://github.com/eclipse-elk/elk/pull/955
+- EPL-2.0 license:
+  https://www.eclipse.org/legal/epl-2.0/
+
+The generated JavaScript notices include elkjs-LICENSE.md, and its complete
+license text is retained in the distributed js/licenses/ directory.
+
+DOMPurify
+=========
+
+DOMPurify is offered under MPL-2.0 OR Apache-2.0. MarkVibe distributes it under
+the Apache-2.0 option and retains the upstream license/notice files for the
+versions included in the actual bundle. This choice does not change upstream
+licensing or the licenses of unrelated packages.
+
+Microsoft.Web.WebView2
+=====================
+
+The NuGet SDK's own LICENSE.txt contains Microsoft's permissive three-clause
+copyright, redistribution and disclaimer terms; that file is retained in Windows
+distributions. The installed Microsoft Edge WebView2 Runtime is a separate
+prerequisite and is not included in MarkVibe's packages.
+
+VibeWare approved floppy artwork
+===============================
+
+Source: https://github.com/umbertotechnopreneur/VibeWare/blob/main/Branding/vibeware-logo.png
+Copyright (c) 2026 Umberto Giacobbi. MIT License (see MarkVibe's LICENSE for the
+same copyright holder and license text). The source artwork is unchanged.
+The license does not grant trademark rights or imply endorsement or review.
+
 MarkVibe reader theme assets
 ===========================
 

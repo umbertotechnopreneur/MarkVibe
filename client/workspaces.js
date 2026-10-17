@@ -9,6 +9,8 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; retain only the current map sidecar in provider metadata; 2026-10-16
+ * Human guidance: Umberto Giacobbi; simplify the unreleased model without backward compatibility
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -19,7 +21,7 @@
 import DOMPurify from "dompurify";
 import { isDesktop, nativeCall } from "./native.js";
 import {
-  WorkspaceError, limits, normalizePath, isRelevant, isMarkdown, isSidecar, isNotesSidecar, isMapLayout, mapLayoutFileName, isIgnored,
+  WorkspaceError, limits, normalizePath, isRelevant, isMarkdown, isMapLayout, mapLayoutFileName, isIgnored,
   checkCancelled, errorFor, resourceUrl, makeId, pause
 } from "./path.js";
 
@@ -202,7 +204,7 @@ class Workspace {
     return [...this.entries.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([path, entry]) => ({
       path,
       bytes: entry.size ?? 0,
-      kind: isMarkdown(path) ? "document" : isSidecar(path) || isMapLayout(path) ? "sidecar" : "asset"
+      kind: isMarkdown(path) ? "document" : isMapLayout(path) ? "sidecar" : "asset"
     }));
   }
   /** Add a canonical relevant resource while enforcing entry and duplicate-path limits. */
@@ -474,7 +476,7 @@ export async function openWorkspace(mode, signal) {
   if (!["demo", "connected"].includes(workspace.mode)) {
     // Imported content is not persisted. A stable identity restores the selected page
     // after the user reselects the same named workspace with the same normalized paths.
-    const identity = JSON.stringify([workspace.mode, workspace.name, [...workspace.entries.keys()].filter(path => !isMapLayout(path) && !isNotesSidecar(path)).sort()]);
+    const identity = JSON.stringify([workspace.mode, workspace.name, [...workspace.entries.keys()].filter(path => !isMapLayout(path)).sort()]);
     const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(identity));
     workspace.id = "import:" + [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
   }

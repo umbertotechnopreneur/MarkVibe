@@ -17,6 +17,11 @@
  * Human guidance: Umberto Giacobbi; one installed UI font selector that leaves document typography separate
  * Modified with AI: OpenAI Codex; project managed atlas lenses and remove the retired binary focus event; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement the approved document atlas navigation
+ * Modified with AI: OpenAI Codex; live theme brushes, readable palette updates and restored inspector width; 2026-10-16
+ * Human guidance: Umberto Giacobbi; consistent theme changes and persistent standard splitters
+ * Modified with AI: OpenAI Codex; track successful navigation and route guarded exploration commands; 2026-10-16
+ * Modified with AI: OpenAI Codex; host the shared publication footer and canonical initiative badge; 2026-10-16
+ * Modified with AI: OpenAI Codex; refresh AI connections only when provider or validated credentials change; 2026-10-16
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -33,13 +38,20 @@ using OpenSilver.Themes.Modern;
 using MarkVibe.Controls;
 
 namespace MarkVibe;
+
+/// <summary>Coordinates workspace navigation, document views and the persistent application shell.</summary>
 public partial class MainPage : UserControl
 {
+    /// <summary>Owns the provider, authoritative document catalog and map state for one opened workspace.</summary>
     private sealed record Context(BrowserWorkspaceProvider Provider, DocumentCatalog Catalog, MapWorkspaceState Map)
     {
         public AiDocumentCollection AiContext { get; } = new();
     }
+
+    /// <summary>Describes a recoverable workspace and its last saved document position.</summary>
     private sealed record ResumeInfo(string Mode, string Name, string WorkspaceId, string Path, string Anchor, ReadingPosition Position, bool CanResume);
+
+    /// <summary>Carries the host's startup capabilities, preferences and resumable workspace snapshot.</summary>
     private sealed record InitialState(
         Preferences Preferences,
         bool Dark,
@@ -49,7 +61,8 @@ public partial class MainPage : UserControl
         ReadingPosition? Position,
         ResumeInfo? Resume,
         bool Desktop = false,
-        bool Startup = false
+        bool Startup = false,
+        ShellLayout? Layout = null
     );
     private readonly Dictionary<string, Context> _contexts = new(StringComparer.Ordinal);
     private readonly NavigationHistory _history = new();
@@ -70,18 +83,13 @@ public partial class MainPage : UserControl
     public MainPage()
     {
         InitializeComponent();
+        InitializeLayoutPersistence();
         InitializeFileMenus();
+        PublicationFooter.AboutRequested += ShowAbout;
         Loaded += Start;
         Unloaded += Stop;
         SizeChanged += (_, _) => LayoutViews();
-        DocumentViewport.SizeChanged += (_, _) => LayoutMarkdownAi();
         AiHost.ActionRequested += request => ExecuteAsync(() => HandleMarkdownAiAsync(request));
-        AiHost.MoveRequested += MoveMarkdownAi;
-        AiHost.CompactChanged += compact =>
-        {
-            _aiCompact = compact;
-            LayoutMarkdownAi();
-        };
         AiWaitHost.CancelRequested += CancelMarkdownAi;
         SourceHost.ActionRequested += ExecuteAsync;
         MapHost.ActionRequested += ExecuteAsync;
@@ -107,7 +115,7 @@ public partial class MainPage : UserControl
         }
 
         _started = true;
-        VibeWareFooterLogo.Source = IconLabel.Asset("images/vibeware-logo.png");
+        VibeWareHeaderLogo.Source = IconLabel.Asset("images/vibeware-logo.png");
         AppLocalization.Apply(this);
         LayoutViews();
         BrowserServices.Runtime.OnEvent(HandleBrowserEventAsync);
@@ -116,6 +124,11 @@ public partial class MainPage : UserControl
             var initial = await BrowserServices.CallAsync<InitialState>("initialize");
             _desktop = initial.Desktop;
             _preferences = initial.Preferences.Validated();
+            _layout = (initial.Layout ?? new ShellLayout()).Validated();
+            MapHost.RestoreInspectorWidth(_layout.MapInspectorWidth);
+            _sidebarOpen = _layout.SidebarOpen && !_narrow;
+            _layoutReady = true;
+            LayoutViews();
             SynchronizeSettings();
             await ApplyPreferencesAsync();
             SynchronizeSettings();
@@ -154,7 +167,7 @@ public partial class MainPage : UserControl
     private async void Stop(object sender, RoutedEventArgs arguments)
     {
         _generation++;
-        _aiKeyGeneration++;
+        _aiConnectionGeneration++;
         _aiLifetime.Cancel();
         CancelMarkdownAi();
         _navigation.Cancel();
@@ -422,6 +435,7 @@ public partial class MainPage : UserControl
 
             _document = model;
             context.Map.SelectedPath = model.Path;
+            context.Map.Exploration.RecordVisit(model.Path);
             _aiSelection = null;
             _aiResult = null;
             _aiResultPreview = null;
@@ -466,7 +480,8 @@ public partial class MainPage : UserControl
 
             if (_view == "map")
             {
-                await ShowMapAsync();
+                // Keep existing graph elements while sidebar navigation changes the active document.
+                await ShowMapAsync(updateSelection: true);
             }
 
             if (position != null && (_view is "source" or "split"))
@@ -525,8 +540,8 @@ public partial class MainPage : UserControl
 
     /// <summary>Displays the active document's source when both document and workspace are available.</summary>
     private Task ShowSourceAsync(CancellationToken cancellationToken = default) => _document == null || _active == null ? Task.CompletedTask : SourceHost.DisplayAsync(_document, _active.Provider.Info.Id, _preferences, cancellationToken);
-    /// <summary>Displays the graph around its selected card independently of the currently opened document.</summary>
-    private Task ShowMapAsync()
+    /// <summary>Displays the graph, retaining its visual elements when navigation only updates the selected document.</summary>
+    private Task ShowMapAsync(bool updateSelection = false)
     {
         if (_active == null)
         {
@@ -535,12 +550,22 @@ public partial class MainPage : UserControl
 
         _active.Map.Session.EnsureDocuments(_active.Catalog.Cards);
         var selected = _active.Map.SelectedPath;
+        var map = BuildAtlasMap(_active, selected);
+        var presentation = MapPresentation(_active.Map);
+        var focused = _active.Map.Session.Value.Atlas?.FocusDepth > 0;
+
+        if (updateSelection)
+        {
+            return MapHost.DisplaySelectionAsync(
+                map, selected, _active.Provider.Info.Id, presentation, focused, center: true);
+        }
+
         return MapHost.DisplayAsync(
-            BuildAtlasMap(_active, selected),
+            map,
             selected,
             _active.Provider.Info.Id,
-            MapPresentation(_active.Map),
-            _active.Map.Session.Value.Atlas?.FocusDepth > 0
+            presentation,
+            focused
         );
     }
 
@@ -590,6 +615,10 @@ public partial class MainPage : UserControl
         {
             _sidebarOpen = false;
         }
+        else if (!_narrow && wasNarrow)
+        {
+            _sidebarOpen = _layout.SidebarOpen;
+        }
 
         if (_narrow && _view == "split")
         {
@@ -598,11 +627,15 @@ public partial class MainPage : UserControl
 
         var sidebarVisible = _sidebarOpen;
         Sidebar.Visibility = sidebarVisible ? Visibility.Visible : Visibility.Collapsed;
-        Grid.SetColumnSpan(Sidebar, _narrow ? 3 : 1);
+        Grid.SetColumnSpan(Sidebar, _narrow ? 5 : 1);
         DocumentPanel.Visibility = _narrow && sidebarVisible ? Visibility.Collapsed : Visibility.Visible;
-        SidebarColumn.Width = new GridLength(sidebarVisible && !_narrow ? Math.Clamp(SidebarColumn.ActualWidth, 220, 360) : 0);
+        SidebarColumn.MinWidth = sidebarVisible && !_narrow ? 180 : 0;
+        SidebarColumn.MaxWidth = Math.Max(180, Math.Min(520, ActualWidth * 0.45));
+        SidebarColumn.Width = new GridLength(sidebarVisible && !_narrow
+            ? Math.Min(_layout.SidebarWidth, SidebarColumn.MaxWidth)
+            : 0);
         var toolbarWidth = DocumentPanel.ActualWidth > 0 ? DocumentPanel.ActualWidth : Math.Max(0, ActualWidth - (sidebarVisible && !_narrow ? 220 : 0));
-        SidebarDividerColumn.Width = new GridLength(sidebarVisible && !_narrow ? 1 : 0);
+        SidebarDividerColumn.Width = new GridLength(sidebarVisible && !_narrow ? 6 : 0);
         SidebarSplitter.Visibility = sidebarVisible && !_narrow ? Visibility.Visible : Visibility.Collapsed;
         BrandBadge.Visibility = _narrow ? Visibility.Collapsed : Visibility.Visible;
         TitlePanel.Visibility = ActualWidth < 900 ? Visibility.Collapsed : Visibility.Visible;
@@ -631,8 +664,13 @@ public partial class MainPage : UserControl
         SourceHost.Visibility = source ? Visibility.Visible : Visibility.Collapsed;
         ReaderHost.Visibility = read ? Visibility.Visible : Visibility.Collapsed;
         MapHost.Visibility = _view == "map" ? Visibility.Visible : Visibility.Collapsed;
-        SourceColumn.Width = source ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
-        ReadColumn.Width = read || _view == "map" ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        var split = _view == "split";
+        SourceColumn.Width = source
+            ? new GridLength(split ? _layout.SourceRatio : 1, GridUnitType.Star)
+            : new GridLength(0);
+        ReadColumn.Width = read || _view == "map"
+            ? new GridLength(split ? 1 - _layout.SourceRatio : 1, GridUnitType.Star)
+            : new GridLength(0);
         SplitDividerColumn.Width = new GridLength(_view == "split" ? 6 : 0);
         SplitDivider.Visibility = _view == "split" ? Visibility.Visible : Visibility.Collapsed;
         foreach (var (button, name) in new[]
@@ -661,7 +699,7 @@ public partial class MainPage : UserControl
         button.Background = (Brush)resources[selected ? "AccentSoft" : "PanelBackground"];
         button.Foreground = (Brush)resources[selected ? "SystemAccent" : "ShellText"];
         button.BorderBrush = (Brush)resources[selected ? "SystemAccent" : "ShellBorder"];
-        button.FontWeight = selected ? FontWeights.SemiBold : FontWeights.Normal;
+        button.FontWeight = selected ? FontWeights.Medium : FontWeights.SemiLight;
     }
 
     /// <summary>Synchronizes the native document tree while preserving expanded folders.</summary>
@@ -730,55 +768,10 @@ public partial class MainPage : UserControl
         var uiFont = result.TryGetProperty("uiFont", out var resolvedFont) ? resolvedFont.GetString() : "system";
         AppTypography.SetFont(uiFont);
 
-        var theme = (ModernTheme)Application.Current.Theme;
-        theme.CurrentPalette = dark ? ModernTheme.Palettes.Dark : ModernTheme.Palettes.Light;
-        var palette = dark ? new[]
-        {
-            "#14171C",
-            "#191D23",
-            "#EDF0F5",
-            "#AFB5C1",
-            "#30353F",
-            "#A894F9",
-            "#252333"
-        }
-
-        : new[]
-        {
-            "#F4F5F7",
-            "#FFFFFF",
-            "#20283A",
-            "#596579",
-            "#DDE2EA",
-            "#525CE8",
-            "#ECEEFE"
-        };
-        var keys = new[]
-        {
-            "ShellBackground",
-            "PanelBackground",
-            "ShellText",
-            "MutedText",
-            "ShellBorder",
-            "Accent",
-            "AccentSoft"
-        };
-        for (var index = 0; index < keys.Length; index++)
-        {
-            SetBrush(keys[index], ParseColor(palette[index]));
-        }
-
-        var panel = ParseColor(palette[1]);
-        panel.A = acrylic ? (byte)(dark ? 218 : 185) : (byte)255;
-        SetBrush("AcrylicPanel", panel);
-        // The selected Focus proposal uses a neutral graphite tint without losing the desktop's Acrylic diffusion.
-        SetBrush("AcrylicBackground", acrylic ? Color.FromArgb((byte)(dark ? 200 : 95), 17, 20, 26) : ParseColor(palette[0]));
-        theme.LightPalette.ContainerBackgroundColor = acrylic ? Color.FromArgb(190, 255, 255, 255) : Colors.White;
-        theme.DarkPalette.ContainerBackgroundColor = acrylic ? Color.FromArgb(225, 25, 29, 35) : Color.FromRgb(25, 29, 35);
-        if (result.TryGetProperty("accent", out var accent) && accent.GetString()is { Length: 7 } color)
-        {
-            SetBrush("SystemAccent", ParseColor(color));
-        }
+        var systemAccent = result.TryGetProperty("accent", out var accent)
+            ? accent.GetString()
+            : null;
+        ApplyManagedAppearance(dark, acrylic, systemAccent);
 
         NavigationRow.Refresh(DocumentTree);
         NavigationRow.Refresh(OutlineTree);
@@ -793,10 +786,59 @@ public partial class MainPage : UserControl
         }
     }
 
-    /// <summary>Parses an appearance color supplied by the browser into a managed color value.</summary>
-    private static Color ParseColor(string hex) => Color.FromArgb(255, Convert.ToByte(hex.Substring(1, 2), 16), Convert.ToByte(hex.Substring(3, 2), 16), Convert.ToByte(hex.Substring(5, 2), 16));
-    /// <summary>Updates a managed theme brush from its corresponding appearance color.</summary>
-    private static void SetBrush(string key, Color color) => ((SolidColorBrush)Application.Current.Resources[key]).Color = color;
+    /// <summary>Updates shared brush instances so already-open controls keep their live palette references.</summary>
+    private static void ApplyManagedAppearance(bool dark, bool acrylic, string? systemAccent)
+    {
+        var theme = (ModernTheme)Application.Current.Theme;
+        theme.CurrentPalette = dark ? ModernTheme.Palettes.Dark : ModernTheme.Palettes.Light;
+
+        SetBrush("ShellBackground", ParseColor(dark ? "#14171C" : "#F4F5F7"));
+        SetBrush("PanelBackground", ParseColor(dark ? "#191D23" : "#FFFFFF"));
+        SetBrush("ShellText", ParseColor(dark ? "#EDF0F5" : "#20283A"));
+        SetBrush("MutedText", ParseColor(dark ? "#AFB5C1" : "#596579"));
+        SetBrush("ShellBorder", ParseColor(dark ? "#30353F" : "#DDE2EA"));
+        SetBrush("Accent", ParseColor(dark ? "#A894F9" : "#525CE8"));
+        SetBrush("AccentSoft", ParseColor(dark ? "#252333" : "#ECEEFE"));
+        SetBrush("ErrorText", ParseColor(dark ? "#FFA6B1" : "#A31F34"));
+
+        var panelColor = ParseColor(dark ? "#191D23" : "#FFFFFF");
+        panelColor.A = acrylic ? (byte)(dark ? 218 : 185) : (byte)255;
+        SetBrush("AcrylicPanel", panelColor);
+
+        // Acrylic keeps the chosen neutral graphite tint; opaque hosts use the normal shell surface.
+        var backgroundColor = acrylic
+            ? Color.FromArgb((byte)(dark ? 200 : 95), 17, 20, 26)
+            : ParseColor(dark ? "#14171C" : "#F4F5F7");
+        SetBrush("AcrylicBackground", backgroundColor);
+        theme.LightPalette.ContainerBackgroundColor = acrylic
+            ? Color.FromArgb(190, 255, 255, 255)
+            : Colors.White;
+        theme.DarkPalette.ContainerBackgroundColor = acrylic
+            ? Color.FromArgb(225, 25, 29, 35)
+            : Color.FromRgb(25, 29, 35);
+
+        if (systemAccent is { Length: 7 })
+        {
+            SetBrush("SystemAccent", ParseColor(systemAccent));
+        }
+    }
+
+    /// <summary>Parses a validated six-digit RGB appearance color from the browser or application palette.</summary>
+    private static Color ParseColor(string hex)
+    {
+        var red = Convert.ToByte(hex.Substring(1, 2), 16);
+        var green = Convert.ToByte(hex.Substring(3, 2), 16);
+        var blue = Convert.ToByte(hex.Substring(5, 2), 16);
+        return Color.FromArgb(255, red, green, blue);
+    }
+
+    /// <summary>Mutates a shared brush without replacing references retained by existing controls and templates.</summary>
+    private static void SetBrush(string key, Color color)
+    {
+        var brush = (SolidColorBrush)Application.Current.Resources[key];
+        brush.Color = color;
+    }
+
     /// <summary>Retains routine status without occupying a permanent footer or replacing an actionable notice.</summary>
     private void SetStatus(string key, params object? [] arguments)
     {
@@ -837,9 +879,23 @@ public partial class MainPage : UserControl
     /// <summary>Validates changed settings, applies them and synchronizes their persisted status.</summary>
     private async Task<bool> ApplySettingsAsync(Preferences preferences)
     {
-        var sourceChanged = preferences.SimpleSource != _preferences.SimpleSource;
-        _preferences = preferences.Validated();
+        var validated = preferences.Validated();
+        var sourceChanged = validated.SimpleSource != _preferences.SimpleSource;
+        var providerChanged = validated.AiProvider != _preferences.AiProvider;
+        if (providerChanged)
+        {
+            // Reject the previous provider's completion before any asynchronous preference update.
+            InvalidateMarkdownAiConnection();
+            _aiConfigured = false;
+            _aiModelsReady = false;
+        }
+
+        _preferences = validated;
         await ApplyPreferencesAsync();
+        if (providerChanged)
+        {
+            await RefreshMarkdownAiKeyAsync();
+        }
         if (sourceChanged && (_view is "source" or "split"))
         {
             await ShowSourceAsync();
@@ -887,6 +943,9 @@ public partial class MainPage : UserControl
                 break;
             case "map-select":
                 await HandleMapSelectionAsync(root);
+                break;
+            case "map-explore":
+                await HandleMapExplorationAsync(root);
                 break;
             case "navigate":
                 if (_view == "map")
@@ -990,7 +1049,9 @@ public partial class MainPage : UserControl
     {
         await CaptureHistoryAsync();
         _sidebarOpen = !_sidebarOpen;
+        _layout = _layout with { SidebarOpen = _sidebarOpen };
         LayoutViews();
+        await SaveLayoutAsync();
     });
     /// <summary>Opens or activates the settings dialog with the current shell state.</summary>
     private void ToggleSettings(object sender, RoutedEventArgs arguments)
@@ -1007,14 +1068,17 @@ public partial class MainPage : UserControl
             if (_settingsDialog == dialog)
             {
                 _settingsDialog = null;
-                await ExecuteAsync(RefreshMarkdownAiKeyAsync);
+                if (dialog.AiConnectionChanged)
+                {
+                    await ExecuteAsync(RefreshMarkdownAiKeyAsync);
+                }
             }
         };
         dialog.Show();
     }
 
-    /// <summary>Opens the VibeWare manifesto from the shell footer.</summary>
-    private void OpenManifesto(object sender, RoutedEventArgs arguments) => OpenSilver.Interop.ExecuteJavaScriptVoid("window.open($0,'_blank','noopener,noreferrer')", "https://umbertogiacobbi.biz/vibeware/manifesto");
+    /// <summary>Opens the canonical VibeWare manifesto when the header badge is activated.</summary>
+    private void OpenManifesto(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Manifesto);
     /// <summary>Opens the About dialog.</summary>
     private void ShowAbout(object sender, RoutedEventArgs arguments) => new AboutWindow().Show();
     /// <summary>Displays the last-document recovery action when its workspace needs reopening.</summary>

@@ -3,24 +3,84 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
-- [ ] Simplify the AI assistant into a right-hand dock with standard splitters,
-  persisted open state and pane sizes, compact references and blue information
-  tooltips. Preserve existing edits and drafts. Source/static review only;
-  build, tests, launch, installation and publication were not requested.
+- [ ] Owner review/functional acceptance of the 2026-10-17 maintainability pass:
+  provider-explicit `ai.*` commands without old aliases, shared browser HTTP/storage
+  handling, split map codec/session, named validation phases and documented types.
+  See `docs/maintainability-review-2026-10-17.md` for before/after examples and
+  remaining architectural candidates. Bundle and final Debug x64 source compilation
+  passed; no tests, packaging, installation or GUI checks ran. Installed 0.1.0.25
+  does not yet include this source pass. The existing smoke fixture is updated
+  but not executed. Future changes do not require historical compatibility.
+
+- [ ] Owner acceptance of installed Debug x64 0.1.0.25 and the opaque desktop
+  presentation repair: the 0.1.0.24
+  screenshot shows missing shell regions while panning, despite the previous
+  composed-host change. Use direct HWND WebView2, opaque host/browser backgrounds
+  and no full-client DWM glass. Disable native Acrylic availability with localized
+  explanation; retain the preference and browser modal blur. Confirm map pan/zoom,
+  selection, resizing, themes and modals manually. Build/sign/MSIX installation
+  and final launch succeeded; Windows reports version 0.1.0.25, x64 and Status Ok.
+  No GUI checks, suites, provider tests or inference ran. Existing NU1902/NU1903
+  transitive dependency advisories remain outside this rendering correction.
+
+- [ ] Owner acceptance of installed Debug x64 0.1.0.24: persisted Codex CLI/API
+  radio selection, separate Test buttons and explicit pass/fail dialogs. API tests
+  check model-list authentication; CLI tests request a tiny synthetic response and
+  can consume usage. Neither test was executed during development. Verify real
+  connection results, cancellation and edits manually. The Windows CLI uses its
+  existing login; the browser reports that CLI integration requires the desktop.
+  Build, signing, MSIX installation and final launch succeeded; Windows reports
+  version 0.1.0.24, x64 and Status Ok. No suites or interactive checks ran.
+
+- [ ] Owner review of [PR #1](https://github.com/umbertotechnopreneur/MarkVibe/pull/1):
+  repository preparation, Windows packaging, pending UI/readability work and
+  selectable AI connections. Commit/push/PR delivery and initial-history
+  consolidation are complete. `master` is protected; the PR remains open.
+  No automated suites or GUI checks were requested or run.
+
+- [ ] Owner updates the Codex project folder link to `E:\MarkVibe`. The complete
+  repository, Git history/backups and Debug artifacts were copied there from
+  `E:\Research\MarkVibe`; the original is preserved. Use the new folder for future
+  work after the owner reconnects it, rather than editing both copies independently.
+
+- [ ] Owner acceptance of installed Debug x64 0.1.0.23: updated VibeWare header,
+  About/disclosure, timed hover/focus footer, map-effect lifecycle and retained
+  exploration controls. Windows confirms x64 version 0.1.0.23 and Status Ok.
+  MSI 0.1.23 and portable outputs were generated; MSI installation/upgrade/uninstall
+  and Visual Studio F5/breakpoint attachment remain unverified. All seven solution
+  projects compile in Debug, including check projects without executing them.
+
+- [ ] Owner acceptance of installed Debug x64 0.1.0.22: lighter cards, finite
+  directional link pulses, relation lens, up to 12 selected documents with
+  comparison/atomic AI collection, actual navigation trail and cached attention
+  facts. Ctrl/Cmd-click or Shift-drag selects; toolbar controls expose the same
+  actions. Build/sign/install completed, Windows reports Status Ok and the installed
+  executable was launched. No automated suites or interactive checks ran. The
+  timeline/WebGL message was retracted; no related Git delivery/research ran.
+
+- [ ] Owner acceptance of installed Debug x64 0.1.0.21: repaired map icons and
+  document double activation, wider distance selector with matching view-name
+  typography, bordered inspector actions, collapsible incoming/outgoing links,
+  route spacing and clearer HTML/PDF export symbols. Build/sign/install and final
+  launch are complete; Windows reports Status Ok. No interactive checks, test
+  suites, inference or publication ran. The owner checks appearance/navigation.
+
+- [ ] Owner acceptance of the gray redraw repair introduced in Debug 0.1.0.20
+  and retained in installed 0.1.0.21. The owner reports an improvement.
+  The visible host uses WPF composition, map painting is contained, and SVG filters
+  and minimap backdrop blur are removed. Build, installation and startup succeeded;
+  resolution on the owner's actual workspace remains unconfirmed. The owner now
+  performs all GUI checks: no window manipulation, input automation or desktop
+  capture unless explicitly requested. No test suite or publication requested.
 
 - [ ] When execution/acceptance is explicitly requested, validate the implemented
   document atlas: semantic zoom and overview labels, island collapse/reopen,
   0–3-link lenses, source excerpts and full-catalog shortest routes, inspector,
   minimap and eight saved viewpoints. Include sidecar conflicts/reopen, search
-  expansion, compact preview, both themes and reduced motion. Source/static
-  checks only; build, tests, launch, installation and publication were not
-  requested for this implementation task. Local checkpoint commits are authorized.
-
-- [ ] Install the prepared 0.1.0.13 Debug x64 update after explicit consent for its
-  distinct certificate E5C9ACC815B3399618A25C0B6F944C0E301216C1 in
-  LocalMachine/TrustedPeople. The prior specific consent installed 0.1.0.11.
-  The 0.1.0.13 package compiles and its direct preview is running with flat OpenAI
-  settings and the revised modal overlay. The owner reserved functional testing.
+  expansion, compact preview, both themes and reduced motion. Debug 0.1.0.18
+  includes the atlas and was installed/launched. Focused UI inspection covered
+  inspector persistence and navigation retention; broader interaction acceptance,
+  automated suites and publication remain separate. Local checkpoint commits are authorized.
 
 - [ ] When execution is explicitly requested, run the new `Verifica-MarkVibe.cmd`
   profiles against the unified DocumentSession model and schema-4 map. Verify
@@ -34,14 +94,6 @@ reuse existing authorization and identify any remaining owner checkpoint.
 - [ ] When dependency maintenance is requested, resolve the existing NU1902/NU1903
   warnings for transitive System.Security.Cryptography.Pkcs 8.0.1 and Xml 8.0.4.
   The current x64 Debug package builds; no advisory remediation was requested.
-
-- [ ] Publish all pending changes through a pull request into `master`, assign
-  it to `umbertotechnopreneur` and label it `enhancement` and `documentation`.
-  Push and merge are authorized. Creation of the proposed
-  `codex/publish-xaml-ai-ui` branch awaits the explicit consent required by
-  AGENTS.md. GitHub is public; `master` has no protections or rulesets.
-  The authenticated owner cannot approve their own pull request. No tests
-  were requested for this publication task.
 
 - [ ] When execution/validation is explicitly requested, bundle/build Markdown AI
   editing and check document/selection replacement, CRLF/Unicode source ranges,
@@ -88,8 +140,10 @@ reuse existing authorization and identify any remaining owner checkpoint.
 
 - [ ] Exercise native file/folder/save dialogs and multiple desktop DPI scales with
   synthetic files; automated exports currently use explicit smoke destinations.
-- [ ] On the user's request, install the generated MSIX and try the packaged app.
-  Building/signing the package is not installation acceptance; run no tests implicitly.
+- [ ] Owner manual acceptance of the installed 0.1.0.13 Debug x64 package remains
+  separate from deployment. Windows confirms version 0.1.0.13 and Status Ok after
+  explicit certificate/installation consent. No test suite or functional checks
+  were run; the owner reserved testing.
 - [ ] Before a Microsoft Store submission, use the reserved Partner Center identity
   and publisher and obtain separate Store-publication authorization.
 

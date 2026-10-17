@@ -1,5 +1,120 @@
 # AI development disclosure
 
+## Focused maintainability pass — 2026-10-17
+
+Umberto requested concrete examples of duplicate/complex code, simpler ownership,
+descriptive intermediate values, spacing and useful type/method/internal comments.
+He explicitly rejected historical compatibility requirements. Codex reviewed the
+AI bridge, browser request/storage paths, map codec/session and shared contracts,
+implemented the focused changes and documented before/after examples in
+`docs/maintainability-review-2026-10-17.md`. It also identified separate remaining
+request-session, CLI process/protocol and native HTTP consolidation opportunities.
+
+The current provider-explicit bridge replaces old command families without aliases;
+browser HTTP/storage plumbing is shared, the map session has a dedicated file and
+JSON validation has named phases. Secure-context UUID support is now required.
+Bounds, cancellation, containment, strict map versioning and real platform checks
+remain. This is a scoped maintainability review, not a complete dead-code or
+security audit and not a claim that every file has been cleaned.
+
+Bundling and final Debug x64 application compilation succeeded with zero errors
+and the existing transitive dependency warnings. The smoke fixture was updated but
+not executed. No suites, GUI checks, provider tests, inference, packaging, version
+increment, installation or application launch occurred. Installed 0.1.0.25 remains
+the earlier delivery and does not yet contain these source changes.
+
+## Opaque desktop presentation — 2026-10-16
+
+The owner supplied a new screenshot showing missing shell regions while moving
+the document map in the installed 0.1.0.24 app. This disproves completion of the
+earlier composed-host redraw repair. Codex replaced capture-to-WPF browser
+presentation with direct HWND WebView2 hosting and made the browser, WPF surface
+and native client backgrounds opaque. Native Acrylic availability is disabled
+with a localized Settings explanation; the saved preference and browser modal
+blur are retained. No GPU-disable flag or continuous forced redraw was added.
+The screenshot does not by itself identify the exact runtime/driver failure;
+native pan/zoom and modal acceptance remain with the owner.
+
+Debug x64 0.1.0.25 compiled and packaged successfully, with the pre-existing
+transitive dependency advisories still present. Its MSIX was installed and the
+installed executable launched; Windows reports exact version, x64 and Status Ok.
+MSI and portable outputs were also generated. No automated suites, GUI checks,
+provider test or inference was run, and no functional resolution is claimed.
+
+## Repository delivery and copy — 2026-10-16
+
+With the owner's explicit branch and Git approval, Codex consolidated the 18
+existing local commits into `First commit`, retained verified history/dirty-state
+backups and release tags, protected `master`, and opened
+[PR #1](https://github.com/umbertotechnopreneur/MarkVibe/pull/1) for the follow-up
+changes. The PR remains open. No CI workflow or additional test was started.
+
+At the owner's request, the complete repository and local Debug artifacts were
+copied from `E:\Research\MarkVibe` to `E:\MarkVibe`, preserving the original.
+The copy completed without reported failures; Git HEAD and selected file/package
+hashes matched. The owner will reconnect the folder in Codex.
+
+## Selectable AI connections — 2026-10-16
+
+Umberto requested two explicit Settings choices: Codex CLI and OpenAI API key,
+each with a Test button and a pass/fail window. Codex delegated managed/client
+routing, Settings/localization and native transport review. The Windows adapter
+uses the installed CLI and its existing login with ephemeral bounded requests,
+disabled tools/plugins and cancellation that terminates the process tree. It
+does not claim OS isolation for filesystem reads or API-equivalent CLI retention.
+API remains the default; failures never silently select the other provider.
+
+Debug x64 0.1.0.24 was bundled, compiled, signed, installed as MSIX and launched;
+Windows reports Status Ok. MSI 0.1.24 and portable outputs were also generated.
+No live provider Test action, inference, automated suite, check executable or
+interactive acceptance was run. The owner performs those functional checks.
+
+## Repository and branding preparation — 2026-10-16
+
+Umberto requested a short README explaining the weekend-project origin, a document
+map, MIT-compatible distribution notices, a real MSI alongside MSIX/portable,
+three focused maintainability agents and PR-based delivery. He supplied the
+VibeWare brand repository as the reference for the approved logo, source headers,
+first-person About disclosure, footer and legal links. Codex used those templates;
+the existing local logo matches the approved source byte for byte.
+
+He also requested Visual Studio compilation/debugging and a future Store package.
+After confirming that no Partner Center identity is available, he limited current
+MSIX delivery to local Debug installation. The Store identity is not invented and
+no Store submission or Release/ARM64 build is included in this delivery.
+
+Delegated agents reviewed the C# exploration state, JavaScript graph effects and
+Windows packaging. Their changes reduce repeated control/DOM reconstruction,
+cancel effects tied to replaced geometry and clarify validation phases. The
+license review identifies the bundled EPL-2.0 ELK module separately from MIT
+application code and adds versioned source-availability notices. It does not
+claim that all dependencies are MIT or that a security audit was performed.
+
+Build, installation, Git delivery and owner acceptance are recorded only when
+completed in the task archive. This preparation runs no automated suites or GUI
+checks; the owner retains interactive acceptance.
+
+The parent subsequently restored and compiled all seven solution projects in
+Debug (zero errors; existing NU1900 cache warnings), then generated and signed
+MSI, MSIX/bundle and portable 0.1.0.23 x64 outputs. The first MSI authoring attempt
+exposed an incorrectly constructed RemoveFile row; it was corrected before clean
+regeneration. Windows confirms installed MSIX version 0.1.0.23 and Status Ok,
+and the installed executable was launched. MSI installation/upgrade/uninstall,
+Visual Studio F5 and GUI acceptance remain unverified. No suite, check executable,
+interactive input, screenshot, Release build or Store submission was performed.
+
+The owner approved six further map improvements on 2026-10-16: lighter cards,
+finite directional link effects, a relation lens, bounded multi-selection with
+comparison and atomic AI reference collection, actual navigation trails and
+catalog-backed attention highlights. Codex implemented managed state/contracts,
+cached graph facts, accessible XAML controls and unfiltered renderer overlays.
+No new rendering engine, inference request or source-file migration is involved.
+GUI acceptance remains with the owner; delivery evidence belongs to the archive.
+No interactive checks or automated suites were run for this follow-up.
+Debug x64 0.1.0.22 subsequently bundled, compiled, signed and installed successfully;
+Windows reports Status Ok and the installed executable was launched. This records
+delivery and does not assert owner acceptance of the new interactions or effects.
+
 ## Project and scope
 
 - **Project:** MarkVibe.
@@ -8,8 +123,10 @@
 - **Disclosure date:** 2026-10-16.
 - **Document atlas follow-up:** owner-approved semantic zoom, folder islands,
   neighborhood lenses, source-backed routes, preview, minimap and named views.
-  Codex implemented the source changes and static checks; this follow-up has
-  no bundle/build, automated-test or running-app acceptance evidence.
+  Codex implemented the source changes and readability/UI follow-ups. Debug x64
+  packaging and installation through 0.1.0.21 are recorded below and in the task
+  archive. Automated suites were not requested; full functional acceptance
+  remains with the owner and is distinct from successful delivery.
 - **Applies to:** the 2026-10-11 source attribution, contributor guidance,
   readability revision, OpenAI settings and stateless Markdown AI editing,
   plus the 2026-10-16 local packaging, assistant-panel, map/settings and
@@ -45,6 +162,14 @@ changing its behavior, plus explicit OpenAI key validation and host-specific sto
 
 For the scope above, OpenAI Codex:
 
+- Replaced the floating assistant with a fixed right-hand pane and standard
+  splitter; retained its open state and pane geometry in separate local layout
+  settings. Simplified references and token estimates, moved explanations to blue
+  information tooltips, and reused reference rows during prompt updates. Recorded
+  the owner's standing authorization for local Debug certificate trust and
+  installation, including closing the app and discarding unsaved in-app work.
+  Delivery evidence for this update is recorded separately in the task archive.
+
 - Implemented the maintainer's inline map toolbar/search, rounded view tabs,
   breadth-first Tree arrangement and optional animated depth based on managed
   connection distances, with shared graph indexing and bounded visual effects.
@@ -69,6 +194,11 @@ For the scope above, OpenAI Codex:
   its background brush and separating content motion from backdrop animation.
   Built/signed 0.1.0.13 Debug x64 and launched the direct preview. No test suite,
   API validation or functional acceptance ran; the owner will test manually.
+  After separate explicit owner consent for certificate
+  E5C9ACC815B3399618A25C0B6F944C0E301216C1 in LocalMachine/TrustedPeople,
+  verified the bundle checksum, trusted that certificate and installed the
+  0.1.0.13 update. Windows registered X64 version 0.1.0.13 with Status Ok.
+  Deployment confirmation does not establish functional acceptance.
 - Inspected repository guidance, source inventory, licensing and existing records.
 - Recorded the requested readability rules in `AGENTS.md` and `CONTRIBUTING.md`.
 - Added VibeWare headers to maintained project source, scripts and markup, using
@@ -404,3 +534,61 @@ unfinished work and restart, Codex built and launched **0.1.0.8 Debug x64**.
 The npm preparation now uses the selected Node runtime consistently. The existing
 NuGet warnings remain; no test suite, live inference, installation or publication
 was performed for this refinement.
+
+## Docked assistant and interface follow-up — 2026-10-16
+
+Umberto requested a fixed right-side AI pane with saved visibility and splitter
+geometry, a closed first-run default, shorter labels and blue information
+tooltips. Codex removed the floating/compact positioning path, separated layout
+persistence from appearance preferences and avoided rebuilding unchanged reference
+rows. Debug x64 0.1.0.15 was packaged, signed, installed and launched with the
+owner's explicit development-certificate authorization.
+
+The owner then requested a persistent map-inspector splitter, repair of settings
+blur and stale theme labels, three agents focused on readable code, and semilight
+interface fonts. Delegated agents implemented inspector layout, shared input
+brushes and AI readability changes. Codex integrated these with XML documentation,
+stable template-based modal blur and Semilight/Medium interface weights.
+
+Debug x64 0.1.0.16 compiled and local UI inspection confirmed blur while Settings
+remained open, light/dark/light caption refresh and a resized map inspector that
+restored after process restart. The isolated diagnostics profile did not read
+credentials or invoke OpenAI. Full test suites and live inference were not run;
+later package/install evidence is recorded in the task archive.
+
+The owner subsequently reported gray flashes while navigating the map. Codex
+observed sidebar navigation replacing graph cards and restarting their entrance
+animation, then retained the selection presentation and refreshed changed metadata
+in place. The canvas stays opaque black, and equivalent planar scaling avoids
+switching transform spaces during hover and selection. Focused inspection of
+0.1.0.18 with 24 synthetic documents confirmed retained cards and no repeated
+entrance animation during navigation after the initial presentation settled.
+The Debug x64 package was signed, installed with the authorized certificate and
+launched from its WindowsApps installation; Windows reports Status Ok and a
+responding window. No test suite, live inference or publication ran.
+
+The owner then showed persistent gray native redraw artifacts on card clicks,
+including shell regions. The earlier retained-card observations remain valid
+but did not prove resolution of that presentation failure. Codex investigated
+the visible maximized Windows path using synthetic content, changed the visible
+host to `WebView2CompositionControl`, bounded map painting and removed SVG filter
+surfaces and minimap backdrop sampling. The standard hidden PDF host is retained.
+No changes to drivers, runtime installation or user source documents were made.
+Final delivery and the limits of native UI inspection belong to the task archive.
+
+Debug x64 0.1.0.20 was then built, signed, installed and started successfully with
+the required Windows Runtime projection included. The owner's exact gray failure
+was not reproduced in the synthetic scenario, so resolution on his workspace
+remains unconfirmed. He subsequently took ownership of GUI checks because visible
+automation interrupted his work; Codex stopped those checks and recorded that
+boundary in AGENTS.md. No test suite, inference or publication ran.
+
+The next owner screenshots identified incomplete XAML map glyphs, failed card
+double-click opening, clipped distance captions and inspector actions that looked
+like plain text. Codex restored stroked geometry and missing musical/globe marks,
+added path-based double activation, matched viewpoint input typography, and added
+bordered icon actions with initially collapsed link sections and retained session
+expansion. Route status has separate spacing; HTML/PDF symbols are redrawn.
+Functional acceptance remains with the owner; packaging evidence is recorded in
+the task archive. No interactive checks or test suites were requested or run for
+this follow-up.

@@ -19,6 +19,7 @@
  * Human guidance: Umberto Giacobbi; remove duplicate document state and unused search compatibility
  * Modified with AI: OpenAI Codex; source excerpts, heading previews and complete-catalog atlas routes; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement the seven approved document atlas improvements
+ * Modified with AI: OpenAI Codex; project attention priorities and expose observed source fingerprints; 2026-10-16
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -28,6 +29,7 @@
 using System.Text;
 
 namespace MarkVibe.Core;
+/// <summary>Projects parsed source into bounded document metadata for navigation and graph presentation.</summary>
 public sealed record DocumentCard(string Path, string Title, string Introduction, IReadOnlyList<DocumentLink> Links, DocumentStatistics? Statistics = null)
 {
     public IReadOnlyList<Heading> Headings { get; init; } = [];
@@ -37,7 +39,9 @@ public sealed record DocumentCard(string Path, string Title, string Introduction
     public override string ToString() => Title;
 }
 
+/// <summary>Describes a directed source link and its optional location and plain-text excerpt.</summary>
 public sealed record MapEdge(string Source, string Target, string Anchor, int Line = 0, string Excerpt = "");
+/// <summary>Carries a bounded graph projection with facts derived from the complete workspace catalog.</summary>
 public sealed record MapSnapshot(
     IReadOnlyList<DocumentCard> Nodes,
     IReadOnlyList<MapEdge> Edges,
@@ -49,7 +53,14 @@ public sealed record MapSnapshot(
     IReadOnlyList<string>? Route = null,
     string RouteMessage = "",
     IReadOnlyList<MapFolder>? Folders = null
-);
+)
+{
+    /// <summary>Gets full-catalog attention facts for the projected documents.</summary>
+    public IReadOnlyDictionary<string, MapAttention> Attention { get; init; } = new Dictionary<string, MapAttention>();
+    /// <summary>Reports whether isolation and incoming links cover the completed index.</summary>
+    public bool IndexComplete { get; init; }
+}
+/// <summary>Owns parsed metadata, bounded read caches and authoritative local document revisions.</summary>
 public sealed class DocumentCatalog(MarkdownParser parser)
 {
     private const int MaximumEditedDocuments = 16;
@@ -63,6 +74,8 @@ public sealed class DocumentCatalog(MarkdownParser parser)
     public IReadOnlyCollection<DocumentSession> Sessions => _sessions.Values;
     public List<string> Warnings { get; } = new();
     public bool IndexComplete { get; private set; }
+    /// <summary>Invalidates derived graph facts when catalog membership or parsed metadata changes.</summary>
+    public long MetadataRevision { get; private set; }
     public int IndexedCount { get; private set; }
 
     /// <summary>Reseeds canonical workspace entries while retaining local revisions independently of files and parsed cache.</summary>
@@ -133,6 +146,7 @@ public sealed class DocumentCatalog(MarkdownParser parser)
         Warnings.Clear();
         IndexComplete = false;
         IndexedCount = 0;
+        MetadataRevision++;
     }
 
     /// <summary>Indexes document content within the byte budget while reporting progress and retaining readable failures.</summary>
@@ -181,6 +195,7 @@ public sealed class DocumentCatalog(MarkdownParser parser)
                 {
                     Introduction = "This page could not be indexed. Open it for details."
                 };
+                MetadataRevision++;
             }
 
             IndexedCount++;
@@ -222,6 +237,9 @@ public sealed class DocumentCatalog(MarkdownParser parser)
         return _sessions.GetValueOrDefault(path);
     }
 
+    /// <summary>Returns the last parsed content fingerprint; unindexed placeholders have no observed revision.</summary>
+    public string? FingerprintFor(string path) => _fingerprints.GetValueOrDefault(path);
+
     /// <summary>Forgets a file and its draft only after the owner has confirmed and completed its local deletion.</summary>
     public void ForgetDeletedDocument(string path)
     {
@@ -231,6 +249,7 @@ public sealed class DocumentCatalog(MarkdownParser parser)
         _fingerprints.Remove(path);
         _cache.Remove(path);
         _recency.Remove(path);
+        MetadataRevision++;
     }
 
     /// <summary>Makes room before an AI request, evicting only restored or exported sessions other than the current path.</summary>
@@ -349,6 +368,7 @@ public sealed class DocumentCatalog(MarkdownParser parser)
     {
         _cards[model.Path] = card ?? CreateCard(model);
         _fingerprints[model.Path] = model.Fingerprint;
+        MetadataRevision++;
     }
 
     /// <summary>Publishes metadata and the parsed cache entry from the same effective document.</summary>
@@ -380,7 +400,8 @@ public sealed class DocumentCatalog(MarkdownParser parser)
     }
 
     /// <summary>Projects a bounded document graph that retains its hub and selected card, optionally limited to its neighborhood.</summary>
-    public MapSnapshot Map(string selected, bool neighborhood, string routeStart = "", string routeEnd = "", int focusDepth = 0)
+    public MapSnapshot Map(string selected, bool neighborhood, string routeStart = "", string routeEnd = "", int focusDepth = 0,
+        IReadOnlyList<string>? priorityPaths = null)
     {
         var cards = Cards;
         var graph = new DocumentGraph(cards);
@@ -393,7 +414,7 @@ public sealed class DocumentCatalog(MarkdownParser parser)
             .Where(c => !neighborhood || neighbors.Contains(c.Path))
             .ToList();
         var eligiblePaths = filtered.Select(document => document.Path).ToHashSet(StringComparer.Ordinal);
-        var priority = route.Concat(focusDepth > 0 ? new[] { selected } : Array.Empty<string>())
+        var priority = route.Concat(priorityPaths ?? []).Concat(focusDepth > 0 ? new[] { selected } : Array.Empty<string>())
             .Where(path => eligiblePaths.Contains(path));
         var orderedPaths = focusDepth > 0
             ? graph.OrderedPaths.OrderBy(path => distances.GetValueOrDefault(path, int.MaxValue)).ToArray()

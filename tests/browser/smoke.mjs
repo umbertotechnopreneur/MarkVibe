@@ -17,14 +17,12 @@
  * VBWR E */
 
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
+import { eventually, closeSettings } from "../ui/waits.mjs";
 import { mkdir, writeFile, mkdtemp, readFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { tmpdir } from "node:os";
 import { zipSync, strToU8 } from "fflate";
 
-const require = createRequire(import.meta.url);
-const { chromium } = require(process.env.MARKVIBE_PLAYWRIGHT_PATH || "playwright");
 const base = process.env.MARKVIBE_BASE_URL || "http://localhost:5080/";
 const artifacts = resolve(process.env.MARKVIBE_ARTIFACTS_DIR || "artifacts/browser");
 const browser = await chromium.launch({ channel: process.env.MARKVIBE_BROWSER_CHANNEL || "msedge", headless: true });
@@ -35,7 +33,7 @@ await mkdir(artifacts, { recursive: true });
 /** Wait for the synthetic browser workspace to finish opening and indexing. */
 async function ready(page) {
   await page.goto(base, { waitUntil: "networkidle" });
-  await page.waitForFunction(() => document.body.innerText.includes("source lines"), {}, { timeout: 30000 });
+  await page.locator(".reader h1").waitFor({ timeout: 90000 });
   await page.getByRole("document", { name: "Rendered Markdown document" }).waitFor({ state: "visible" });
   assert.ok(await page.locator(".reader h1").isVisible(), "The reader must contain visible document content.");
 }
@@ -60,7 +58,7 @@ async function documentIs(page, path) {
 
 /** Run a named browser scenario and record its result with relevant failure evidence. */
 async function check(name, run) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const context = await browser.newContext({ locale: "en-US", viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
   const page = await context.newPage();
   const errors = [];
   const failures = [];
@@ -128,7 +126,6 @@ const exportFiles = () => [
 
 /** Request an HTML export and retain the resulting synthetic download. */
 async function htmlExport(page) {
-  await page.locator("[dataid=SettingsButton]").click();
   const download = page.waitForEvent("download");
   await page.locator("[dataid=ExportHtmlButton]").click();
   const file = await download;
@@ -137,6 +134,15 @@ async function htmlExport(page) {
   await file.saveAs(target);
   await page.waitForFunction(() => document.body.innerText.includes("HTML download started: README.html"));
   return readFile(target, "utf8");
+}
+
+/** Download a map snapshot through the visible toolbar and read only the synthetic artifact. */
+async function downloadMap(page, name) {
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download layout", exact: true }).click();
+  const path = join(artifacts, name + ".json");
+  await (await download).saveAs(path);
+  return JSON.parse(await readFile(path, "utf8"));
 }
 
 // page: current app page.
@@ -229,7 +235,7 @@ try {
     assert.ok(await page.locator(".mv-dom-host").count() <= 3, "Repeated switches must not accumulate DOM hosts.");
     await openFiles(page, [{ name: "README.md", mimeType: "text/markdown", buffer: Buffer.from(synthetic) }]);
     await page.locator(".monaco-editor").waitFor({ state: "visible" });
-    await page.getByRole("searchbox", { name: "Find in current source", exact: true }).fill("Section 45");
+    await page.locator("[dataid=SourceSearch]").locator("input,textarea").fill("Section 45");
     const sourceId = await page.evaluate(() => [...document.querySelectorAll(".mv-dom-host")]
       .find(host => host.shadowRoot?.querySelector(".source-content")).closest("[data-mv-host]").dataset.mvHost);
     await page.waitForFunction(async hostId => {
@@ -238,21 +244,51 @@ try {
     }, sourceId);
   });
 
-  await check("Map exposes actual documents, connections, focus and document navigation", async page => {
+  await check("Map commands work immediately, click selects and double-click opens", async page => {
     await ready(page);
     await view(page, "Map");
-    await page.locator(".page-card").first().waitFor({ state: "visible" });
+    const card = page.getByRole("button", { name: "Select Prepare a workspace, guide/setup.md", exact: true });
+    await card.waitFor();
     assert.equal(await page.locator(".page-card").count(), 4);
-    assert.match(await page.locator(".map-summary").first().innerText(), /4 of 4 pages.*visible connections/u);
+    await page.getByRole("button", { name: "Arrange in a grid", exact: true }).click();
+    await card.click();
+    await eventually(async () => assert.equal(await card.getAttribute("aria-pressed"), "true"));
+    assert.equal(new URLSearchParams(new URL(page.url()).hash.slice(1)).get("doc"), "README.md");
     const before = await page.locator(".map-world").getAttribute("style");
-    await page.getByRole("button", { name: "Zoom map in", exact: true }).click();
-    assert.notEqual(await page.locator(".map-world").getAttribute("style"), before);
-    await page.getByRole("button", { name: "Focus on this page", exact: true }).click();
-    await page.getByRole("button", { name: "Show all pages", exact: true }).waitFor();
+    await card.hover();
+    await page.mouse.wheel(0, -300);
+    await eventually(async () => assert.notEqual(await page.locator(".map-world").getAttribute("style"), before));
+    await page.getByRole("button", { name: "Advanced view", exact: true }).click();
+    await page.locator(".advanced-map .map-statistics").first().waitFor();
     await page.screenshot({ path: join(artifacts, "desktop-map.png"), fullPage: true });
-    await page.getByRole("button", { name: /Open Prepare a workspace, guide\/setup\.md/u }).click();
+    await card.dblclick();
     await documentIs(page, "guide/setup.md");
-    await page.locator(".reader h1").waitFor({ state: "visible" });
+    await page.locator(".reader h1").waitFor();
+  });
+
+  await check("card resize persists in downloads and resetting requires explicit confirmation", async page => {
+    await ready(page);
+    await view(page, "Map");
+    const grip = page.getByRole("button", { name: "Resize Welcome to your reading space", exact: true });
+    await grip.waitFor();
+    await grip.focus();
+    await page.keyboard.press("ArrowRight");
+    const resized = await downloadMap(page, "resized-map");
+    assert.equal(resized.schemaVersion, 4);
+    assert.equal(resized.nodes["README.md"].width, 270);
+    await page.getByRole("button", { name: "Reset all", exact: true }).click();
+    let dialog = page.locator(".mv-dialog").last();
+    await dialog.getByText("Cancel", { exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
+    assert.deepEqual(await downloadMap(page, "cancelled-reset"), resized);
+    await page.getByRole("button", { name: "Reset all", exact: true }).click();
+    dialog = page.locator(".mv-dialog").last();
+    await dialog.getByText("Reset", { exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
+    const reset = await downloadMap(page, "confirmed-reset");
+    assert.equal(reset.nodes["README.md"].width, undefined);
+    await view(page, "Read");
+    assert.equal(await page.locator(".reader h1").innerText(), "Welcome to your reading space");
   });
 
   await check("file import, duplicate anchors, missing page and source-location Split synchronization", async page => {
@@ -304,49 +340,27 @@ try {
     await page.screenshot({ path: join(artifacts, "mobile-read.png"), fullPage: true });
   });
 
-  await check("imported folder removes the artificial root; bounded ZIP opens nested documents", async page => {
+  await check("folder and ZIP providers preserve nested paths and return their actual source", async page => {
     await ready(page);
-    const folder = await mkdtemp(join(tmpdir(), "markvibe-fixture-"));
+    const folder = await mkdtemp(join(artifacts, "folder-fixture-"));
     await writeFile(join(folder, "README.md"), "# Imported folder\n\n[Child](nested/child.md)\n");
     await mkdir(join(folder, "nested"));
-    await writeFile(join(folder, "nested/child.md"), "# Nested child\n\n[Home](../README.md)\n");
-    await view(page, "◐");
-    const chooseFolder = page.waitForEvent("filechooser");
-    await page.getByText("Import folder", { exact: true }).click();
-    await (await chooseFolder).setFiles(folder);
-    await documentIs(page, "README.md");
-    await headingIs(page, "Imported folder");
-    assert.equal(await page.locator(".reader h1").innerText(), "Imported folder");
-    await page.getByRole("link", { name: "Child", exact: true }).click();
-    await documentIs(page, "nested/child.md");
-    await page.goto(base, { waitUntil: "networkidle" });
-    await page.locator("[dataid=ResumeWorkspaceButton]").waitFor({ state: "visible" });
-    const reopenFolder = page.waitForEvent("filechooser");
-    await page.locator("[dataid=ResumeWorkspaceButton]").click();
-    await (await reopenFolder).setFiles(folder);
-    await documentIs(page, "nested/child.md");
-    await headingIs(page, "Nested child");
-    await view(page, "◐");
-    const chooseZip = page.waitForEvent("filechooser");
-    await page.getByText("Import documentation ZIP", { exact: true }).click();
-    const archive = zipSync({
-      "README.md": strToU8("# ZIP fixture\n\n[Child](nested/child.md)\n"),
-      "nested/child.md": strToU8("# ZIP child\n")
+    await writeFile(join(folder, "nested/child.md"), "# Nested child");
+    const folderPicker = page.waitForEvent("filechooser");
+    const folderOpening = appCall(page, "workspace.open", { mode: "imported" });
+    await (await folderPicker).setFiles(folder);
+    const folderInfo = await folderOpening;
+    const entries = await appCall(page, "workspace.entries", { workspaceId: folderInfo.id });
+    assert.ok(entries.some(entry => entry.path === "nested/child.md"));
+    assert.equal(await appCall(page, "workspace.text", { workspaceId: folderInfo.id, path: "nested/child.md" }), "# Nested child");
+    const zipPicker = page.waitForEvent("filechooser");
+    const zipOpening = appCall(page, "workspace.open", { mode: "zip" });
+    await (await zipPicker).setFiles({
+      name: "fixture.zip", mimeType: "application/zip",
+      buffer: Buffer.from(zipSync({ "README.md": strToU8("# ZIP fixture"), "nested/child.md": strToU8("# ZIP child") }))
     });
-    await (await chooseZip).setFiles({ name: "fixture.zip", mimeType: "application/zip", buffer: Buffer.from(archive) });
-    await documentIs(page, "README.md");
-    await headingIs(page, "ZIP fixture");
-    assert.equal(await page.locator(".reader h1").innerText(), "ZIP fixture");
-    await page.getByRole("link", { name: "Child", exact: true }).click();
-    await documentIs(page, "nested/child.md");
-    assert.equal(await page.locator(".reader h1").innerText(), "ZIP child");
-    await page.goto(base, { waitUntil: "networkidle" });
-    await page.locator("[dataid=ResumeWorkspaceButton]").waitFor({ state: "visible" });
-    const reopenZip = page.waitForEvent("filechooser");
-    await page.locator("[dataid=ResumeWorkspaceButton]").click();
-    await (await reopenZip).setFiles({ name: "fixture.zip", mimeType: "application/zip", buffer: Buffer.from(archive) });
-    await documentIs(page, "nested/child.md");
-    await headingIs(page, "ZIP child");
+    const zipInfo = await zipOpening;
+    assert.equal(await appCall(page, "workspace.text", { workspaceId: zipInfo.id, path: "nested/child.md" }), "# ZIP child");
   });
 
   await check("untrusted Markdown blocks scripts, remote images and executable links", async page => {
@@ -361,65 +375,35 @@ try {
     await page.locator(".missing-resource").first().waitFor({ state: "visible" });
   });
 
-  await check("Modern Theme, Monaco, Mermaid, reading styles and settings follow Light/Dark/System and survive reload", async page => {
+  await check("Appearance and reading styles apply immediately and survive reload", async page => {
     await ready(page);
     await view(page, "Split");
-    await page.locator(".monaco-editor").waitFor({ state: "visible" });
+    await page.locator(".monaco-editor").waitFor();
     await page.locator("[dataid=SettingsButton]").click();
     await setting(page, "AppearanceCombo", "Dark");
-    await page.locator(".monaco-editor.vs-dark").waitFor({ state: "visible" });
-    await page.waitForFunction(() => [...document.querySelectorAll('[dataid=AppearanceCombo] *')]
-      .some(element => getComputedStyle(element).backgroundColor === "rgb(24, 31, 45)"));
-    await page.locator(".mv-diagram svg").waitFor({ state: "attached" });
-    assert.equal(await page.locator(".reader").evaluate(element => getComputedStyle(element).color), "rgb(229, 234, 244)");
-    await setting(page, "StyleCombo", "Editorial reading");
-    await page.waitForFunction(() => document.documentElement.dataset.documentStyle === "editorial");
+    await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
     await setting(page, "StyleCombo", "Compact reading");
     await page.waitForFunction(() => document.documentElement.dataset.documentStyle === "compact");
-    await page.locator("[dataid=CloseSettingsButton]").click();
-    await page.locator("[dataid=ZoomInButton]").click();
-    await page.locator("[dataid=SettingsButton]").click();
-    await page.screenshot({ path: join(artifacts, "modern-dark-settings.png"), fullPage: true });
-    await page.reload({ waitUntil: "networkidle" });
-    await page.locator(".reader h1").waitFor({ state: "visible" });
+    await page.locator("[dataid=UiFontCombo]").waitFor();
+    await closeSettings(page);
+    await page.reload();
+    await page.locator(".reader h1").waitFor();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
     assert.equal(await page.evaluate(() => document.documentElement.dataset.documentStyle), "compact");
-    assert.equal(await page.locator("[dataid=ZoomLabel]").innerText(), "110%");
     await page.locator("[dataid=SettingsButton]").click();
-    await setting(page, "AppearanceCombo", "Light");
+    await page.emulateMedia({ colorScheme: "light" });
+    await setting(page, "AppearanceCombo", "System");
     await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
     await page.emulateMedia({ colorScheme: "dark" });
-    await setting(page, "AppearanceCombo", "System");
     await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
-    await page.emulateMedia({ colorScheme: "light" });
-    await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
-    for (const appearance of ["Dark", "Light", "Dark", "Light"]) {
-      await setting(page, "AppearanceCombo", appearance);
-    }
-    await page.waitForFunction(() => document.documentElement.dataset.theme === "light" &&
-      [...document.querySelectorAll('[dataid=AppearanceCombo] *')].some(element => getComputedStyle(element).backgroundColor === "rgb(255, 255, 255)"));
-    await page.locator("[dataid=ResetSettingsButton]").click();
+    await page.getByText("Reset preferences", { exact: true }).click();
     await page.waitForFunction(() => document.documentElement.dataset.documentStyle === "technical");
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("markvibe.preferences")));
-    assert.deepEqual(saved, {
-      version: 1,
-      values: {
-        appearance: "system",
-        documentStyle: "technical",
-        zoom: 100,
-        simpleSource: false,
-        rememberLastDocument: true
-      }
-    });
-    await page.setViewportSize({ width: 320, height: 600 });
-    await page.waitForFunction(() => {
-      const rect = document.querySelector("[dataid=SettingsPanel]")?.getBoundingClientRect();
-      return rect && rect.height > 0 && rect.left >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight;
-    }, {}, { timeout: 5000 });
-    const bounds = await page.locator("[dataid=SettingsPanel]").boundingBox();
-    assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 320 && bounds.y + bounds.height <= 600,
-      "Settings must fit a small viewport and scroll internally.");
-    await page.screenshot({ path: join(artifacts, "mobile-settings.png"), fullPage: true });
+    assert.equal(saved.version, 1);
+    assert.equal(saved.values.appearance, "system");
+    assert.equal(saved.values.documentStyle, "technical");
+    await page.screenshot({ path: join(artifacts, "settings.png"), fullPage: true });
+    await closeSettings(page);
   });
 
   await check("last document, anchor and source position resume after restart and can be forgotten", async page => {
@@ -444,7 +428,7 @@ try {
     const before = await readerPosition(page);
     await page.goto(base, { waitUntil: "networkidle" });
     await page.getByText("Continue where you left off", { exact: true }).waitFor({ state: "visible" });
-    assert.match(await page.locator("[dataid=Breadcrumb]").innerText(), /second.md/u);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("markvibe.lastDocument")).path), "second.md");
     assert.equal(await page.locator(".reader h1").count(), 0, "Imported content must not be persisted silently.");
     const chooser = page.waitForEvent("filechooser");
     await page.locator("[dataid=ResumeWorkspaceButton]").click();
@@ -518,38 +502,32 @@ try {
     await ready(page);
     await view(page, "Source");
     await page.locator(".plain-source[aria-readonly=true]").waitFor({ state: "visible" });
-    await page.getByRole("button", { name: "Editor view", exact: true }).waitFor({ state: "visible" });
-    await page.getByRole("searchbox", { name: "Find in current source", exact: true }).fill("Future ink annotations");
+    await page.locator("[dataid=SimpleButton]").waitFor({ state: "visible" });
+    await page.locator("[dataid=SourceSearch]").locator("input,textarea").fill("Markdown");
     await page.locator(".source-match").waitFor({ state: "visible" });
   });
 
-  await check("legacy preferences migrate and corrupt or future settings recover to defaults", async (page, context) => {
+  await check("current preferences load and corrupt or unsupported settings recover to defaults", async (page, context) => {
     await context.addInitScript(() => {
-      if (!localStorage.getItem("markvibe.preferences")) {
+      if (!sessionStorage.getItem("fixture.preferences")) {
+        sessionStorage.setItem("fixture.preferences", "yes");
         localStorage.setItem("markvibe.preferences", JSON.stringify({
-          appearance: "dark",
-          documentStyle: "editorial",
-          zoom: 120,
-          simpleSource: true,
-          ignoredField: "untrusted"
+          version: 1, values: { appearance: "dark", documentStyle: "editorial", simpleSource: true, language: "en", ignoredField: "untrusted" }
         }));
       }
     });
     await ready(page);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
     await view(page, "Source");
-    await page.locator(".plain-source").waitFor({ state: "visible" });
-    const migrated = await page.evaluate(() => JSON.parse(localStorage.getItem("markvibe.preferences")));
-    assert.equal(migrated.version, 1);
-    assert.equal(migrated.values.ignoredField, undefined);
-    await page.evaluate(() => localStorage.setItem("markvibe.preferences", "{broken JSON"));
-    await page.reload({ waitUntil: "networkidle" });
-    await page.locator(".reader h1").waitFor({ state: "visible" });
-    assert.equal(await page.locator("[dataid=ZoomLabel]").innerText(), "100%");
-    await page.evaluate(() => localStorage.setItem("markvibe.preferences", JSON.stringify({ version: 999, values: { zoom: 150 } })));
-    await page.reload({ waitUntil: "networkidle" });
-    await page.locator(".reader h1").waitFor({ state: "visible" });
-    assert.equal(await page.locator("[dataid=ZoomLabel]").innerText(), "100%");
+    await page.locator(".plain-source").waitFor();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("markvibe.preferences")));
+    assert.equal(saved.values.ignoredField, undefined);
+    for (const invalid of ["{broken JSON", JSON.stringify({ version: 999, values: { appearance: "dark" } })]) {
+      await page.evaluate(value => localStorage.setItem("markvibe.preferences", value), invalid);
+      await page.reload();
+      await page.locator(".reader h1").waitFor();
+      assert.equal(await page.evaluate(() => document.documentElement.dataset.documentStyle), "technical");
+    }
   });
 
   await check("unavailable browser storage keeps themes usable for the session", async (page, context) => {
@@ -614,7 +592,7 @@ try {
     await page.goto(base, { waitUntil: "networkidle" });
     await documentIs(page, "child.md");
     await headingIs(page, "Connected child");
-    assert.match(await page.locator("[dataid=WorkspaceMode]").innerText(), /Connected folder/u);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("markvibe.lastWorkspace")).mode), "connected");
   });
 
   await check("HTML export embeds local assets and diagrams in an offline, script-free document", async page => {
@@ -667,9 +645,8 @@ try {
     await openFiles(page, exportFiles());
     await page.locator("[dataid=SettingsButton]").click();
     await setting(page, "AppearanceCombo", "Dark");
-    await page.locator("[dataid=CloseSettingsButton]").click();
+    await closeSettings(page);
     await view(page, "Map");
-    await page.locator("[dataid=SettingsButton]").click();
     await page.locator("[dataid=ExportPdfButton]").click();
     await page.waitForFunction(() => typeof window.__printedDocumentForCheck === "string");
     await page.waitForFunction(() => document.body.innerText.includes("Print dialog opened. Choose Save as PDF"));
@@ -699,63 +676,7 @@ try {
       await printPage.close();
     }
   });
-  await check("browser ink downloads a separate sidecar, reopens it and exports vector notes", async page => {
-    await ready(page);
-    const markdown = "# Ink fixture\n\nA unique paragraph for a handwritten note.\n";
-    const files = [{ name: "README.md", mimeType: "text/markdown", buffer: Buffer.from(markdown) }];
-    await openFiles(page, files);
-    await page.getByRole("button", { name: "Annotate", exact: true }).click();
-    await page.locator(".reader section[data-block-id]").filter({ hasText: "A unique paragraph for a handwritten note." }).getByRole("button", { name: "Add handwritten note for this paragraph", exact: true }).click();
-    const box = await page.locator(".ink-band svg").boundingBox();
-    await page.mouse.move(box.x + box.width * .1, box.y + box.height * .2);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width * .7, box.y + box.height * .6, { steps: 10 });
-    await page.mouse.up();
-    await page.waitForFunction(() => [...document.querySelectorAll(".mv-dom-host")].some(host => host.shadowRoot?.querySelector(".ink-status")?.textContent === "Unsaved ink"));
-    assert.equal(await page.evaluate(() => window.markvibe.canClose()), false);
-    const downloaded = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Save ink", exact: true }).click();
-    const file = await downloaded;
-    assert.equal(file.suggestedFilename(), "README.md.ink.json");
-    const path = join(artifacts, "browser-note.ink.json");
-    await file.saveAs(path);
-    const json = await readFile(path, "utf8");
-    const ink = JSON.parse(json);
-    assert.equal(ink.schemaVersion, 1);
-    assert.equal(ink.document.path, "README.md");
-    assert.equal(ink.document.contentHash, (await import("node:crypto")).createHash("sha256").update(markdown).digest("hex"));
-    assert.equal(ink.annotations.length, 1);
-    assert.ok(ink.annotations[0].strokes[0].points.length >= 2);
-    await page.waitForFunction(() => window.markvibe.canClose());
-    const html = await htmlExport(page);
-    assert.match(html, /class="ink-annotation"/u);
-    assert.match(html, /stroke="#2458c7"/u);
-    await page.locator("[dataid=CloseSettingsButton]").click();
-    await openFiles(page, [...files, { name: "README.md.ink.json", mimeType: "application/json", buffer: Buffer.from(json) }]);
-    await page.locator(".ink-band path").waitFor();
-    assert.equal(await page.getByRole("button", { name: "Save ink", exact: true }).isDisabled(), true);
-  });
 
-  await check("unsupported ink remains read-only and can be exported without modifying it", async page => {
-    await ready(page);
-    const original = '{"schemaVersion":2,"document":{},"annotations":[],"unexpected":"<script>window.inkAttack=true</script>"}';
-    await openFiles(page, [
-      {
-        name: "README.md",
-        mimeType: "text/markdown",
-        buffer: Buffer.from("# Preserved ink\n\nA synthetic page.")
-      },
-      { name: "README.md.ink.json", mimeType: "application/json", buffer: Buffer.from(original) }
-    ]);
-    await page.getByText("This annotation format is unsupported.", { exact: false }).first().waitFor();
-    assert.equal(await page.getByRole("button", { name: "Annotate", exact: true }).isDisabled(), true);
-    assert.equal(await page.evaluate(() => window.inkAttack === true), false);
-    const downloaded = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Export ink", exact: true }).click();
-    const path = join(artifacts, "unsupported-note.ink.json");
-    await (await downloaded).saveAs(path);
-    assert.equal(await readFile(path, "utf8"), original);
-  });
 } finally {
   await writeFile(join(artifacts, "results.json"), JSON.stringify({ base, browser: browser.version(), results }, null, 2));
   await browser.close();

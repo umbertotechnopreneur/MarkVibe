@@ -9,6 +9,8 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; exclude retired annotation sidecars from workspace resources; 2026-10-16
+ * Human guidance: Umberto Giacobbi; simplify the unreleased model without backward compatibility
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -16,6 +18,7 @@
  *
  * VBWR E */
 
+/** Carries a stable application error code and a credential-free explanation across browser adapters. */
 export class WorkspaceError extends Error {
   /** Retain the existing workspace error code alongside its user-facing explanation. */
   constructor(code, message) {
@@ -77,17 +80,13 @@ const ignored = new Set([".git", "node_modules", "bin", "obj", ".vs", "__macosx"
 export const isIgnored = path => path.split("/").some(segment => ignored.has(segment.toLowerCase()));
 /** Recognize supported Markdown filename extensions without case sensitivity. */
 export const isMarkdown = path => /\.(md|markdown|mdown)$/iu.test(path);
-/** Identifies sticky-note sidecars only when their complete stem is a supported Markdown filename. */
-export const isNotesSidecar = path => /\.(md|markdown|mdown)\.notes\.json$/iu.test(path);
-/** Identifies annotation data independently of the Markdown source and local assets. */
-export const isSidecar = path => /\.(md|markdown|mdown)\.(ink|notes)\.json$/iu.test(path);
 export const mapLayoutFileName = ".markvibe-map.json";
 /** Recognize the workspace's reserved persistent map filename. */
 export const isMapLayout = path => path === mapLayoutFileName;
 /** Recognize the local resource extensions supported by workspace providers. */
 export const isAsset = path => /\.(png|jpe?g|gif|webp|svg|pdf|txt)$/iu.test(path);
 /** Select supported documentation resources while excluding ignored paths. */
-export const isRelevant = path => !isIgnored(path) && (isMarkdown(path) || isSidecar(path) || isMapLayout(path) || isAsset(path));
+export const isRelevant = path => !isIgnored(path) && (isMarkdown(path) || isMapLayout(path) || isAsset(path));
 /** Return an allowed external URL or reject unsafe schemes, credentials and control characters. */
 export function safeExternal(value) {
   if (typeof value !== "string" || value.length > 2048 || /[\u0000-\u0020\u007f\\]/u.test(value) || value.startsWith("//")) {
@@ -106,8 +105,8 @@ export const resourceUrl = path => new URL(path, document.baseURI).href;
 export const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 /** Yield to the event loop between bounded processing batches. */
 export const pause = () => new Promise(resolve => setTimeout(resolve, 0));
-/** Generate an opaque local identity using browser UUID support or the established fallback. */
-export const makeId = () => globalThis.crypto?.randomUUID?.() ?? "w-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+/** Generate a workspace identity using the secure-context UUID API required by the supported browser host. */
+export const makeId = () => globalThis.crypto.randomUUID();
 /** Translate browser capability and file failures into the existing workspace error contract. */
 export function errorFor(error, permissionWasGranted = false) {
   if (error instanceof WorkspaceError) {

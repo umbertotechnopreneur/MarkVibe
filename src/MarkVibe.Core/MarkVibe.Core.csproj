@@ -24,6 +24,7 @@ VBWR E -->
   <ItemGroup>
     <EmbeddedResource Include="Localization/strings.json" LogicalName="MarkVibe.Core.Localization.strings.json" />
     <EmbeddedResource Include="Presentation/themes.json" LogicalName="MarkVibe.Core.Presentation.themes.json" />
+    <EmbeddedResource Include="Presentation/ui-fonts.json" LogicalName="MarkVibe.Core.Presentation.ui-fonts.json" />
     <EmbeddedResource Include="AI/openai-models.json" LogicalName="MarkVibe.Core.AI.openai-models.json" />
   </ItemGroup>
 </Project>

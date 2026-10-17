@@ -1,6 +1,7 @@
 /* VBWR B
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; managed waiting overlay; 2026-10-11
+ * Modified with AI: OpenAI Codex; localized assistant heading; 2026-10-16
  * Human guidance: Umberto Giacobbi; all controls in XAML
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
@@ -24,7 +25,7 @@ public partial class MarkdownAiWaitView : UserControl
     public Task DisplayAsync(object state)
     {
         var snapshot = JsonSerializer.SerializeToElement(state, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-        Title.Text = "AI Assistant";
+        Title.Text = UiStrings.T("AI Assistant");
         Stage.Text = UiStrings.T(snapshot.GetProperty("stage").GetString() ?? "Working…");
         StopButton.Content = UiStrings.T("Stop");
         return Task.CompletedTask;

@@ -5,6 +5,8 @@
  * Modified with AI: OpenAI Codex; directional link sections with document titles and paths; 2026-10-16
  * Human guidance: Umberto Giacobbi; all application controls in XAML
  * Modified with AI: OpenAI Codex; manage atlas preview, responsive chrome and neighborhood controls; 2026-10-16
+ * Modified with AI: OpenAI Codex; restore and persist standard inspector splitter geometry; 2026-10-16
+ * Modified with AI: OpenAI Codex; refresh managed exploration controls from workspace snapshots; 2026-10-16
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 using System.Text.Json;
@@ -29,13 +31,20 @@ public partial class DocumentMapView : UserControl
     private bool _confirmingReset;
     private string _appearancePath = "";
     private JsonElement _state;
+    /// <summary>Identifies the DOM renderer associated with this managed map view.</summary>
     public string HostId => Renderer.HostId;
+
+    /// <summary>Requests document navigation from the shell without changing workspace ownership.</summary>
     public event Func<string, string, Task>? NavigateRequested;
+
+    /// <summary>Routes asynchronous map actions through the shell's shared error handling.</summary>
     public event Func<Func<Task>, Task>? ActionRequested;
+
     /// <summary>Loads map controls and reflows the link pane at narrow widths.</summary>
     public DocumentMapView()
     {
         InitializeComponent();
+        InitializeInspectorLayout();
         FoldersButton.Content = new IconLabel("folder", "Folders");
         TreeButton.Content = new IconLabel("outline", "Tree");
         DepthButton.Content = new IconLabel("pages", "Depth");
@@ -59,9 +68,8 @@ public partial class DocumentMapView : UserControl
     private void ReflowMapChrome()
     {
         ReflowInspector();
-        var inspectorWidth = LinksColumn.Width.Value;
-
-        var canvasWidth = ActualWidth - inspectorWidth;
+        var reservedInspectorWidth = LinksColumn.Width.Value + InspectorDividerColumn.Width.Value;
+        var canvasWidth = Math.Max(0, ActualWidth - reservedInspectorWidth);
         Summary.Visibility = canvasWidth < 1450 ? Visibility.Collapsed : Visibility.Visible;
         SearchField.Width = Math.Clamp(canvasWidth * 0.23, 160, 270);
         SearchFeedback.MaxWidth = Math.Max(160, Math.Min(440, canvasWidth - 24));
@@ -135,6 +143,7 @@ public partial class DocumentMapView : UserControl
         DiscardButton.IsEnabled = !busy;
         RefreshAppearanceFromState();
         UpdateAtlasControls(busy);
+        UpdateExplorationControls(busy);
     }
     /// <summary>Opens a native OpenSilver Popup at renderer-reported viewport coordinates.</summary>
     public void OpenAppearance(JsonElement request) => ShowAppearance(request);

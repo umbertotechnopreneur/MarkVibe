@@ -93,32 +93,28 @@ export async function initializeDesktop() {
   return initial;
 }
 
-let rememberTimer;
 /** Persist or clear native document memory through the desktop session operation. */
 export function rememberNative(entry, enabled = true) {
   if (!isDesktop()) {
     return;
   }
-  clearTimeout(rememberTimer);
   // Navigation is persisted immediately; scrolling updates already have a debounce.
   return nativeCall("session.remember", { entry, enabled });
 }
 
 /** Download a JSON sidecar copy and release its temporary object URL after the save gesture. */
 export function downloadSidecar(json, filename) {
-  const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  downloadText(json, filename, "application/json");
 }
 
 /** Start an explicit Markdown-copy download; browser initiation does not establish a completed save. */
 export function downloadMarkdown(source, filename) {
-  const url = URL.createObjectURL(new Blob([source], { type: "text/markdown;charset=utf-8" }));
+  downloadText(source, filename, "text/markdown;charset=utf-8");
+}
+
+/** Initiate one explicit local text download and release the temporary browser URL. */
+function downloadText(source, filename, contentType) {
+  const url = URL.createObjectURL(new Blob([source], { type: contentType }));
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
