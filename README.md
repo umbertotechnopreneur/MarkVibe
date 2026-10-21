@@ -50,8 +50,7 @@ graph LR
 
 The current source also includes a relation lens, document comparison, navigation
 trails and short directional link animations. See [map behavior and saved layouts](docs/map-layout.md).
-Downloadable prereleases may predate the current source; GUI acceptance remains
-with the maintainer.
+Downloadable prereleases may predate the current source.
 
 ## Run it
 
@@ -134,3 +133,9 @@ To learn what VibeWare means and why I created it, read the
 under the project license — my contribution to the developer community.*
 
 [Terms](https://umbertogiacobbi.biz/terms/) · [Privacy](https://umbertogiacobbi.biz/privacy/)
+
+## A note on security
+
+I care about what goes into this project. Before I add a third-party library or prebuilt binary, including files supplied without source code, I scan the downloaded package, its extracted files and any dependencies with Microsoft Windows Defender. I keep new imports aside until the scan finishes without detections.
+
+I keep a record of where each new import came from and the scan result. If a scan cannot finish or flags something, I leave it out.
