@@ -1,5 +1,9 @@
 # MarkVibe
 
+[![Verification status](https://github.com/umbertotechnopreneur/MarkVibe/actions/workflows/checks.yml/badge.svg?branch=master)](https://github.com/umbertotechnopreneur/MarkVibe/actions/workflows/checks.yml)
+![Platform: Windows 11 and WebAssembly](https://img.shields.io/badge/platform-Windows_11_%C2%B7_WebAssembly-0078D4)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2EA44F)](LICENSE)
+
 **A local Markdown reader with a document map, optional AI editing and HTML/PDF export.**
 
 [Windows downloads](https://github.com/umbertotechnopreneur/MarkVibe/releases) ·
