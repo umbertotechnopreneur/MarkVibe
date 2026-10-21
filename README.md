@@ -109,13 +109,6 @@ I keep a record of where each new import came from and the scan result. If a sca
 
 ---
 
-<p align="right">
-  <a href="https://umbertogiacobbi.biz/vibeware/manifesto">
-    <img src="https://raw.githubusercontent.com/umbertotechnopreneur/VibeWare/main/Branding/vibeware-logo.png" alt="VibeWare floppy logo" width="160">
-  </a><br>
-  <em>Human Intent, AI Execution, Plenty of Token</em>
-</p>
-
 ### This is VibeWare · [Manifesto](https://umbertogiacobbi.biz/vibeware/manifesto)
 
 This project participates in the **VibeWare initiative**, an open initiative for
@@ -138,3 +131,10 @@ To learn what VibeWare means and why I created it, read the
 under the project license — my contribution to the developer community.*
 
 [Terms](https://umbertogiacobbi.biz/terms/) · [Privacy](https://umbertogiacobbi.biz/privacy/)
+
+<p align="right">
+  <a href="https://umbertogiacobbi.biz/vibeware/manifesto">
+    <img src="https://raw.githubusercontent.com/umbertotechnopreneur/VibeWare/main/Branding/vibeware-logo.png" alt="VibeWare floppy logo" width="160">
+  </a><br>
+  <em>Human Intent, AI Execution, Plenty of Token</em>
+</p>
