@@ -5,6 +5,12 @@ transcripts and temporary artifacts in dated validation reports, not this index.
 
 ## 2026-10-23 — Embedded Markdown HTML and reader appearance menu
 
+- Committed and pushed the complete source change, pending README edits and
+  owner-requested local launcher. Created PR #2 and assigned it to
+  `umbertotechnopreneur`. GitHub rejected approval by the same account as the
+  author. The PR was mergeable with no required checks or approving reviews;
+  use normal protected-branch merge without an administrator override.
+
 - The owner subsequently set Release x64 as the persistent local-delivery default,
   superseding Debug. Updated packaging defaults and maintained build instructions;
   retained explicit diagnostic configurations. PR #1 was confirmed merged on
