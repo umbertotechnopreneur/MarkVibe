@@ -18,26 +18,28 @@ C# owns state and parsing. Never edit generated `wwwroot/js/`, `bin/` or `obj/`.
 Use existing .NET SDK **10.0.402**, Node **>=22.12** and execution authorization:
 
 On this machine, a build request means the existing **MSIX** delivery,
-**Debug, x64 only**, followed by launching the newly built desktop app. A request
+**Release, x64 only**, followed by launching the newly installed desktop app. A request
 for a real MSI also includes the Windows Installer artifact; do not call MSIX an
 MSI or silently replace an installed distribution with a second installer type. The owner
-confirmed x64 rather than 32-bit x86. Use Release or ARM64 only when explicitly
-requested. For local Debug delivery, the owner has explicitly authorized closing
+confirmed x64 rather than 32-bit x86 and retired the installed Debug version.
+Do not create or install Debug, ARM64 or x86 deliveries unless explicitly requested.
+For local Release x64 delivery, the owner has explicitly authorized closing
 all MarkVibe instances, discarding unsaved in-app work, trusting the generated
 MarkVibe development certificate in `LocalMachine/TrustedPeople`, and installing
-or replacing the Debug package without another confirmation. Remove the previous
+or replacing the Release package without another confirmation. Remove the previous
 MarkVibe package if replacement requires it; do not delete source documents or
-unrelated applications, data or certificates. Launch the installed Debug app after
-delivery. Release installation and publication still require explicit authorization.
+unrelated applications, data or certificates. Remove an old Debug installation
+when replacing it. Launch the installed Release app after delivery. Publication
+still requires explicit authorization.
 Run tests only when explicitly requested for the current task.
 
 ```powershell
 npm ci --ignore-scripts --no-audit --no-fund
 npm run bundle
 dotnet restore MarkVibe.slnx --locked-mode
-dotnet build MarkVibe.slnx --no-restore
-dotnet run --project src/MarkVibe.Browser --no-build --launch-profile MarkVibe
-dotnet run --project src/MarkVibe.Windows --no-build
+dotnet build MarkVibe.slnx --no-restore -c Release
+dotnet run --project src/MarkVibe.Browser --no-build -c Release --launch-profile MarkVibe
+dotnet run --project src/MarkVibe.Windows --no-build -c Release
 ./scripts/package-windows.ps1
 # Explicit wider distribution only:
 ./scripts/package-windows.ps1 -Configuration Release -Architectures x64,arm64
@@ -50,7 +52,7 @@ projects but never executes them. Visual Studio prepares stale client assets bef
 the existing bundle guard; preserve design-time and command-line behavior. See
 `docs/visual-studio.md` for native versus WebAssembly debugger ownership.
 
-Packaging defaults to x64 Debug, cleans repository `artifacts/`, increments the package version and creates MSIX, a bundle, MSI installers and portable ZIPs for the selected architectures. It runs no tests and does not launch the app itself. For a direct preview, use `src/MarkVibe.Windows/bin/Debug/net10.0-windows10.0.19041.0/win-x64/MarkVibe.Windows.exe`; local Debug delivery ends with the installed app running. Outputs and temporary packaging files stay in repository `artifacts/`; never create them in Codex directories.
+Packaging defaults to x64 Release, cleans repository `artifacts/`, increments the package version and creates MSIX, a bundle, MSI installers and portable ZIPs for the selected architectures. It runs no tests and does not launch the app itself. For a direct preview, use `src/MarkVibe.Windows/bin/Release/net10.0-windows10.0.19041.0/win-x64/MarkVibe.Windows.exe`; local Release delivery ends with the installed app running. Outputs and temporary packaging files stay in repository `artifacts/`; never create them in Codex directories.
 
 ## VibeWare identity and publication
 
@@ -74,7 +76,7 @@ the initiative; its creator and copyright holder is **Umberto Giacobbi**.
 - Product data handling belongs in this repository. Shared Terms/Privacy pages,
   code licenses, local signing and Microsoft Store identity remain distinct.
 - Partner Center identity is not yet available. Current MSIX delivery is local
-  Debug only. A Store package requires its real Name, Publisher and display name,
+  Release x64 with a local development certificate. A Store package requires its real Name, Publisher and display name,
   an explicitly requested Store configuration/version and separate publication
   authorization; see `docs/windows-store.md`.
 
@@ -120,11 +122,11 @@ readers; minimizing line count is not a goal.
 
 ## Testing Guidelines
 
-**Run tests only when the user explicitly requests them for the current task.** Earlier approvals do not override this. Suggest relevant checks without running them. Authorized options: core/native executable checks, `npm run test:client`, `test:browser`, `test:windows`. Use descriptive behavior names and synthetic fixtures; no coverage percentage is required. Local Debug app/certificate installation is already authorized as described above; installation success does not establish functional acceptance.
+**Run tests only when the user explicitly requests them for the current task.** Earlier approvals do not override this. Suggest relevant checks without running them. Authorized options: core/native executable checks, `npm run test:client`, `test:browser`, `test:windows`. Use descriptive behavior names and synthetic fixtures; no coverage percentage is required. Local Release x64 app/certificate installation is already authorized as described above; installation success does not establish functional acceptance.
 
 The owner performs GUI acceptance. Do not drive the mouse or keyboard, focus,
 maximize or move windows, capture the desktop, or run interactive app checks
-unless explicitly requested. Requested Debug delivery still includes its authorized
+unless explicitly requested. Requested Release delivery still includes its authorized
 build, installation and final launch; it does not authorize interactive validation.
 
 ## Commit & Pull Request Guidelines

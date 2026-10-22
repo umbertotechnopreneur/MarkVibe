@@ -1,7 +1,7 @@
 # Windows distribution
 
-`scripts/package-windows.ps1` defaults to self-contained Windows 11 **x64 Debug**
-packages. Release and ARM64 require an explicit selection. The desktop .NET runtime is included; WebView2 uses the installed Evergreen
+`scripts/package-windows.ps1` defaults to self-contained Windows 11 **x64 Release**
+packages. Debug and ARM64 require an explicit selection. The desktop .NET runtime is included; WebView2 uses the installed Evergreen
 Runtime. No SDK, workload, app or certificate is installed by packaging.
 
 ## Requested Release or Debug build
@@ -13,8 +13,8 @@ Use PowerShell 7, existing Node >=22.12, .NET SDK 10.0.402 and Windows SDK tools
 ./scripts/package-windows.ps1
 # Explicit wider distribution:
 ./scripts/package-windows.ps1 -Configuration Release -Architectures x64,arm64
-# Launch the local Debug build after packaging:
-Start-Process ./src/MarkVibe.Windows/bin/Debug/net10.0-windows10.0.19041.0/win-x64/MarkVibe.Windows.exe
+# Launch the local Release build after packaging:
+Start-Process ./src/MarkVibe.Windows/bin/Release/net10.0-windows10.0.19041.0/win-x64/MarkVibe.Windows.exe
 ```
 
 Run one requested configuration at a time: each invocation **deletes the repository's
@@ -32,12 +32,13 @@ the About window displays the version and timestamp.
 Outputs: portable ZIPs, MSI installers and MSIX files for the selected architectures, one
 MSIX bundle, public development certificate, installation helper, README,
 `BUILD-INFO.json` and `SHA256SUMS.txt`. No tests, installation, branch/worktree creation,
-commit or publication are performed by this script. For local Debug delivery,
+commit or publication are performed by this script. For local Release x64 delivery,
 the owner has authorized closing MarkVibe, discarding unsaved in-app work,
 trusting the generated MarkVibe certificate in LocalMachine/TrustedPeople and
-installing/replacing the Debug package without another confirmation. Launch the
+installing/replacing the Release package without another confirmation. Remove an
+old Debug installation when replacing it. Launch the
 installed app afterward. This does not authorize deleting source documents or
-unrelated data/certificates. Release installation and publication remain separate.
+unrelated data/certificates. Publication remains separate.
 Run tests only when the owner explicitly requests them for the current task.
 
 ## Install the development bundle
@@ -84,12 +85,12 @@ metadata and the application's About window.
 Open the MSI normally or use Windows Installer's standard command line:
 
 ```powershell
-msiexec.exe /i "MarkVibe-<version>-debug-win-x64.msi"
+msiexec.exe /i "MarkVibe-<version>-release-win-x64.msi"
 ```
 
 MSI upgrades replace the same channel/architecture; uninstall removes installed
 payload files and shortcuts, retaining the separate user profile and source
-documents. MSI and MSIX are separate products and can coexist. Local Debug
+documents. MSI and MSIX are separate products and can coexist. Local Release x64
 delivery on this workstation continues to replace the existing MSIX; generating
 an MSI does not establish its installation, upgrade or uninstall acceptance.
 Do not install a second distribution implicitly.

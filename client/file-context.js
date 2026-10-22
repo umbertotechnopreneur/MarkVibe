@@ -4,14 +4,12 @@
  * Human guidance: Umberto Giacobbi; consistent file menus in reader and source views
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
-import { isDesktop } from "./native.js";
-
-/** Forward local file context gestures to the XAML owner while preserving external-link browser menus. */
+/** Forward document context gestures to XAML; the owner limits native file actions separately. */
 export function attachFileContext(element, emit, targetProvider) {
   /** Capture the document target and viewport point for this exact context-menu gesture. */
   const showMenu = event => {
     const target = targetProvider(event.target);
-    if (!isDesktop() || !target?.workspaceId?.startsWith("native:") || !target.path) {
+    if (!target?.workspaceId || !target.path) {
       return;
     }
     event.preventDefault();

@@ -134,12 +134,15 @@ VBWR E -->
   </Border>
   <Popup x:Name="FileMenuPopup">
    <Border x:Name="FileMenuSurface" Width="310" Style="{StaticResource FlyoutSurface}" Padding="10" KeyDown="FileMenuKeyDown">
+    <ScrollViewer x:Name="FileMenuScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <StackPanel>
      <TextBlock x:Name="FileMenuTitle" Margin="10,8,10,0" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
      <TextBlock x:Name="FileMenuPath" Margin="10,5,10,12" FontSize="10" FontFamily="Consolas" Foreground="{StaticResource MutedText}" TextTrimming="CharacterEllipsis"/>
      <Border Height="1" Margin="0,0,0,6" Background="{StaticResource ShellBorder}"/>
      <controls:FileActionsView x:Name="DocumentFileActions"/>
+     <controls:ReaderAppearanceView x:Name="DocumentAppearance"/>
     </StackPanel>
+    </ScrollViewer>
    </Border>
   </Popup>
  </Grid>

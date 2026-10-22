@@ -107,7 +107,9 @@ public sealed record Preferences(
     string LightCodeTheme = "auto",
     string DarkCodeTheme = "auto",
     string UiFont = "system",
-    string AiProvider = AiProviders.ApiKey
+    string AiProvider = AiProviders.ApiKey,
+    bool UnderlineLinks = true,
+    string DocumentFont = "system"
 )
 {
     /// <summary>Returns preferences with supported choices and bounded zoom while retaining the existing defaults.</summary>
@@ -122,8 +124,40 @@ public sealed record Preferences(
         LightCodeTheme = ReaderThemes.CodeId(LightCodeTheme, "light"),
         DarkCodeTheme = ReaderThemes.CodeId(DarkCodeTheme, "dark"),
         UiFont = UiFontCatalog.Normalize(UiFont),
+        DocumentFont = UiFontCatalog.Normalize(DocumentFont),
         AiProvider = AiProviders.Normalize(AiProvider)
     };
+}
+
+/// <summary>Stores only reader choices for one folder, independently of global application settings.</summary>
+public sealed record ReaderAppearance(
+    string LightDocumentTheme,
+    string DarkDocumentTheme,
+    string LightCodeTheme,
+    string DarkCodeTheme,
+    bool UnderlineLinks,
+    string DocumentFont
+)
+{
+    /// <summary>Captures a folder's effective reader choices without copying unrelated global settings.</summary>
+    public static ReaderAppearance From(Preferences preferences) => new(
+        preferences.LightDocumentTheme,
+        preferences.DarkDocumentTheme,
+        preferences.LightCodeTheme,
+        preferences.DarkCodeTheme,
+        preferences.UnderlineLinks,
+        preferences.DocumentFont);
+
+    /// <summary>Applies folder choices while retaining the global language, shell appearance and provider.</summary>
+    public Preferences ApplyTo(Preferences preferences) => (preferences with
+    {
+        LightDocumentTheme = LightDocumentTheme,
+        DarkDocumentTheme = DarkDocumentTheme,
+        LightCodeTheme = LightCodeTheme,
+        DarkCodeTheme = DarkCodeTheme,
+        UnderlineLinks = UnderlineLinks,
+        DocumentFont = DocumentFont
+    }).Validated();
 }
 
 /// <summary>Owns bounded workspace reads, asset leases and refresh within one provider's containment rules.</summary>

@@ -85,13 +85,14 @@ For the command line:
 npm ci --ignore-scripts --no-audit --no-fund
 npm run bundle
 dotnet restore MarkVibe.slnx --locked-mode
-dotnet build MarkVibe.slnx --no-restore
-dotnet run --project src/MarkVibe.Windows --no-build
+dotnet build MarkVibe.slnx --no-restore -c Release
+dotnet run --project src/MarkVibe.Windows --no-build -c Release
 ```
 
 See [architecture](docs/architecture.md), [packaging](docs/windows-packaging.md)
 and [contributing](CONTRIBUTING.md). Changes are delivered through pull requests.
 Packaging cleans `artifacts/` before creating a new distribution.
+Local delivery defaults to Release x64.
 
 ## License and development
 

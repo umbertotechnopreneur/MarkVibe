@@ -299,6 +299,8 @@ public partial class MainPage : UserControl
             var map = await LoadMapAsync(provider, catalog, cancellation);
             _contexts[info.Id] = new(provider, catalog, map);
             _active = _contexts[info.Id];
+            await LoadReaderAppearanceAsync(cancellation);
+            await ApplyPreferencesAsync();
             while (_contexts.Count > 2)
             {
                 var oldest = _contexts.First(c => c.Key != info.Id);
@@ -751,7 +753,13 @@ public partial class MainPage : UserControl
     private async Task ApplyPreferencesAsync()
     {
         var generation = ++_preferenceGeneration;
-        var result = await BrowserServices.CallAsync<JsonElement>("preferences.apply", new { preferences = _preferences, readerId = ReaderHost.HostId, sourceId = SourceHost.HostId });
+        var result = await BrowserServices.CallAsync<JsonElement>("preferences.apply", new
+        {
+            preferences = _preferences,
+            readerPreferences = ReaderPreferences,
+            readerId = ReaderHost.HostId,
+            sourceId = SourceHost.HostId
+        });
         if (generation != _preferenceGeneration)
         {
             return;
@@ -778,6 +786,7 @@ public partial class MainPage : UserControl
         AppLocalization.Apply(this);
         UpdateWorkspaceLabels();
         SynchronizeSettings();
+        DocumentAppearance.Update(ReaderPreferences);
         LayoutViews();
         _preferencesPersisted = result.GetProperty("persisted").GetBoolean();
         if (!_preferencesPersisted)
@@ -969,6 +978,8 @@ public partial class MainPage : UserControl
                 }
 
                 _active = context;
+                await LoadReaderAppearanceAsync();
+                await ApplyPreferencesAsync();
                 _history.Restore(entry);
                 await NavigateAsync(entry.Path, entry.Anchor, false, entry.Position);
                 if (!context.Catalog.IndexComplete)
@@ -1149,7 +1160,7 @@ public partial class MainPage : UserControl
         {
             var result = await BrowserServices.CallAsync<JsonElement>(
                 "document.export",
-                new { document = model, workspaceId = context.Provider.Info.Id, preferences = _preferences, format },
+                new { document = model, workspaceId = context.Provider.Info.Id, preferences = ReaderPreferences, format },
                 cancellation
             );
             cancellation.ThrowIfCancellationRequested();

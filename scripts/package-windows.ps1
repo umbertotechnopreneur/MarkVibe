@@ -11,6 +11,8 @@
 # Human guidance: Umberto Giacobbi; local x64 Debug builds and explicit wider packaging
 # Modified with AI: OpenAI Codex; real MSI distribution using native Windows authoring; 2026-10-16
 # Human guidance: Umberto Giacobbi; an MSI installer alongside MSIX and portable files
+# Modified with AI: OpenAI Codex; default local delivery to Release x64; 2026-10-23
+# Human guidance: Umberto Giacobbi; retire Debug deliveries and remember Release x64
 # Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 #
 # Copyright (c) 2026 Umberto Giacobbi
@@ -27,7 +29,7 @@ Build the requested Windows distribution using existing tools, with temporary da
 # creates branches/worktrees, or publishes anything.
 [CmdletBinding()]
 param(
-    [ValidateSet('Release', 'Debug')][string]$Configuration = 'Debug',
+    [ValidateSet('Release', 'Debug')][string]$Configuration = 'Release',
     [ValidateNotNullOrEmpty()][ValidateSet('x64', 'arm64')][string[]]$Architectures = @('x64'),
     [string]$Version,
     [switch]$Unsigned,
