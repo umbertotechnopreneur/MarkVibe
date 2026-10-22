@@ -5,6 +5,11 @@ transcripts and temporary artifacts in dated validation reports, not this index.
 
 ## 2026-10-23 — Current-file monitoring and reviewer rules
 
+- Committed and pushed as 6421e10, synchronized the identical prior squash
+  baseline without rewriting history, and created draft PR #3 assigned to the
+  owner. Confirmed OPEN, isDraft true, no reviews and no merge timestamp.
+  Left the work unapproved and unmerged as requested.
+
 - Added a one-file native watcher with debounced content fingerprints and atomic
   replacement/recreation handling. Connected browser folders use their existing
   read grant and bounded polling. Imported snapshots are not monitored.

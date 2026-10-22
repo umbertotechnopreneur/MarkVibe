@@ -11,7 +11,8 @@ reuse existing authorization and identify any remaining owner checkpoint.
   for this follow-up. C# and JavaScript syntax, translation structure and diff
   checks passed. A synthetic Core reload case was added but not executed.
   Installed Release x64 0.1.0.26 does not include this follow-up. Do not approve
-  or merge its future pull request yet.
+  or merge [draft PR #3](https://github.com/umbertotechnopreneur/MarkVibe/pull/3),
+  assigned to the owner, until explicitly authorized.
 
 - [ ] Owner-check installed Release x64 0.1.0.26 and the 2026-10-23 reader correction: HTML comments
   stay hidden, `details`/`summary` expand correctly, heading navigation reveals
