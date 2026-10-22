@@ -85,6 +85,7 @@ public partial class MainPage : UserControl
         InitializeComponent();
         InitializeLayoutPersistence();
         InitializeFileMenus();
+        InitializeDocumentWatch();
         PublicationFooter.AboutRequested += ShowAbout;
         Loaded += Start;
         Unloaded += Stop;
@@ -166,6 +167,9 @@ public partial class MainPage : UserControl
     /// <summary>Cancels outstanding work and releases workspace providers and browser resources on unload.</summary>
     private async void Stop(object sender, RoutedEventArgs arguments)
     {
+        _documentWatchId = "";
+        _pendingDiskChange = null;
+        _diskChangeTimer.Stop();
         _generation++;
         _aiConnectionGeneration++;
         _aiLifetime.Cancel();
@@ -299,6 +303,7 @@ public partial class MainPage : UserControl
             var map = await LoadMapAsync(provider, catalog, cancellation);
             _contexts[info.Id] = new(provider, catalog, map);
             _active = _contexts[info.Id];
+            await StopDocumentWatchAsync();
             await LoadReaderAppearanceAsync(cancellation);
             await ApplyPreferencesAsync();
             while (_contexts.Count > 2)
@@ -492,6 +497,7 @@ public partial class MainPage : UserControl
                 await BrowserServices.CallAsync("source.restore", new { hostId = SourceHost.HostId, position }, cancellation);
             }
 
+            await WatchCurrentDocumentAsync(context, model, cancellation);
             BackButton.IsEnabled = _history.CanBack;
             ForwardButton.IsEnabled = _history.CanForward;
             if (_narrow)
@@ -946,6 +952,9 @@ public partial class MainPage : UserControl
             case "file-context":
                 ShowFileMenu(new FileMenuTarget(root.GetProperty("workspaceId").GetString() ?? "", root.GetProperty("path").GetString() ?? "", root.GetProperty("title").GetString() ?? ""),
                     new Point(root.GetProperty("x").GetDouble(), root.GetProperty("y").GetDouble()));
+                break;
+            case "document-file-changed":
+                QueueDiskChange(root);
                 break;
             case "map":
                 await HandleMapAsync(root);

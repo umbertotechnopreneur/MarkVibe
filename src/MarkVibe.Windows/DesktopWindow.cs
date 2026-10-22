@@ -53,6 +53,7 @@ internal sealed partial class DesktopWindow : Window
     private const string Origin = "https://" + Host;
     private readonly DesktopOptions _options;
     private readonly NativeFiles _files;
+    private readonly CurrentDocumentWatcher _documentWatcher;
     private readonly AiConnectionService _aiConnections;
     private readonly WebViewDiagnostics _diagnostics = new();
     // All application overlays live inside the browser. Direct HWND presentation avoids
@@ -83,6 +84,7 @@ internal sealed partial class DesktopWindow : Window
     {
         _options = options;
         _files = new(options.DataDirectory);
+        _documentWatcher = new CurrentDocumentWatcher(_files, Dispatcher, NotifyDocumentChange);
         _aiConnections = new(options.DataDirectory);
         _startupDocument = options.Document;
         UiStrings.SetLanguage("system", _systemLanguage);
@@ -112,6 +114,7 @@ internal sealed partial class DesktopWindow : Window
         Closing += OnClosing;
         Closed += (_, _) =>
         {
+            _documentWatcher.Dispose();
             SystemEvents.UserPreferenceChanged -= UserPreferenceChanged;
             _view.Dispose();
             _print.Dispose();
@@ -500,6 +503,12 @@ internal sealed partial class DesktopWindow : Window
                 return await Task.Run(() => _files.Entries(Text("workspaceId")));
             case "workspace.read":
                 return Convert.ToBase64String(await _files.ReadAsync(Text("workspaceId"), Text("path"), token));
+            case "document.watch":
+                _documentWatcher.Start(Text("workspaceId"), Text("path"), Text("watchId"), Text("fingerprint"));
+                return true;
+            case "document.watch.stop":
+                _documentWatcher.Stop();
+                return true;
             case "map.read":
                 return await _files.ReadMapAsync(Text("workspaceId"), token);
             case "map.write":

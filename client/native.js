@@ -29,6 +29,10 @@ window.chrome?.webview?.addEventListener("message", event => {
     window.dispatchEvent(new CustomEvent("markvibe-native-appearance"));
     return;
   }
+  if (reply?.version === 1 && reply.notification === "document-changed") {
+    window.dispatchEvent(new CustomEvent("markvibe-native-document-changed", { detail: reply }));
+    return;
+  }
   if (reply?.version !== 1 || typeof reply.id !== "string") {
     return;
   }

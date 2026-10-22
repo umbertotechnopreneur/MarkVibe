@@ -294,3 +294,7 @@ Keep durable, repository-specific findings here; omit temporary commands and pla
   disclosure before its body. Recognize comments without exposing active HTML or
   document-supplied bridge metadata. Navigation must reveal collapsed ancestors;
   PDF export must include disclosure bodies.
+- Watch identities must belong to one exact current-document registration.
+  Hash content after debouncing editor replacement events; declining a reload
+  must preserve local source and suppress duplicates of the same observed file
+  revision. Read and parse successfully before removing local edit history.

@@ -191,8 +191,12 @@ public sealed class NativeFiles
         return entries.OrderBy(e => e.Path, StringComparer.Ordinal).ToArray();
     }
 
-    /// <summary>Reads a contained relevant file within its size limit using cancellable asynchronous I/O.</summary>
-    public async Task<byte[]> ReadAsync(string id, string path, CancellationToken token = default)
+    /// <summary>Reads a contained bounded file; watchers may permit concurrent editor writes and atomic replacement.</summary>
+    public async Task<byte[]> ReadAsync(
+        string id,
+        string path,
+        CancellationToken token = default,
+        FileShare sharing = FileShare.Read)
     {
         if (!Relevant(path))
         {
@@ -201,7 +205,7 @@ public sealed class NativeFiles
 
         var fullPath = Resolve(id, path);
         var maximum = WorkspacePath.IsMarkdown(path) || path == MapLayoutCodec.FileName ? Limits.DocumentBytes : 8 * 1048576;
-        await using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, FileOptions.Asynchronous);
+        await using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, sharing, 65536, FileOptions.Asynchronous);
         if (stream.Length > maximum)
         {
             throw Error("file-too-large", "This file exceeds the reading limit.");

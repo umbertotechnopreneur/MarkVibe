@@ -204,6 +204,36 @@ var checks = new (string Name, Func<Task> Run)[]
         True(catalog.Map("0.md", false).Edges.Any(edge => edge.Source == "0.md" && edge.Target == "4.md"));
         Equal(DocumentRevisionState.Unsaved, catalog.TryGetSession("0.md")!.State);
     }),
+    ("accepted disk reload replaces only the current draft and never writes either source file", async () =>
+    {
+        var parser = new MarkdownParser();
+        const string originalSource = "# Original";
+        await using var workspace = new MemoryWorkspace(new()
+        {
+            ["README.md"] = originalSource,
+            ["other.md"] = "# Other original"
+        });
+        var catalog = new DocumentCatalog(parser);
+        catalog.Seed(await workspace.EnumerateAsync(default));
+        var original = await catalog.OpenAsync(workspace, "README.md", default);
+        var other = await catalog.OpenAsync(workspace, "other.md", default);
+        var draft = parser.Parse(original.Path, "# Current local edit");
+        var otherDraft = parser.Parse(other.Path, "# Other local edit");
+        catalog.ApplyRevision(original, draft);
+        catalog.ApplyRevision(other, otherDraft);
+
+        Throws<WorkspaceException>(() => catalog.ReloadFromDisk(parser.Parse("outside.md", "# Outside")));
+        Equal(draft.Source, (await catalog.OpenAsync(workspace, original.Path, default)).Source);
+        True(catalog.TryGetSession(original.Path)?.CanUndo == true);
+
+        var latestDisk = parser.Parse(original.Path, "# Latest disk version");
+        catalog.ReloadFromDisk(latestDisk);
+        True(catalog.TryGetSession(original.Path) == null);
+        Equal(latestDisk.Source, (await catalog.OpenAsync(workspace, original.Path, default)).Source);
+        Equal(otherDraft.Source, (await catalog.OpenAsync(workspace, other.Path, default)).Source);
+        True(catalog.TryGetSession(other.Path)?.CanUndo == true);
+        Equal(originalSource, await workspace.ReadDocumentAsync(original.Path, default));
+    }),
     ("export, undo, redo and restore preserve the original and exact unsaved state", async () =>
     {
         var parser = new MarkdownParser();

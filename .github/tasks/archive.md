@@ -3,7 +3,35 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-23 — Current-file monitoring and reviewer rules
+
+- Added a one-file native watcher with debounced content fingerprints and atomic
+  replacement/recreation handling. Connected browser folders use their existing
+  read grant and bounded polling. Imported snapshots are not monitored.
+- Route notifications through current watch identities, wait for active operations
+  and confirmations, and ask Yes/No. No preserves the current snapshot. Yes
+  parses the latest disk source before resetting this document's cache and local
+  edit history; warn when local revisions exist and retain other documents' drafts.
+  Missing or unreadable files preserve the displayed copy. Cleanup stops watches
+  and ignores delayed events after navigation or shutdown.
+- C# syntax parsed with the existing PowerShell Roslyn assemblies; JavaScript
+  syntax, eight-language strings and diff checks passed. Added a synthetic Core
+  reload case without running it. No build, test execution, installation or GUI
+  checks were requested for this follow-up. Installed Release remains 0.1.0.26.
+- Configured master's PR rule with zero approving reviews, no code-owner or
+  last-push approval and no stale-review requirement. Retained the PR requirement
+  and all other branch protections. New work must stay unapproved and unmerged until a
+  new owner instruction; PR #2 had already completed before the stop arrived.
+
 ## 2026-10-23 — Embedded Markdown HTML and reader appearance menu
+
+- PR #2 was squash-merged as bafc171 before the owner's later stop message
+  arrived. No approval review was recorded. Subsequent work must remain
+  unapproved and unmerged until a new owner instruction. At the owner's request,
+  configured zero required approvals on master while retaining its PR requirement,
+  administrator enforcement, linear history, conversation resolution and force-push/deletion
+  protections. No independent reviewer is required; GitHub's self-review API
+  restriction is separate from the owner's ability to authorize their own merge.
 
 - Committed and pushed the complete source change, pending README edits and
   owner-requested local launcher. Created PR #2 and assigned it to

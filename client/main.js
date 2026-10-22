@@ -25,6 +25,7 @@
 
 import { MarkdownHost } from "./markdown.js";
 import { SourceHost, releaseSourceWorkspace, disposeSourceModels } from "./source.js";
+import { CurrentDocumentWatch } from "./document-watch.js";
 import { MapHost } from "./map.js";
 import { observeDocumentSelection } from "./document-selection.js";
 import {
@@ -85,6 +86,7 @@ const emit = value => {
   }
   return operation;
 };
+const documentWatch = new CurrentDocumentWatch(emit);
 /** Read bounded remembered history for the requested workspace without failing on unavailable storage. */
 function savedEntry(workspaceId) {
   if (!preferences.rememberLastDocument) {
@@ -318,6 +320,11 @@ async function dispatch(operation, args, signal) {
   switch (operation) {
     case "ui.fonts":
       return installedUiFonts();
+    case "document.watch":
+      return documentWatch.start(args, signal);
+    case "document.watch.stop":
+      await documentWatch.stop();
+      return true;
     case "reader.appearance.read":
       getWorkspace(args.workspaceId);
       return readReaderAppearance(args.workspaceId);
@@ -811,6 +818,7 @@ window.markvibe = {
   },
   /** Release the managed endpoint, active jobs, views and retained browser resources. */
   unbind() {
+    documentWatch.dispose();
     endpoint = null;
     attachments.clear();
     for (const controller of jobs.values()) {

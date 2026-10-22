@@ -1,5 +1,21 @@
 # AI development disclosure
 
+## Current-file change notifications — 2026-10-23
+
+Umberto requested a Yes/No reload dialog when the current file changes outside
+MarkVibe. Codex added a native file watcher with save debouncing, connected-folder
+browser polling and navigation-owned notification identities. The managed shell
+defers prompts during active operations, preserves the current copy after No or
+read/parse failure, and warns before discarding local edits and undo history.
+Reload uses the existing parser, provider containment and rendering paths.
+
+This follow-up is source-only: syntax and diff checks, without builds, automated
+suites, GUI interaction, packaging or installation. The installed application
+remains Release x64 0.1.0.26. The owner has withheld approval and merge of this
+new work. The prior PR #2 had already merged when that instruction arrived.
+A synthetic Core case covers preserving other drafts and rejecting out-of-folder
+reloads without source writes; it was added but not executed.
+
 ## Reader rendering and context themes — 2026-10-23
 
 Umberto supplied rendering screenshots and requested theme selection from the

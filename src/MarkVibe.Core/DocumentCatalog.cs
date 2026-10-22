@@ -237,6 +237,17 @@ public sealed class DocumentCatalog(MarkdownParser parser)
         return _sessions.GetValueOrDefault(path);
     }
 
+    /// <summary>Accepts a parsed disk revision after explicit reload, clearing only this document's cached edits and history.</summary>
+    public void ReloadFromDisk(MarkdownModel model)
+    {
+        if (!_workspaceDocumentPaths.Contains(model.Path))
+        {
+            throw new WorkspaceException("missing-document", "This page is not in the opened workspace.");
+        }
+        _sessions.Remove(model.Path);
+        UpdateDocument(model);
+    }
+
     /// <summary>Returns the last parsed content fingerprint; unindexed placeholders have no observed revision.</summary>
     public string? FingerprintFor(string path) => _fingerprints.GetValueOrDefault(path);
 
