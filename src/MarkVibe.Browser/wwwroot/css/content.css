@@ -44,6 +44,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus
 .markdown h1{font-size:2.6em;letter-spacing:-.045em;margin:.1em 0 .6em}.markdown h2{font-size:1.6em;margin:1.65em 0 .65em}.markdown h3{font-size:1.15em;margin:1.5em 0 .6em}
 .markdown p{margin:0 0 1.2em}.markdown p:first-child{margin-top:0}.markdown a{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 .markdown a[aria-disabled=true]{color:var(--muted);text-decoration-style:dotted;cursor:help}
+.markdown details{margin:1.2em 0;padding:12px 16px;border:1px solid var(--line);border-radius:8px}
+.markdown summary{cursor:pointer;font-weight:600}.markdown summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.markdown details[open]>summary{margin-bottom:1em}
 .markdown ul,.markdown ol{padding-left:1.45em;margin:.65em 0 1.25em}.markdown li{padding-left:.25em;margin:.25em 0}.markdown li>p{margin:.35em 0}
 .markdown input[type=checkbox]{accent-color:var(--accent);margin-right:8px}.markdown blockquote{margin:1.5em 0;padding:16px 22px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;color:var(--text)}
 .markdown blockquote p:last-child{margin:0}.markdown hr{border:0;border-top:1px solid var(--line);margin:2em 0}

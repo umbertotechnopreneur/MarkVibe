@@ -17,6 +17,7 @@
  * VBWR E */
 
 import { catalog, previewStyles, codeStyles } from "./theme-assets.js";
+import monospaceFamilies from "../src/MarkVibe.Core/Presentation/ui-fonts.json";
 import themeNotices from "../THIRD-PARTY-NOTICES.txt";
 
 export const readerThemeCatalog = catalog;
@@ -159,12 +160,28 @@ export function resolveReaderTheme(preferences = {}, mode = "light") {
   const fontFamilyFallback = palette?.fontFamily
     ? `${documentScope}{font-family:${palette.fontFamily}}`
     : "";
+  // Apply the explicit reading preference after theme rules, including imported
+  // themes that draw their link underline using a border or background image.
+  const linkStyle = preferences.underlineLinks === false
+    ? ".markdown.markdown.markdown.markdown.markdown a,"
+      + ".markdown.markdown.markdown.markdown.markdown a:hover,"
+      + ".markdown.markdown.markdown.markdown.markdown a:focus,"
+      + ".markdown.markdown.markdown.markdown.markdown a:visited{"
+      + "text-decoration:none!important;border-bottom:0!important;background-image:none!important;box-shadow:none!important}"
+    : "";
+  const documentFont = monospaceFamilies.find(family => family === preferences.documentFont);
+  // Validate against the local family catalog before constructing CSS. Apply
+  // after theme rules, including headings, tables and code with their own fonts.
+  const fontOverride = documentFont
+    ? `.markdown.markdown.markdown.markdown.markdown,`
+      + `.markdown.markdown.markdown.markdown.markdown *:not(svg):not(svg *){font-family:"${documentFont}",monospace!important}`
+    : "";
   return {
     mode,
     documentTheme: documentTheme.id,
     codeTheme: codeId,
     palette,
-    css: [notices, surface, fontFamilyFallback, documentCss, resetTokens, codeCss]
+    css: [notices, surface, fontFamilyFallback, documentCss, resetTokens, codeCss, linkStyle, fontOverride]
       .filter(Boolean)
       .join("\n")
   };

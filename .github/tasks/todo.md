@@ -3,13 +3,28 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
+- [ ] Owner-check installed Release x64 0.1.0.26 and the 2026-10-23 reader correction: HTML comments
+  stay hidden, `details`/`summary` expand correctly, heading navigation reveals
+  collapsed sections and PDF includes their contents. Right-click offers the
+  same four theme catalogs as Settings, an installed monospace font override
+  and a hyperlink-underline switch, saved per opened folder. Global Settings
+  stays the fallback; resetting the folder removes its override. Check local
+  and browser workspaces, menu placement, folder persistence
+  and Mermaid within disclosures. Owner-requested Release source compilation,
+  packaging, certificate trust and MSIX installation succeeded after cleaning
+  artifacts and uninstalling Debug 0.1.0.25. Windows reports x64, Status Ok and
+  display name MarkVibe; the installed Release process is running. Existing
+  NU1902/NU1903 dependency advisories remain. No tests or GUI checks ran.
+  See artifacts/BUILD-INFO.json and INSTALL-INFO.json locally. Release x64 is now
+  the owner's default delivery configuration; Debug was retired.
+
 - [ ] Owner review/functional acceptance of the 2026-10-17 maintainability pass:
   provider-explicit `ai.*` commands without old aliases, shared browser HTTP/storage
   handling, split map codec/session, named validation phases and documented types.
   See `docs/maintainability-review-2026-10-17.md` for before/after examples and
   remaining architectural candidates. Bundle and final Debug x64 source compilation
-  passed; no tests, packaging, installation or GUI checks ran. Installed 0.1.0.25
-  does not yet include this source pass. The existing smoke fixture is updated
+  passed; no tests or GUI checks ran. Release 0.1.0.26 now includes this source
+  pass after its authorized packaging and installation. The existing smoke fixture is updated
   but not executed. Future changes do not require historical compatibility.
 
 - [ ] Owner acceptance of installed Debug x64 0.1.0.25 and the opaque desktop
@@ -31,12 +46,6 @@ reuse existing authorization and identify any remaining owner checkpoint.
   existing login; the browser reports that CLI integration requires the desktop.
   Build, signing, MSIX installation and final launch succeeded; Windows reports
   version 0.1.0.24, x64 and Status Ok. No suites or interactive checks ran.
-
-- [ ] Owner review of [PR #1](https://github.com/umbertotechnopreneur/MarkVibe/pull/1):
-  repository preparation, Windows packaging, pending UI/readability work and
-  selectable AI connections. Commit/push/PR delivery and initial-history
-  consolidation are complete. `master` is protected; the PR remains open.
-  No automated suites or GUI checks were requested or run.
 
 - [ ] Owner updates the Codex project folder link to `E:\MarkVibe`. The complete
   repository, Git history/backups and Debug artifacts were copied there from

@@ -24,6 +24,20 @@ Code parsing remains highlight.js. Presentation aliases map its token classes to
 
 ## XAML resource organization
 
+Right-click a document in Read or Source to change the same four theme choices
+available in Settings. Context choices save for the opened folder and stay
+independent for light and dark appearance. Settings supplies global defaults;
+“Use global reading defaults” removes a folder's override. “Underline hyperlinks”
+can suppress link underlines across document themes and exports.
+
+The context menu also offers the theme's original font or an installed monospace
+family, with font previews. The override covers document text, headings, tables
+and code; Mermaid retains its diagram typography. No fonts are downloaded.
+On Windows, folder choices use the stable identity of the opened root, so another
+folder keeps its own choices after restarting. Storage stays in the local app
+profile and does not write files into the documentation folder. Browser choices
+follow the workspace identity; reopening a retained folder keeps that identity.
+
 Keep `AppStyles.xaml` as the single application merger. Load `ThemeResources.xaml` before styles that consume its brushes and dimensions, then `Buttons.xaml`, `Navigation.xaml` and `Dialogs.xaml`. Retain stable keyed resources at this boundary. Resource dictionaries must resolve shared resources from the application scope, and must not duplicate the merger recursively. Keep any `BasedOn` dependency earlier in the lookup chain. Use explicit application/component resource URIs supported by the existing OpenSilver build.
 
 Map light/dark application palettes to semantic brush objects such as Surface, Text, Muted, Border and Accent. Update the existing brush values when the active palette changes so controls holding static brush references repaint consistently. Use the supported system accent brush for active controls and a shared elevation-16 DropShadowEffect for elevated surfaces. The reader's imported background/foreground are a separate document surface palette. CSS selectors and font rules remain in the DOM; they are not converted to XAML control styles.

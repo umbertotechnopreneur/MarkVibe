@@ -46,9 +46,24 @@ public sealed record MarkdownModel(
     public IReadOnlyList<MarkdownElement> Elements { get; init; } = [];
 }
 
+/// <summary>Builds bounded source-backed Markdown models with restricted embedded HTML and local navigation.</summary>
 public sealed class MarkdownParser
 {
-    private readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder().UsePipeTables().UseTaskLists().UseAutoLinks().UseEmphasisExtras().UseYamlFrontMatter().UsePreciseSourceLocation().DisableHtml().Build();
+    private readonly MarkdownPipeline _pipeline = CreatePipeline();
+
+    /// <summary>Preserves normal Markdown after inline comment prefixes while recognizing disclosure blocks.</summary>
+    private static MarkdownPipeline CreatePipeline()
+    {
+        var builder = new MarkdownPipelineBuilder()
+            .UsePipeTables()
+            .UseTaskLists()
+            .UseAutoLinks()
+            .UseEmphasisExtras()
+            .UseYamlFrontMatter()
+            .UsePreciseSourceLocation();
+        SafeHtmlRendering.ConfigureParser(builder);
+        return builder.Build();
+    }
     /// <summary>Encodes source text before embedding it in generated HTML.</summary>
     private static string Escape(string value) => HtmlEncoder.Default.Encode(value);
     /// <summary>Computes the exact UTF-8 source fingerprint used by document and note identities.</summary>
@@ -168,6 +183,7 @@ public sealed class MarkdownParser
         using var writer = new StringWriter(CultureInfo.InvariantCulture);
         var renderer = new HtmlRenderer(writer);
         _pipeline.Setup(renderer);
+        SafeHtmlRendering.Configure(renderer);
         // One renderer enforces the same diagram limits for top-level and nested fences.
         foreach (var codeRenderer in renderer.ObjectRenderers.OfType<CodeBlockRenderer>().ToArray())
         {
@@ -192,6 +208,14 @@ public sealed class MarkdownParser
         {
             if (block is YamlFrontMatterBlock)
             {
+                continue;
+            }
+
+            // HTML delimiters can span Markdown blocks. A section around each
+            // delimiter would prematurely close details before its Markdown body.
+            if (block is HtmlBlock)
+            {
+                renderer.Render(block);
                 continue;
             }
 

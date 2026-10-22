@@ -4,7 +4,7 @@ The following boundaries describe the current source. Authorized checks on 2026-
 
 ## Untrusted document content
 
-Markdig disables raw HTML. The DOM adapter performs an independent DOMPurify allowlist pass, removes existing image sources and installs local asset URLs only after provider validation. Checkbox controls are disabled. Scripts, event attributes, embedded frames, objects and forms are not permitted.
+Markdig recognizes embedded HTML. The managed renderer hides comments and accepts only inert formatting tags, including `details` and `summary`, without any source attributes. Unsupported tags are displayed as text. The DOM adapter performs an independent DOMPurify allowlist pass, removes existing image sources and installs local asset URLs only after provider validation. Checkbox controls are disabled. Scripts, event attributes, embedded frames, objects and forms are not permitted.
 
 External navigation allows explicit http, https and mailto URLs without credentials. External links open with noopener and noreferrer. Remote document images are not loaded. Document links, heading fragments and image references are decoded once in C#, then resolved inside the current workspace. File, data, JavaScript, scheme-relative and drive paths are blocked.
 

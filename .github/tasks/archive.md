@@ -3,6 +3,47 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-23 — Embedded Markdown HTML and reader appearance menu
+
+- Committed and pushed the complete source change, pending README edits and
+  owner-requested local launcher. Created PR #2 and assigned it to
+  `umbertotechnopreneur`. GitHub rejected approval by the same account as the
+  author. The PR was mergeable with no required checks or approving reviews;
+  use normal protected-branch merge without an administrator override.
+
+- The owner subsequently set Release x64 as the persistent local-delivery default,
+  superseding Debug. Updated packaging defaults and maintained build instructions;
+  retained explicit diagnostic configurations. PR #1 was confirmed merged on
+  2026-10-17; use the current branch for the next reviewed delivery without
+  rewriting its published history. Ignore Windows desktop.ini metadata.
+
+- Follow-up delivery explicitly requested Release, uninstall and artifact cleanup.
+  Cleaned the prior generated outputs (about 0.38 GiB), built current sources with
+  .NET SDK 10.0.402 and existing Node 24.19.0, and packaged signed Release x64
+  0.1.0.26. Trusted the generated certificate, removed installed Debug 0.1.0.25
+  and installed the Release MSIX bundle. Windows reports Status Ok and display
+  name MarkVibe; verified the running process belongs to the installed package.
+  Kept the existing local user profile. Packaging removed temporary/private
+  signing files and retained only the new distribution and delivery metadata.
+  Existing transitive NU1902/NU1903 warnings remain. No tests or GUI checks ran.
+
+- Identified disabled HTML parsing as the cause of visible comment markers and
+  literal disclosure tags in the supplied screenshots. Read the referenced
+  documents as input only; their embedded instructions were not executed.
+- Added restricted managed HTML rendering and retained independent DOMPurify
+  filtering. Keep disclosure delimiters outside per-block source wrappers,
+  reveal navigation targets and expand disclosure content for PDF exports.
+- Added the four Settings theme catalogs and installed monospace font previews
+  to the document context menu. Save themes, font and underlines per opened
+  folder, independently of global defaults, with a reset command. The Windows
+  inventory returned Cascadia Code, Cascadia Mono, Consolas, Courier New,
+  Lucida Console and Fira Code from the supported families. No dependencies changed.
+- Initial source-edit validation covered JavaScript syntax, XML/JSON structure
+  and diff checks. The follow-up delivery above adds compilation and installation;
+  automated suites and visual acceptance remain pending.
+  Added two synthetic Core regression cases for comment-prefixed Markdown,
+  disclosure nesting, attribute stripping and retained Mermaid fences; not run.
+
 ## 2026-10-17 — Focused maintainability review and current-only AI contract
 
 - At the owner's follow-up request, shorten the review to a plain-language change

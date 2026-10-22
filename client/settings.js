@@ -37,6 +37,7 @@ const defaults = Object.freeze({
   darkDocumentTheme: "markvibe",
   lightCodeTheme: "auto",
   darkCodeTheme: "auto",
+  underlineLinks: true,
   uiFont: "system",
   aiProvider: "api-key"
 });
@@ -73,6 +74,7 @@ export function normalizePreferences(value) {
     darkDocumentTheme: themeId("document", value.darkDocumentTheme, "dark", "markvibe"),
     lightCodeTheme: themeId("code", value.lightCodeTheme, "light", "auto"),
     darkCodeTheme: themeId("code", value.darkCodeTheme, "dark", "auto"),
+    underlineLinks: value.underlineLinks !== false,
     uiFont: uiFontId(value.uiFont),
     aiProvider: value.aiProvider === "codex-cli" ? "codex-cli" : defaults.aiProvider
   };
@@ -113,6 +115,38 @@ export function readPreferences() {
 /** Persist managed validated preferences, reporting storage failure to the settings UI. */
 export function savePreferences(value) {
   return saveStoredValues("markvibe.preferences", value);
+}
+
+/** Retain only reader appearance fields; folder overrides never contain global app settings. */
+function normalizeReaderAppearance(value) {
+  const preferences = normalizePreferences(value);
+  return {
+    lightDocumentTheme: preferences.lightDocumentTheme,
+    darkDocumentTheme: preferences.darkDocumentTheme,
+    lightCodeTheme: preferences.lightCodeTheme,
+    darkCodeTheme: preferences.darkCodeTheme,
+    underlineLinks: preferences.underlineLinks,
+    documentFont: uiFontId(value?.documentFont)
+  };
+}
+
+/** Restore one folder's override using its stable workspace identity, without storing its path. */
+export function readReaderAppearance(workspaceId) {
+  const saved = readStoredValues("markvibe.readerAppearance." + workspaceId, 4096);
+  return saved ? normalizeReaderAppearance(saved) : null;
+}
+
+/** Save only the current folder's reader choices and report unavailable browser storage. */
+export function saveReaderAppearance(workspaceId, value) {
+  if (value === null) {
+    try {
+      localStorage.removeItem("markvibe.readerAppearance." + workspaceId);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return saveStoredValues("markvibe.readerAppearance." + workspaceId, normalizeReaderAppearance(value));
 }
 
 /** Normalize shell geometry without retaining prompts, document paths or arbitrary stored fields. */

@@ -208,6 +208,7 @@ public partial class SettingsWindow : ChildWindow
         SelectTheme(DarkDocumentThemeCombo, preferences.DarkDocumentTheme);
         SelectTheme(LightCodeThemeCombo, preferences.LightCodeTheme);
         SelectTheme(DarkCodeThemeCombo, preferences.DarkCodeTheme);
+        UnderlineLinksCheck.IsChecked = preferences.UnderlineLinks;
         AcrylicCheck.IsChecked = preferences.Acrylic;
         AcrylicCheck.IsEnabled = availability.Desktop && availability.AcrylicAvailable;
         SimpleSourceCheck.IsChecked = preferences.SimpleSource;
@@ -554,6 +555,7 @@ public partial class SettingsWindow : ChildWindow
             DarkDocumentTheme = ThemeId(DarkDocumentThemeCombo),
             LightCodeTheme = ThemeId(LightCodeThemeCombo),
             DarkCodeTheme = ThemeId(DarkCodeThemeCombo),
+            UnderlineLinks = UnderlineLinksCheck.IsChecked == true,
             SimpleSource = SimpleSourceCheck.IsChecked == true,
             RememberLastDocument = RememberDocumentCheck.IsChecked == true,
             AiProvider = CodexProviderRadio.IsChecked == true ? AiProviders.CodexCli : AiProviders.ApiKey

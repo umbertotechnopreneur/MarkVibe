@@ -75,7 +75,7 @@ function asDataUrl(blob, signal) {
 }
 
 /** Builds the shared self-contained HTML used by both HTML saving and PDF printing. */
-async function prepareDocument(model, workspaceId, preferences, signal) {
+async function prepareDocument(model, workspaceId, preferences, signal, expandDetails = false) {
   checkCancelled(signal);
   const output = document.implementation.createHTMLDocument(model.title);
   output.documentElement.lang = document.documentElement.lang || "en";
@@ -109,6 +109,12 @@ async function prepareDocument(model, workspaceId, preferences, signal) {
   const article = output.createElement("article");
   article.className = "markdown";
   article.append(prepareMarkdown(model));
+  // PDF has no interactive summary control. Include every disclosure's body.
+  if (expandDetails) {
+    for (const disclosure of article.querySelectorAll("details")) {
+      disclosure.open = true;
+    }
+  }
   output.body.append(header, article);
   highlightCode(article);
   decorateThemeArticle(article, theme);
@@ -269,7 +275,7 @@ export async function exportDocument({ document: model, workspaceId, preferences
   if (!["html", "pdf"].includes(format)) {
     throw new WorkspaceError("unknown-export", "Choose HTML or PDF to export this page.");
   }
-  const { html, stem, warnings } = await prepareDocument(model, workspaceId, preferences, signal);
+  const { html, stem, warnings } = await prepareDocument(model, workspaceId, preferences, signal, format === "pdf");
   checkCancelled(signal);
   if (isDesktop()) {
     const result = await nativeCall("export.save", { html, filename: stem + "." + format, format }, signal);

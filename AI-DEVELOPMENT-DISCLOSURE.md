@@ -1,5 +1,37 @@
 # AI development disclosure
 
+## Reader rendering and context themes — 2026-10-23
+
+Umberto supplied rendering screenshots and requested theme selection from the
+document context menu and a way to remove hyperlink underlines. Codex traced
+visible HTML comments and disclosure tags to disabled HTML parsing, added
+restricted formatting renderers and kept the independent browser sanitizer.
+It added source navigation into disclosures, expanded their PDF contents and
+connected context theme controls, installed monospace font overrides and link
+decoration to per-folder preferences with global defaults and a reset command.
+Font choices reuse the desktop host's installed-family inventory without downloads.
+Mermaid rendering remains on its existing bounded, sanitized path.
+
+Initial source-edit validation covered JavaScript syntax, XML/JSON structure
+and diff checks. Two synthetic Core regression cases were added but not executed.
+Compilation and installation were subsequently authorized as recorded below;
+owner acceptance remains pending.
+
+In a follow-up request, Umberto explicitly authorized Release compilation,
+uninstalling the existing application, installation and artifact cleanup.
+Release x64 0.1.0.26 was built from the current sources, packaged and signed;
+the generated certificate was trusted through Windows elevation. Debug 0.1.0.25
+was removed and the Release MSIX installed and launched. Windows reports Status
+Ok and the display name MarkVibe; the running process is in its installed package.
+Previous generated artifacts and temporary packaging files were removed. The
+existing local user profile was retained. Existing transitive dependency advisories
+remain; no tests, GUI acceptance, commits or publication were performed.
+
+The owner then authorized Git delivery and requested remembering Release x64 as
+the default. Codex updated the packaging parameter and build instructions and
+recorded the preference. These default/instruction changes were syntax-reviewed;
+they do not change the already installed 0.1.0.26 application binaries.
+
 ## Focused maintainability pass — 2026-10-17
 
 Umberto requested concrete examples of duplicate/complex code, simpler ownership,

@@ -54,6 +54,7 @@ VBWR E -->
     </StackPanel>
     <StackPanel x:Name="ActionsColumn" Grid.Column="2">
      <TextBlock Text="DOCUMENT STYLE" Style="{StaticResource DialogSectionLabel}" />
+     <TextBlock Text="Global reading defaults. Folder choices from the context menu take precedence." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
      <ComboBox x:Name="StyleCombo" SelectionChanged="PreferenceChanged" Height="38" AutomationProperties.Name="Document presentation" ToolTipService.ToolTip="Choose the document reading style"><ComboBoxItem Content="Technical documentation" /><ComboBoxItem Content="Editorial reading" /><ComboBoxItem Content="Compact reading" /></ComboBox>
      <TextBlock Text="LIGHT DOCUMENT THEME" Style="{StaticResource DialogSectionLabel}" />
      <ComboBox x:Name="LightDocumentThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose document colors and fonts for light mode" />
@@ -64,6 +65,7 @@ VBWR E -->
      <ComboBox x:Name="LightCodeThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose code block colors for light mode" />
      <TextBlock Text="DARK CODE THEME" Style="{StaticResource DialogSectionLabel}" />
      <ComboBox x:Name="DarkCodeThemeCombo" Height="38" SelectionChanged="PreferenceChanged" ToolTipService.ToolTip="Choose code block colors for dark mode" />
+     <CheckBox x:Name="UnderlineLinksCheck" Content="Underline hyperlinks" Margin="0,16,0,4" Checked="CheckChanged" Unchecked="CheckChanged" />
     </StackPanel>
     <StackPanel x:Name="OpenAiColumn" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,24,0,0">
       <Border Height="1" Background="{StaticResource ShellBorder}" Margin="0,0,0,20" />

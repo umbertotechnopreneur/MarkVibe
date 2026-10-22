@@ -1,5 +1,9 @@
 # MarkVibe
 
+[![Verification status](https://github.com/umbertotechnopreneur/MarkVibe/actions/workflows/checks.yml/badge.svg?branch=master)](https://github.com/umbertotechnopreneur/MarkVibe/actions/workflows/checks.yml)
+![Platform: Windows 11 and WebAssembly](https://img.shields.io/badge/platform-Windows_11_%C2%B7_WebAssembly-0078D4)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2EA44F)](LICENSE)
+
 **A local Markdown reader with a document map, optional AI editing and HTML/PDF export.**
 
 [Windows downloads](https://github.com/umbertotechnopreneur/MarkVibe/releases) ·
@@ -50,8 +54,7 @@ graph LR
 
 The current source also includes a relation lens, document comparison, navigation
 trails and short directional link animations. See [map behavior and saved layouts](docs/map-layout.md).
-Downloadable prereleases may predate the current source; GUI acceptance remains
-with the maintainer.
+Downloadable prereleases may predate the current source.
 
 ## Run it
 
@@ -82,13 +85,14 @@ For the command line:
 npm ci --ignore-scripts --no-audit --no-fund
 npm run bundle
 dotnet restore MarkVibe.slnx --locked-mode
-dotnet build MarkVibe.slnx --no-restore
-dotnet run --project src/MarkVibe.Windows --no-build
+dotnet build MarkVibe.slnx --no-restore -c Release
+dotnet run --project src/MarkVibe.Windows --no-build -c Release
 ```
 
 See [architecture](docs/architecture.md), [packaging](docs/windows-packaging.md)
 and [contributing](CONTRIBUTING.md). Changes are delivered through pull requests.
 Packaging cleans `artifacts/` before creating a new distribution.
+Local delivery defaults to Release x64.
 
 ## License and development
 
@@ -102,15 +106,13 @@ I develop MarkVibe with AI assistance under my direction. The
 [validation record](docs/validation.md) distinguish implementation, builds,
 installation and functional checks.
 
----
+## A note on security
 
-<p align="right">
-  <a href="https://umbertogiacobbi.biz/vibeware/manifesto">
-    <img src="https://raw.githubusercontent.com/umbertotechnopreneur/VibeWare/main/Branding/vibeware-logo.png" alt="VibeWare floppy logo" width="160">
-  </a><br>
-  <strong>VibeWare</strong><br>
-  <em>Human intent, AI execution, and plenty of tokens</em>
-</p>
+I care about what goes into this project. Before I add a third-party library or prebuilt binary, including files supplied without source code, I scan the downloaded package, its extracted files and any dependencies with Microsoft Windows Defender. I keep new imports aside until the scan finishes without detections.
+
+I keep a record of where each new import came from and the scan result. If a scan cannot finish or flags something, I leave it out.
+
+---
 
 ### This is VibeWare · [Manifesto](https://umbertogiacobbi.biz/vibeware/manifesto)
 
@@ -134,3 +136,10 @@ To learn what VibeWare means and why I created it, read the
 under the project license — my contribution to the developer community.*
 
 [Terms](https://umbertogiacobbi.biz/terms/) · [Privacy](https://umbertogiacobbi.biz/privacy/)
+
+<p align="right">
+  <a href="https://umbertogiacobbi.biz/vibeware/manifesto">
+    <img src="https://raw.githubusercontent.com/umbertotechnopreneur/VibeWare/main/Branding/vibeware-logo.png" alt="VibeWare floppy logo" width="160">
+  </a><br>
+  <em>Human Intent, AI Execution, Plenty of Token</em>
+</p>

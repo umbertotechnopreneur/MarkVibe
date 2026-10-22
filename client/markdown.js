@@ -27,7 +27,8 @@ import { applyReaderTheme, resolveReaderTheme } from "./themes.js";
 import { attachFileContext } from "./file-context.js";
 
 const allowedTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "a", "em", "strong", "del", "s", "sup", "sub", "mark",
-  "ul", "ol", "li", "blockquote", "pre", "code", "table", "thead", "tbody", "tr", "th", "td", "hr", "br", "img", "input", "section", "div", "span"];
+  "ul", "ol", "li", "blockquote", "pre", "code", "table", "thead", "tbody", "tr", "th", "td", "hr", "br", "img", "input", "section", "div", "span",
+  "details", "summary", "kbd", "ins", "small", "b", "i"];
 const allowedAttributes = ["id", "class", "alt", "title", "href", "src", "start", "colspan", "rowspan", "type", "checked", "disabled",
   "data-block-id", "data-element-id", "data-source-start", "data-source-end", "data-md-start", "data-md-end", "data-mv-asset", "data-mv-path", "data-mv-anchor", "data-mv-external", "data-mv-blocked", "data-mv-attachment"];
 /** Create a view root and its existing shared lifecycle cleanup boundary. */
@@ -130,6 +131,15 @@ export function highlightCode(article) {
   }
 }
 
+/** Open containing disclosures before measuring a source or outline navigation target. */
+function revealDetails(element) {
+  let disclosure = element.closest("details");
+  while (disclosure) {
+    disclosure.open = true;
+    disclosure = disclosure.parentElement?.closest("details");
+  }
+}
+
 export class MarkdownHost {
   /** Mount the reader host and register navigation, position and resize handlers. */
   constructor(element, id, emit) {
@@ -144,9 +154,6 @@ export class MarkdownHost {
     this.body.addEventListener("click", event => this.click(event));
     this.disposeFileContext = attachFileContext(this.body, emit, target => {
       const link = target.closest?.("a");
-      if (link?.dataset.mvExternal) {
-        return null;
-      }
       const path = link?.dataset.mvPath || target.closest?.("img[data-mv-asset]")?.dataset.mvAsset || this.model?.path;
       return { workspaceId: this.workspaceId, path, title: path?.split("/").at(-1) };
     });
@@ -310,16 +317,17 @@ export class MarkdownHost {
   }
   /** Capture a source-backed block, fraction and source line for the visible reader position. */
   capture() {
-    if (!this.blocks?.length) {
+    const visibleBlocks = this.blocks?.filter(block => !block.closest("details:not([open])")) || [];
+    if (!visibleBlocks.length) {
       return { blockId: "", fraction: 0, sourceLine: 1 };
     }
     const target = this.body.scrollTop + 24;
     let index = 0;
-    while (index + 1 < this.blocks.length && this.topOf(this.blocks[index + 1]) <= target) {
+    while (index + 1 < visibleBlocks.length && this.topOf(visibleBlocks[index + 1]) <= target) {
       index++;
     }
-    const block = this.blocks[index];
-    const next = this.blocks[index + 1];
+    const block = visibleBlocks[index];
+    const next = visibleBlocks[index + 1];
     const start = this.topOf(block);
     const end = next ? this.topOf(next) : start + block.offsetHeight;
     const fraction = Math.min(1, Math.max(0, (target - start) / Math.max(1, end - start)));
@@ -334,8 +342,9 @@ export class MarkdownHost {
       this.scrollToLine(position.sourceLine || 1);
       return;
     }
+    revealDetails(block);
     const index = this.blocks.indexOf(block);
-    const next = this.blocks[index + 1];
+    const next = this.blocks.slice(index + 1).find(item => !item.closest("details:not([open])"));
     const top = this.topOf(block);
     const bottom = next ? this.topOf(next) : top + block.offsetHeight;
     this.body.scrollTop = Math.max(0, top + Math.min(1, Math.max(0, position.fraction || 0)) * (bottom - top) - 24);
@@ -368,6 +377,7 @@ export class MarkdownHost {
       this.body.scrollTop = 0;
       return;
     }
+    revealDetails(heading);
     this.body.scrollTop = heading.getBoundingClientRect().top - this.body.getBoundingClientRect().top + this.body.scrollTop - 24;
     heading.tabIndex = -1;
     heading.focus({ preventScroll: true });

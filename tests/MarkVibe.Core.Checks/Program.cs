@@ -79,6 +79,38 @@ var checks = new (string Name, Func<Task> Run)[]
         True(model.Blocks.Select(b => b.Id).Distinct().Count() == model.Blocks.Count);
         Equal(64, model.Fingerprint.Length);
     })),
+    ("comment prefixes preserve Markdown formatting and validated local links", Sync(() =>
+    {
+        const string source = "<!-- hidden-marker --> **Quick read:** [Next](next.md)\n\n"
+            + "```html\n<!-- visible-code-comment -->\n<details>\n```\n";
+        var model = new MarkdownParser().Parse("read.md", source);
+
+        True(!model.Html.Contains("hidden-marker", StringComparison.Ordinal));
+        True(model.Html.Contains("<strong>", StringComparison.Ordinal));
+        Equal("next.md", model.Links.Single().Path);
+        True(model.Html.Contains("data-mv-path=\"next.md\"", StringComparison.Ordinal));
+        True(model.Html.Contains("visible-code-comment", StringComparison.Ordinal));
+        True(model.Html.Contains("&lt;details&gt;", StringComparison.Ordinal));
+        Equal(source, model.Source);
+    })),
+    ("disclosures span Markdown source sections without admitting HTML attributes", Sync(() =>
+    {
+        const string source = "<details onclick=\"alert(1)\" data-mv-path=\"forged.md\">\n"
+            + "<summary>Notes</summary>\n\n## Inside\n\nA useful paragraph.\n\n"
+            + "```mermaid\ngraph TD\nStart --> End\n```\n\n</details>\n";
+        var model = new MarkdownParser().Parse("read.md", source);
+        var opening = model.Html.IndexOf("<details>", StringComparison.Ordinal);
+        var heading = model.Html.IndexOf("Inside", StringComparison.Ordinal);
+        var closing = model.Html.IndexOf("</details>", StringComparison.Ordinal);
+
+        True(opening >= 0 && heading > opening && closing > heading);
+        True(model.Html.Contains("<summary>Notes</summary>", StringComparison.Ordinal));
+        True(!model.Html.Contains("onclick", StringComparison.Ordinal));
+        True(!model.Html.Contains("forged.md", StringComparison.Ordinal));
+        True(model.Html.Contains("language-mermaid", StringComparison.Ordinal));
+        True(model.Html.IndexOf("</section>", opening, StringComparison.Ordinal) > heading);
+        Equal("Inside", model.Headings.Single().Text);
+    })),
     ("browser positions retain fractional source lines and history truncates safely", Sync(() =>
     {
         var decoded = Wire.Decode<ReadingPosition>("{\"blockId\":\"b-1\",\"fraction\":0.4,\"sourceLine\":12.5}");

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Text.Json;
 using MarkVibe.Controls;
 using MarkVibe.Core;
 
@@ -19,10 +20,62 @@ public partial class MainPage
     private FileMenuTarget? _fileMenuTarget;
     private bool _confirmingFileDelete;
     private bool _fileMutationBusy;
+    private ReaderAppearance? _readerAppearance;
+
+    /// <summary>Resolves folder-specific reading choices over the global Settings defaults.</summary>
+    private Preferences ReaderPreferences => _readerAppearance?.ApplyTo(_preferences) ?? _preferences;
+
+    /// <summary>Restores this folder's own choices before its first document is rendered.</summary>
+    private async Task LoadReaderAppearanceAsync(CancellationToken cancellationToken = default)
+    {
+        var context = _active;
+        _readerAppearance = null;
+        if (context != null)
+        {
+            var result = await BrowserServices.CallAsync<JsonElement>(
+                "reader.appearance.read", new { workspaceId = context.Provider.Info.Id }, cancellationToken);
+            if (ReferenceEquals(context, _active))
+            {
+                _readerAppearance = result.ValueKind == JsonValueKind.Object
+                    ? Wire.Decode<ReaderAppearance>(result.GetRawText())
+                    : null;
+            }
+        }
+    }
 
     /// <summary>Wires the shared context popup and current-document/workspace entry points once.</summary>
     private void InitializeFileMenus()
     {
+        DocumentAppearance.PreferenceChanged += (key, value) => ExecuteAsync(async () =>
+        {
+            if (_active == null || _workspaceTransitionBusy)
+            {
+                return;
+            }
+            var context = _active;
+            var current = ReaderPreferences;
+            var preferences = key switch
+            {
+                "lightDocumentTheme" => current with { LightDocumentTheme = value },
+                "darkDocumentTheme" => current with { DarkDocumentTheme = value },
+                "lightCodeTheme" => current with { LightCodeTheme = value },
+                "darkCodeTheme" => current with { DarkCodeTheme = value },
+                "underlineLinks" => current with { UnderlineLinks = value == "true" },
+                "documentFont" => current with { DocumentFont = value },
+                _ => current
+            };
+            _readerAppearance = key == "reset" ? null : ReaderAppearance.From(preferences.Validated());
+            var persisted = await BrowserServices.CallAsync<bool>("reader.appearance.save",
+                new { workspaceId = context.Provider.Info.Id, appearance = _readerAppearance });
+            if (ReferenceEquals(context, _active))
+            {
+                await ApplyPreferencesAsync();
+                if (!persisted)
+                {
+                    SetStatus("Preferences are available for this session. Browser storage is unavailable.");
+                }
+            }
+        });
         DocumentFileActions.ActionRequested += action => ExecuteAsync(async () =>
         {
             var target = _fileMenuTarget;
@@ -80,26 +133,42 @@ public partial class MainPage
     /// <summary>Exposes local shell actions only for the currently active native Windows workspace.</summary>
     private bool CanUseLocalFileMenu(FileMenuTarget target) => _desktop && _active?.Provider.Info.Id == target.WorkspaceId && _active.Provider.Info.Mode == "native";
 
-    /// <summary>Positions one shared frosted file menu for managed navigation and browser-rendered content.</summary>
+    /// <summary>Shows document appearance in every workspace and native file actions where supported.</summary>
     private void ShowFileMenu(FileMenuTarget target, Point position)
     {
-        if (!CanUseLocalFileMenu(target))
+        if (_active?.Provider.Info.Id != target.WorkspaceId)
         {
             return;
         }
         _fileMenuTarget = target;
         AppLocalization.SetRaw(FileMenuTitle, target.Title);
         AppLocalization.SetRaw(FileMenuPath, target.Path.Length == 0 ? _active!.Provider.Info.Name : target.Path);
-        DocumentFileActions.Configure(true, WorkspacePath.IsMarkdown(target.Path), target.IsFolder);
+        DocumentFileActions.Configure(CanUseLocalFileMenu(target), WorkspacePath.IsMarkdown(target.Path), target.IsFolder);
+        DocumentAppearance.Update(ReaderPreferences);
+        _ = LoadReaderFontsAsync();
         var root = (FrameworkElement)Application.Current.RootVisual;
         FileMenuSurface.Width = Math.Max(220, Math.Min(310, root.ActualWidth - 24));
+        FileMenuSurface.MaxHeight = Math.Max(80, Math.Min(680, root.ActualHeight - 32));
         FileMenuPopup.PlacementTarget = root;
         FileMenuPopup.Placement = PlacementMode.Relative;
         FileMenuPopup.StaysWithinScreenBounds = true;
         FileMenuPopup.HorizontalOffset = Math.Max(8, Math.Min(position.X, root.ActualWidth - FileMenuSurface.Width - 16));
-        FileMenuPopup.VerticalOffset = Math.Max(8, Math.Min(position.Y, root.ActualHeight - 290));
+        FileMenuPopup.VerticalOffset = Math.Max(8, Math.Min(position.Y, root.ActualHeight - FileMenuSurface.MaxHeight - 16));
+        FileMenuScroll.ScrollToVerticalOffset(0);
         FileMenuPopup.IsOpen = true;
         AppLocalization.Apply(DocumentFileActions);
+        AppLocalization.Apply(DocumentAppearance);
+    }
+
+    /// <summary>Populates only the verified installed monospace families already exposed by the desktop host.</summary>
+    private async Task LoadReaderFontsAsync()
+    {
+        await ExecuteAsync(async () =>
+        {
+            var fonts = await BrowserServices.CallAsync<UiFontOption[]>("ui.fonts");
+            DocumentAppearance.SetFonts(fonts, ReaderPreferences.DocumentFont);
+            AppLocalization.Apply(DocumentAppearance);
+        });
     }
 
     /// <summary>Routes file actions for the captured target without changing map selection or opening another document.</summary>
@@ -119,7 +188,7 @@ public partial class MainPage
             var document = await context.Catalog.OpenAsync(context.Provider, target.Path, _opening.Token);
             if (ReferenceEquals(context, _active))
             {
-                await BrowserServices.CallAsync("document.browser", new { document, workspaceId = target.WorkspaceId, preferences = _preferences }, _opening.Token);
+                await BrowserServices.CallAsync("document.browser", new { document, workspaceId = target.WorkspaceId, preferences = ReaderPreferences }, _opening.Token);
             }
         }
         else if (action == "delete" && !target.IsFolder)
@@ -245,6 +314,11 @@ public partial class MainPage
     /// <summary>Dismisses the file menu when the pointer lands outside its own surface.</summary>
     private void DismissFileMenuOutside(object sender, MouseButtonEventArgs arguments)
     {
+        // Theme items live in a ComboBox popup outside the menu's visual ancestry.
+        if (DocumentAppearance.IsThemeListOpen)
+        {
+            return;
+        }
         var current = arguments.OriginalSource as DependencyObject;
         while (current != null)
         {

@@ -221,10 +221,11 @@ Keep durable, repository-specific findings here; omit temporary commands and pla
   Never create build/test output in Codex directories.
 - Ask before each branch/worktree creation. Package creation, installation and
   publication are separate actions; record only the evidence actually obtained.
-- Local build/MSI requests mean the existing MSIX format, x64 Debug and launching
-  the newly built desktop executable. The owner confirmed x64, not 32-bit x86.
-  Use Release or ARM64 only on explicit request; tests still require a current
-  request, and app/certificate installation remains separate.
+- Local build/MSI requests now mean the existing MSIX format, Release x64 and
+  launching the newly installed desktop app. The 2026-10-23 owner instruction
+  supersedes the old Debug default. Replace any old Debug installation, preserve
+  user data and require explicit requests for Debug, ARM64, x86 or tests.
+  Publication remains separate.
 - `dotnet workload list` can report wasm-tools while its selected manifest
   references absent packs. Diagnose NETSDK1147 with the project's evaluated
   `MissingWorkloadPack` items; obtain SDK/workload-installation authorization
@@ -288,3 +289,8 @@ Keep durable, repository-specific findings here; omit temporary commands and pla
   Preserve native Slider template parts when changing track/thumb presentation.
   Hiding the panel ScrollViewer's scrollbar removes its reserved width while
   preserving scroll access to overflow content.
+- Embedded HTML delimiters such as `details` can span multiple Markdown blocks.
+  Render them outside source-section wrappers, or browser HTML repair closes the
+  disclosure before its body. Recognize comments without exposing active HTML or
+  document-supplied bridge metadata. Navigation must reveal collapsed ancestors;
+  PDF export must include disclosure bodies.

@@ -32,7 +32,7 @@ import {
   releaseAssets, releaseWorkspace, disposeWorkspaces, setWorkspaceMemory, canResumeWorkspace,
   readMapLayout, writeMapLayout
 } from "./workspaces.js";
-import { readPreferences, savePreferences, readLayout, saveLayout } from "./settings.js";
+import { readPreferences, savePreferences, readLayout, saveLayout, readReaderAppearance, saveReaderAppearance } from "./settings.js";
 import {
   aiConnectionStatus, testAiConnection, aiModels, prepareMarkdown, editMarkdown
 } from "./openai.js";
@@ -56,6 +56,7 @@ let firstHistory = true;
 let preferenceRevision = 0;
 let exportAdapter;
 let preferences = readPreferences();
+let readerPreferences = preferences;
 const colorScheme = matchMedia("(prefers-color-scheme: dark)");
 
 /** Translates startup and runtime-error UI before the OpenSilver shell is ready. */
@@ -235,11 +236,12 @@ async function applyPreferences(args) {
   const revision = ++preferenceRevision;
   const rememberedBefore = preferences.rememberLastDocument;
   preferences = { ...preferences, ...args.preferences };
+  readerPreferences = { ...preferences, ...args.readerPreferences };
   const locale = setLanguage(preferences.language);
   const reader = views.get(args.readerId);
   const source = views.get(args.sourceId);
   if (reader) {
-    reader.preferences = preferences;
+    reader.preferences = readerPreferences;
   }
   const readerVisible = reader?.container.getBoundingClientRect().height > 0;
   const position = reader?.model && readerVisible ? reader.capture() : null;
@@ -316,6 +318,12 @@ async function dispatch(operation, args, signal) {
   switch (operation) {
     case "ui.fonts":
       return installedUiFonts();
+    case "reader.appearance.read":
+      getWorkspace(args.workspaceId);
+      return readReaderAppearance(args.workspaceId);
+    case "reader.appearance.save":
+      getWorkspace(args.workspaceId);
+      return saveReaderAppearance(args.workspaceId, args.appearance);
     case "initialize":
       {
         preferences = readPreferences();
@@ -539,7 +547,7 @@ async function dispatch(operation, args, signal) {
       {
         snapshots.set(args.hostId, { ...args, kind: "markdown" });
         const reader = await getView(args.hostId, signal);
-        reader.preferences = preferences;
+        reader.preferences = readerPreferences;
         await reader.render(args, signal);
         return true;
       }
