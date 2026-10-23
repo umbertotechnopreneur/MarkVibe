@@ -8,6 +8,7 @@
   Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
+  Modified with AI: OpenAI Codex; reject Debug client assets in Release builds; 2026-10-23
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
@@ -33,6 +34,6 @@ VBWR E -->
     <ProjectReference Include="../MarkVibe/MarkVibe.csproj" />
   </ItemGroup>
   <Target Name="RequireClientBundle" BeforeTargets="BeforeBuild">
-    <Exec Command="node &quot;$(MSBuildProjectDirectory)/../../scripts/check-client-bundle.mjs&quot;" />
+    <Exec Command="node &quot;$(MSBuildProjectDirectory)/../../scripts/check-client-bundle.mjs&quot; --configuration &quot;$(Configuration)&quot;" />
   </Target>
 </Project>

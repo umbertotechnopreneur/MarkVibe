@@ -25,6 +25,7 @@
 
 import { MarkdownHost } from "./markdown.js";
 import { SourceHost, releaseSourceWorkspace, disposeSourceModels } from "./source.js";
+import { CurrentDocumentWatch } from "./document-watch.js";
 import { MapHost } from "./map.js";
 import { observeDocumentSelection } from "./document-selection.js";
 import {
@@ -85,6 +86,7 @@ const emit = value => {
   }
   return operation;
 };
+const documentWatch = new CurrentDocumentWatch(emit);
 /** Read bounded remembered history for the requested workspace without failing on unavailable storage. */
 function savedEntry(workspaceId) {
   if (!preferences.rememberLastDocument) {
@@ -318,6 +320,11 @@ async function dispatch(operation, args, signal) {
   switch (operation) {
     case "ui.fonts":
       return installedUiFonts();
+    case "document.watch":
+      return documentWatch.start(args, signal);
+    case "document.watch.stop":
+      await documentWatch.stop();
+      return true;
     case "reader.appearance.read":
       getWorkspace(args.workspaceId);
       return readReaderAppearance(args.workspaceId);
@@ -376,8 +383,13 @@ async function dispatch(operation, args, signal) {
       (await getView(args.hostId, signal)).find(args.query);
       return true;
     case "source.copy":
-      try { await navigator.clipboard.writeText(views.get(args.hostId)?.source ?? ""); }
-      catch { throw new WorkspaceError("clipboard", "Select the source text and copy it with your keyboard."); }
+    case "document.copy":
+      try {
+        const text = operation === "source.copy" ? views.get(args.hostId)?.source ?? "" : args.text;
+        await navigator.clipboard.writeText(text);
+      } catch {
+        throw new WorkspaceError("clipboard", "Select the source text and copy it with your keyboard.");
+      }
       return true;
     case "document.selection.clear":
       for (const view of views.values()) {
@@ -413,7 +425,9 @@ async function dispatch(operation, args, signal) {
     case "file.delete":
       return nativeCall(operation, args, signal);
     case "workspace.open":
-      return openWorkspace(args.mode, signal);
+      return openWorkspace(args.mode, signal, args.recentPath, args.recentKind);
+    case "workspace.recent":
+      return isDesktop() ? nativeCall(operation, args, signal) : [];
     case "map.command": {
       const view = await getView(args.hostId, signal);
       if (args.action.startsWith("explore-")) await view.effects.command(args.action.slice(8), args.data);
@@ -811,6 +825,7 @@ window.markvibe = {
   },
   /** Release the managed endpoint, active jobs, views and retained browser resources. */
   unbind() {
+    documentWatch.dispose();
     endpoint = null;
     attachments.clear();
     for (const controller of jobs.values()) {

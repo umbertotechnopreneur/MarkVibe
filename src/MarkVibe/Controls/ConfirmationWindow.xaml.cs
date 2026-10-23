@@ -19,9 +19,13 @@ public partial class ConfirmationWindow : ChildWindow
     private bool _templateLoaded;
     private readonly string _titleKey;
     private readonly double _contentHeight;
+    private static int _openDialogs;
+
+    /// <summary>Prevents an external-file notification from stacking on an existing confirmation.</summary>
+    internal static bool IsShowing => _openDialogs > 0;
 
     /// <summary>Creates a localized confirmation that fits inside the current application viewport.</summary>
-    private ConfirmationWindow(string title, string message, string action, string? target, string? details, bool destructive)
+    private ConfirmationWindow(string title, string message, string action, string? target, string? details, bool destructive, string cancelAction)
     {
         InitializeComponent();
         _titleKey = title;
@@ -32,6 +36,7 @@ public partial class ConfirmationWindow : ChildWindow
         AppLocalization.SetText(DetailsText, details ?? "");
         DetailsText.Visibility = string.IsNullOrEmpty(details) ? Visibility.Collapsed : Visibility.Visible;
         ConfirmButton.Content = action;
+        CancelButton.Content = cancelAction;
         if (destructive)
         {
             ConfirmButton.Background = new SolidColorBrush(Color.FromRgb(180, 48, 67));
@@ -47,12 +52,25 @@ public partial class ConfirmationWindow : ChildWindow
     }
 
     /// <summary>Waits for the native modal to close; Escape and the close icon cancel the operation.</summary>
-    public static Task<bool> ConfirmAsync(string title, string message, string action, string? target = null, string? details = null, bool destructive = false)
+    public static Task<bool> ConfirmAsync(string title, string message, string action, string? target = null, string? details = null, bool destructive = false, string cancelAction = "Cancel")
     {
         var completion = new TaskCompletionSource<bool>();
-        var dialog = new ConfirmationWindow(title, message, action, target, details, destructive);
-        dialog.Closed += (_, _) => completion.TrySetResult(dialog._accepted);
-        dialog.Show();
+        var dialog = new ConfirmationWindow(title, message, action, target, details, destructive, cancelAction);
+        _openDialogs++;
+        dialog.Closed += (_, _) =>
+        {
+            _openDialogs--;
+            completion.TrySetResult(dialog._accepted);
+        };
+        try
+        {
+            dialog.Show();
+        }
+        catch
+        {
+            _openDialogs--;
+            throw;
+        }
         return completion.Task;
     }
 

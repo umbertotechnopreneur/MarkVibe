@@ -138,6 +138,11 @@ Avoid repeating the same explanation across documents.
 Use focused imperative subjects. Describe the problem, result and actual validation; link issues and UI screenshots when available. Update dependency locks. Record when tests were not requested.
 
 Deliver future changes through pull requests into the protected default branch.
+No independent reviewer or formal approval is required. The owner/admin can
+merge their own pull request when authorized and other branch rules are met.
+GitHub's formal self-review restriction is distinct from permission to merge;
+record owner authorization rather than claiming an approval GitHub rejected.
+Do not approve or merge pending work until the owner explicitly authorizes it.
 Do not push directly to it or rewrite published history as routine maintenance.
 The owner's explicit initial-history consolidation is a one-time exception; retain
 existing release tags and keep a recoverable history backup. Prefer a single

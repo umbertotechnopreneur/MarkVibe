@@ -67,7 +67,7 @@ public sealed class IconLabel : Grid
         Compact = text.Length == 0;
     }
 
-    /// <summary>Inherits the owning button's text colors and font settings.</summary>
+    /// <summary>Applies the action glyph color while inheriting the owning button's caption and font settings.</summary>
     private void OnLoaded(object sender, RoutedEventArgs arguments)
     {
         DetachOwner();
@@ -80,7 +80,7 @@ public sealed class IconLabel : Grid
         if (parent is ButtonBase button)
         {
             _ownerButton = button;
-            _glyph.SetBinding(Control.ForegroundProperty, new Binding("Foreground") { Source = button });
+            RestoreGlyphColor();
             button.MouseEnter += OwnerMouseEntered;
             button.MouseLeave += OwnerMouseLeft;
             _caption.SetBinding(TextBlock.ForegroundProperty, new Binding("Foreground") { Source = button });
@@ -112,18 +112,35 @@ public sealed class IconLabel : Grid
         _caption.ClearValue(TextBlock.FontWeightProperty);
     }
 
-    /// <summary>Highlights the glyph while its owning action is hovered.</summary>
+    /// <summary>Keeps semantic action colors on hover and highlights neutral glyphs with the application accent.</summary>
     private void OwnerMouseEntered(object sender, MouseEventArgs arguments)
     {
-        _glyph.Foreground = (Brush)Application.Current.Resources["SystemAccent"];
+        if (_ownerButton?.IsEnabled == true)
+        {
+            _glyph.Foreground = ActionIconPalette.ForSymbol(_glyph.Symbol) ?? (Brush)Application.Current.Resources["SystemAccent"];
+        }
     }
 
-    /// <summary>Restores the owner's foreground binding after its hover highlight ends.</summary>
+    /// <summary>Restores the semantic color or owner foreground after its hover highlight ends.</summary>
     private void OwnerMouseLeft(object sender, MouseEventArgs arguments)
+    {
+        RestoreGlyphColor();
+    }
+
+    /// <summary>Uses live palette brushes for known actions and retains inherited colors for every other glyph.</summary>
+    private void RestoreGlyphColor()
     {
         if (_ownerButton != null)
         {
-            _glyph.SetBinding(Control.ForegroundProperty, new Binding("Foreground") { Source = _ownerButton });
+            var color = ActionIconPalette.ForSymbol(_glyph.Symbol);
+            if (color != null)
+            {
+                _glyph.Foreground = color;
+            }
+            else
+            {
+                _glyph.SetBinding(Control.ForegroundProperty, new Binding("Foreground") { Source = _ownerButton });
+            }
         }
     }
 

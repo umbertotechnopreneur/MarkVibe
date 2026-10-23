@@ -31,4 +31,10 @@ VBWR E -->
  <SolidColorBrush x:Key="AcrylicBackground" Color="#F4F5F7" />
  <SolidColorBrush x:Key="AcrylicPanel" Color="#FFFFFF" />
  <SolidColorBrush x:Key="SystemAccent" Color="#525CE8" />
+ <SolidColorBrush x:Key="IconBlue" Color="#2169B5" />
+ <SolidColorBrush x:Key="IconTeal" Color="#087E78" />
+ <SolidColorBrush x:Key="IconGold" Color="#91620C" />
+ <SolidColorBrush x:Key="IconCoral" Color="#BE3849" />
+ <SolidColorBrush x:Key="IconGreen" Color="#2C804B" />
+ <SolidColorBrush x:Key="IconPurple" Color="#7654BD" />
 </ResourceDictionary>

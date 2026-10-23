@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; finite directional pulses, relation lens and rectangle selection; 2026-10-16
  * Modified with AI: OpenAI Codex; bounded effect cleanup and reusable attention presentation; 2026-10-16
+ * Modified with AI: OpenAI Codex; retain unchanged directional markers during relation focus; 2026-10-23
  * Human guidance: Umberto Giacobbi; useful futuristic effects with stable black rendering
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
@@ -160,8 +161,14 @@ export class MapExplorationRenderer {
     if (this.hovered === path) {
       return;
     }
+    const host = this.host;
+    const previousFocal = host.cards.has(this.hovered) ? this.hovered : host.selected;
     this.hovered = path;
-    this.applyLens();
+    const focal = host.cards.has(path) ? path : host.selected;
+    // Entering or leaving the selected card keeps the same relation lens and SVG markers.
+    if (focal !== previousFocal) {
+      this.applyLens();
+    }
   }
 
   /** Classify visible incoming/outgoing neighbors without performing graph parsing or rearranging any card. */
@@ -188,7 +195,11 @@ export class MapExplorationRenderer {
       } else if (enabled && outgoing) {
         marker = "outgoing-";
       }
-      item.path.setAttribute("marker-end", "url(#arrow-" + marker + host.id + ")");
+      const markerReference = "url(#arrow-" + marker + host.id + ")";
+      // Changing focus leaves unrelated arrows intact, avoiding SVG marker work for the whole graph.
+      if (item.path.getAttribute("marker-end") !== markerReference) {
+        item.path.setAttribute("marker-end", markerReference);
+      }
     }
     for (const [path, item] of host.cards) {
       item.container.classList.toggle("relation-muted", Boolean(enabled && !related.has(path)));

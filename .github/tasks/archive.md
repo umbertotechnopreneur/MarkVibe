@@ -3,7 +3,142 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-23 — Release x64 0.1.0.29 performance delivery
+
+- Built current source, packaged signed x64 Release distributions and updated
+  the installed MSIX bundle from 0.1.0.27 to 0.1.0.29. Windows reports X64 and
+  Status Ok; the launched process resolves to the 0.1.0.29 installed package.
+  Trusted only the generated development certificate in LocalMachine/TrustedPeople.
+- Preserved 344 local evidence files across packaging cleanup. The 0.1.0.28
+  intermediate package was not installed: review found a native file-growth
+  race between size validation and allocation. The final source captures one
+  length for both operations. Nine Native checks passed, including active-writer
+  reads and exact/over-limit sizes. Release bundle validation passed.
+- Focused and extended source reviews found no remaining actionable regressions.
+  Earlier Core/client/browser evidence remains documented in the profiling reports;
+  no native GUI acceptance or complete browser-suite pass is claimed. Existing
+  NU1902/NU1903 dependency advisories remain outside this change.
+- The owner explicitly authorized commit, push and merge through existing PR #3,
+  superseding the earlier withheld-merge instruction. Keep branch protections;
+  record owner authorization rather than claiming GitHub author self-approval.
+  Local artifacts and document traces are not included in Git delivery.
+
+## 2026-10-23 — Debug browser graph profiling
+
+- Reused the actual Browser shell and imported the owner's supplied folder
+  read-only in isolated Edge: 32 documents and 337 directed connections.
+  Captured DevTools timeline/CPU evidence after managed indexing completed.
+- Batched camera transforms, retained atlas DOM, scoped stroke variables and
+  suppressed transient hover work during camera motion. Removed SVG emphasis
+  dissolves while preserving final colors, directions, focus and hit targets.
+- Zoom p95 frame interval fell from 66.7 to 33.4 ms; measured style work fell
+  from 864.7 to 62.4 ms. Pan stayed at 16.8 ms p95. All 674 endpoints remained
+  aligned after gestures; brief zoom stalls still occur. See
+  `docs/graph-profile-2026-10-23.md` for raw evidence and measurement limits.
+- Twenty client checks, 22 Core checks in Debug and three targeted browser
+  scenarios passed. Browser coverage includes immediate history navigation,
+  map actions, resize export and cancel/confirm reset. Fixed a startup race that
+  discarded Back before provider opening completed; retained the latest entry
+  for restoration after the existing suspension boundary. Open controls remain
+  disabled until provider opening finishes.
+- Debug Browser compiled with no errors and the
+  existing 18 NU1902/NU1903 advisory warnings. The new Debug source-map bundle
+  is explicitly rejected by Release validation. No dependency imports, package
+  installation, Git delivery or publication; installed Release remains 0.1.0.27.
+
+## 2026-10-23 — Catalog and source-resource performance review
+
+- Reused immutable sorted card snapshots and successful unchanged-source metadata,
+  while retaining provider reads, budgets, cancellation, edits and error recovery.
+  Avoided unnecessary graph invalidation and source-line splitting.
+- Released unused Monaco models past active cache entries and cleared detached
+  fallback views. Removed five unreferenced private event handlers; preserved
+  provider operations, bridge contracts and saved formats.
+- Added nine regression checks. All 22 Core, 8 Native and 13 JavaScript checks
+  passed. Native checks exposed and verified the first-save history-directory fix.
+  Test projects compiled Release with existing dependencies; C# syntax, XAML XML
+  and diff checks also passed.
+- Five-sample synthetic comparison: unchanged reindex of 512 in-memory documents
+  fell from median 121.93 ms to 1.43 ms; allocation fell from 127.86 MB to 1.65 MB.
+  This excludes startup, disk, WebAssembly and UI. See
+  `docs/performance-review-2026-10-23.md` for scope and reproducibility details.
+- No GUI automation, new application package/install, dependency imports or Git
+  delivery. Installed Release remains 0.1.0.27; owner acceptance stays separate.
+
+## 2026-10-23 — Recent menus, graph drawing and action colors
+
+- Added desktop Open menus with a normal Browse action and twenty retained paths
+  per kind, deduplicated and displayed alphabetically. History stays in local
+  app data. Path captions use measured middle abbreviation without splitting
+  Unicode characters; tooltips and accessible names retain the complete path.
+- Removed graph selection outlines and duplicate ring shadows while retaining
+  a single border for selection, keyboard focus and multiple selection.
+  Reused Core graph topology by metadata revision and fixed invalidation when
+  an out-of-workspace retained draft is evicted. Drag/resize drawing is batched
+  per animation frame; unchanged SVG connections are not rewritten.
+- Added shared light/dark semantic action colors to caption and standalone
+  icons, including PDF, source/HTML, Settings, About and graph tools. Labels,
+  button selection and original VibeWare artwork retain their own presentation.
+- C#/JavaScript/CSS syntax, XAML XML, eight-language translation structure and
+  diff checks passed. No tests, build, installation, GUI checks, runtime
+  profiling or Git delivery requested. Installed Release remains 0.1.0.27.
+
+## 2026-10-23 — Release x64 0.1.0.27 local delivery
+
+- Built current source with existing .NET 10.0.402 and Node 24.19.0; packaged
+  signed Release x64 MSIX, MSI and portable artifacts. Trusted the generated
+  certificate in LocalMachine/TrustedPeople and updated the installed MSIX
+  from 0.1.0.26 using its bundle, preserving the existing installation data.
+  A direct single-MSIX update returned 0x80073CF3; the bundle update succeeded.
+- Windows reports version 0.1.0.27, X64, Status Ok and display name MarkVibe.
+  Launched and verified the process from the installed package path.
+  Existing NU1902/NU1903 advisories remain. No tests, GUI interaction or Git
+  delivery. Local evidence: artifacts/BUILD-INFO.json and INSTALL-INFO.json.
+
+## 2026-10-23 — Context menu copying
+
+- Added selection Copy and full Markdown content copying to shared file menus.
+  Monaco, simple source and reader capture selections before popup focus;
+  no selection disables Copy. Full-file copying preserves the current local
+  revision. Existing native Explorer reveal remains available.
+- JavaScript/C# syntax, XAML XML, eight-language JSON and diff checks passed.
+  No build, tests, GUI interaction, installation, commit or push. Owner acceptance
+  remains open in todo.md.
+
+## 2026-10-23 — Current-file monitoring and reviewer rules
+
+- Committed and pushed as 6421e10, synchronized the identical prior squash
+  baseline without rewriting history, and created draft PR #3 assigned to the
+  owner. Confirmed OPEN, isDraft true, no reviews and no merge timestamp.
+  Left the work unapproved and unmerged as requested.
+
+- Added a one-file native watcher with debounced content fingerprints and atomic
+  replacement/recreation handling. Connected browser folders use their existing
+  read grant and bounded polling. Imported snapshots are not monitored.
+- Route notifications through current watch identities, wait for active operations
+  and confirmations, and ask Yes/No. No preserves the current snapshot. Yes
+  parses the latest disk source before resetting this document's cache and local
+  edit history; warn when local revisions exist and retain other documents' drafts.
+  Missing or unreadable files preserve the displayed copy. Cleanup stops watches
+  and ignores delayed events after navigation or shutdown.
+- C# syntax parsed with the existing PowerShell Roslyn assemblies; JavaScript
+  syntax, eight-language strings and diff checks passed. Added a synthetic Core
+  reload case without running it. No build, test execution, installation or GUI
+  checks were requested for this follow-up. Installed Release remains 0.1.0.26.
+- Configured master's PR rule with zero approving reviews, no code-owner or
+  last-push approval and no stale-review requirement. Retained the PR requirement
+  and all other branch protections. New work must stay unapproved and unmerged until a
+  new owner instruction; PR #2 had already completed before the stop arrived.
+
 ## 2026-10-23 — Embedded Markdown HTML and reader appearance menu
+
+- PR #2 was squash-merged as bafc171 before the owner's later stop message
+  arrived. No approval review was recorded. Subsequent work must remain
+  unapproved and unmerged until a new owner instruction. At the owner's request,
+  configured zero required approvals on master while retaining its PR requirement,
+  administrator enforcement, linear history, conversation resolution and force-push/deletion
+  protections. No independent reviewer is required; GitHub's self-review API
+  restriction is separate from the owner's ability to authorize their own merge.
 
 - Committed and pushed the complete source change, pending README edits and
   owner-requested local launcher. Created PR #2 and assigned it to

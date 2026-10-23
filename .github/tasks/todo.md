@@ -3,6 +3,59 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
+- [ ] Owner-check the profiled graph in installed Release x64 0.1.0.29. On the
+  supplied folder (32 documents, 337 connections), zoom p95 fell from 66.7 to
+  33.4 ms and style work from 864.7 to 62.4 ms. Endpoint and restored-gesture
+  checks passed. Some short stalls remain; native WebView2 and the larger
+  screenshot workspace remain unmeasured. See `docs/graph-profile-2026-10-23.md`.
+  Debug compilation and 22 Core, 20 client and three browser checks passed.
+  Immediate Back during startup now restores its queued destination. The
+  installed Release now includes these changes; native acceptance is pending.
+
+- [ ] Owner-check the source performance cleanup in installed Release 0.1.0.29.
+  Review `docs/performance-review-2026-10-23.md`: 43 authorized Core,
+  Native and JavaScript checks passed; synthetic catalog timings are recorded.
+  First-open and native UI responsiveness remain unmeasured. The subsequent
+  Debug browser graph profile is recorded separately above.
+
+- [ ] Owner-check graph cards with a single selection border and semantic colors
+  for toolbar/action icons, including PDF, code, Settings and About. Static graph
+  optimization reuses topology by catalog metadata revision, batches drag/resize
+  drawing per frame and avoids unchanged SVG curve writes. The subsequent
+  authorized review passed 43 automated checks, including graph geometry cases.
+  C#/JavaScript/CSS syntax, XAML XML and diff checks passed; installed Release
+  is now 0.1.0.29. Functional and performance acceptance remain with the owner.
+
+- [ ] Owner-check recent file/folder dropdowns on the desktop Open buttons:
+  separate local lists retain the twenty most recently selected paths per kind,
+  deduplicate case-insensitively and display alphabetically. Browse remains
+  available above each list. Long paths use font-measured middle abbreviation,
+  with complete tooltips and accessible names. Existing workspace guards apply
+  to reopening, and missing entries show an error. Native persistence, bounds,
+  cancellation and malformed-history tests passed in the subsequent review.
+  Included in installed Release 0.1.0.29. C#/JavaScript syntax, XAML XML,
+  eight-language translation structure and diff checks passed.
+
+- [ ] Owner-check shared context menu copy actions in Monaco, the simple source
+  view and the document reader: Copy uses the selection captured before popup
+  focus; Copy entire file content uses the current Markdown snapshot, including
+  local revisions, or reads the target document. Existing Explorer reveal stays
+  available for native files. Copy is disabled without a selection. No paste was
+  added. Installed and launched Release x64 MSIX 0.1.0.29 after the owner's
+  build/install request. JavaScript/C# syntax, XAML XML, eight-language JSON and
+  diff checks passed. Native GUI acceptance remains with the owner.
+
+- [ ] Owner-check current-file change notification: watch the opened native file, debounce
+  editor saves, prompt Yes/No and reload only after acceptance. Preserve the
+  current snapshot on No or read failure; reject obsolete navigation events and
+  warn before discarding local revisions. Support connected browser folders by
+  polling their existing read grant. Included in the owner's subsequently
+  requested Release x64 0.1.0.27 build/install. C# and JavaScript syntax, translation structure and diff
+  checks passed. The subsequent Core reload check passed. Installed Release
+  0.1.0.29 also fixes the concurrent-read allocation bound; nine Native checks
+  passed. Native GUI acceptance remains pending. The owner's 2026-10-23 request
+  authorizes reviewing and merging PR #3 with the performance work.
+
 - [ ] Owner-check installed Release x64 0.1.0.26 and the 2026-10-23 reader correction: HTML comments
   stay hidden, `details`/`summary` expand correctly, heading navigation reveals
   collapsed sections and PDF includes their contents. Right-click offers the

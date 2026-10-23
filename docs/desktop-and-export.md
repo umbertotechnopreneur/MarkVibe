@@ -2,6 +2,23 @@
 
 Current-page HTML/PDF export is implemented in browsers and the Windows WPF/WebView2 host.
 
+## Changes to the current file
+
+The Windows host watches the opened Markdown file, including editor saves that
+replace it atomically. A connected browser folder is checked periodically using
+its existing read permission. Imported files and ZIPs remain snapshots.
+
+If the content changes, MarkVibe asks whether to reload it. **No** keeps the
+displayed content; another notification needs a new disk revision. **Yes** reads
+and validates the latest file before replacing its cached copy. Local AI edits
+and undo history are discarded only after that confirmation, with a warning;
+other documents keep their drafts. Reading position is restored where possible.
+Missing, locked, oversized or invalid files leave the displayed copy intact.
+
+Notifications wait for active operations and confirmations, follow only the
+current document and stop on navigation or shutdown. This feature does not write
+the source file or request a new browser folder permission.
+
 ## Export the current page
 
 Choose **Settings → Export current page** in Read, Source, Split or Map.

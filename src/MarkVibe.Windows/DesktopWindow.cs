@@ -53,6 +53,8 @@ internal sealed partial class DesktopWindow : Window
     private const string Origin = "https://" + Host;
     private readonly DesktopOptions _options;
     private readonly NativeFiles _files;
+    private readonly RecentLocations _recentLocations;
+    private readonly CurrentDocumentWatcher _documentWatcher;
     private readonly AiConnectionService _aiConnections;
     private readonly WebViewDiagnostics _diagnostics = new();
     // All application overlays live inside the browser. Direct HWND presentation avoids
@@ -83,6 +85,8 @@ internal sealed partial class DesktopWindow : Window
     {
         _options = options;
         _files = new(options.DataDirectory);
+        _recentLocations = new(options.DataDirectory);
+        _documentWatcher = new CurrentDocumentWatcher(_files, Dispatcher, NotifyDocumentChange);
         _aiConnections = new(options.DataDirectory);
         _startupDocument = options.Document;
         UiStrings.SetLanguage("system", _systemLanguage);
@@ -112,6 +116,7 @@ internal sealed partial class DesktopWindow : Window
         Closing += OnClosing;
         Closed += (_, _) =>
         {
+            _documentWatcher.Dispose();
             SystemEvents.UserPreferenceChanged -= UserPreferenceChanged;
             _view.Dispose();
             _print.Dispose();
@@ -420,6 +425,8 @@ internal sealed partial class DesktopWindow : Window
                 return true;
             case "file.browser":
                 return await OpenBrowserPreviewAsync(Text("html"), token);
+            case "workspace.recent":
+                return _recentLocations.List(Text("kind"));
             case "workspace.open":
             {
                 var mode = Text("mode");
@@ -430,7 +437,19 @@ internal sealed partial class DesktopWindow : Window
                     return _files.Resume();
                 }
 
-                if (_startupDocument != null)
+                if (mode == "recent")
+                {
+                    var recent = _recentLocations.Resolve(Text("recentPath"), Text("recentKind"));
+                    if (recent.Kind == "folder")
+                    {
+                        root = recent.Path;
+                    }
+                    else
+                    {
+                        selected = recent.Path;
+                    }
+                }
+                else if (_startupDocument != null)
                 {
                     selected = _startupDocument;
                     _startupDocument = null;
@@ -481,6 +500,15 @@ internal sealed partial class DesktopWindow : Window
                 }
 
                 var info = _files.Open(root);
+                try
+                {
+                    await _recentLocations.RememberAsync(selected ?? root, selected == null ? "folder" : "files", token);
+                }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                {
+                    // Opening an accessible document must still work if the local history cannot be saved.
+                    DesktopLog.Write("warning", "recent-locations.save-failed");
+                }
                 if (selected != null)
                 {
                     return new
@@ -500,6 +528,12 @@ internal sealed partial class DesktopWindow : Window
                 return await Task.Run(() => _files.Entries(Text("workspaceId")));
             case "workspace.read":
                 return Convert.ToBase64String(await _files.ReadAsync(Text("workspaceId"), Text("path"), token));
+            case "document.watch":
+                _documentWatcher.Start(Text("workspaceId"), Text("path"), Text("watchId"), Text("fingerprint"));
+                return true;
+            case "document.watch.stop":
+                _documentWatcher.Stop();
+                return true;
             case "map.read":
                 return await _files.ReadMapAsync(Text("workspaceId"), token);
             case "map.write":

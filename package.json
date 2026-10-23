@@ -8,7 +8,8 @@
   "scripts": {
     "check": "pwsh -NoProfile -File scripts/check.ps1",
     "bundle": "node scripts/bundle.mjs",
-    "test:client": "node --test tests/client/path.test.mjs tests/client/zip.test.mjs",
+    "bundle:debug": "node scripts/bundle.mjs --debug",
+    "test:client": "node --test tests/client/path.test.mjs tests/client/zip.test.mjs tests/client/rendering.test.mjs",
     "test:browser": "node tests/browser/smoke.mjs",
     "test:windows": "node tests/windows/smoke.mjs"
   },

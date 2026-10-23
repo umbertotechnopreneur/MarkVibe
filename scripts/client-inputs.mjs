@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; deterministic client input fingerprint; 2026-10-16
  * Modified with AI: OpenAI Codex; include bundled distribution notices in stale-output detection; 2026-10-16
+ * Modified with AI: OpenAI Codex; prevent Debug client output and source maps from entering Release builds; 2026-10-23
  * Human guidance: reject stale bundles and dependencies before building
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
@@ -10,6 +11,21 @@ import { readFile, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 export const repositoryRoot = resolve(import.meta.dirname, "..");
+
+/** Reject Debug assets in non-Debug builds; Debug may also consume the normal optimized client. */
+export function validateBundleConfiguration(saved, configuration = "Release") {
+  if (!["Debug", "Release"].includes(saved.configuration) || !Array.isArray(saved.outputs)) {
+    throw new Error("Client bundle configuration evidence is missing. Run npm run bundle again.");
+  }
+  if (configuration.toLowerCase() !== "debug") {
+    if (saved.configuration !== "Release") {
+      throw new Error("Debug client assets cannot be used by a " + configuration + " build. Run npm run bundle.");
+    }
+    if (saved.outputs.some(output => output.endsWith(".map"))) {
+      throw new Error("Release client assets must not include source maps. Run npm run bundle.");
+    }
+  }
+}
 
 /** Require the installed npm graph to agree with the committed lock before consuming generated output. */
 export async function verifyInstalledPackages() {

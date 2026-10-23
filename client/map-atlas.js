@@ -3,6 +3,7 @@
  * Created with AI: OpenAI Codex; atlas rendering, semantic zoom, folder islands and minimap; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement all seven document atlas improvements
  * Modified with AI: OpenAI Codex; share document activation between overview labels and cards; 2026-10-16
+ * Modified with AI: OpenAI Codex; batch viewport reads and retain semantic zoom and minimap elements; 2026-10-23
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 import { textElement, uiText } from "./markdown.js";
@@ -41,6 +42,7 @@ export class MapAtlasRenderer {
     this.host = host;
     this.groups = new Map();
     this.labels = new Map();
+    this.miniMarks = new Map();
     this.cameraRevision = 0;
     this.overview = svgNode("svg", { class: "map-minimap", viewBox: "0 0 300 180", tabindex: 0, role: "img" });
     localize(this.overview, "Map overview. Click to navigate; use arrow keys to pan and Home to fit.", "aria-label");
@@ -126,6 +128,7 @@ export class MapAtlasRenderer {
   /** Reset view-local caches when the managed layout session changes, including reopening the same folder. */
   acceptState() {
     const host = this.host;
+    const viewport = this.viewportMetrics();
     if (this.stateId !== host.state?.stateId) {
       this.stateId = host.state?.stateId;
       this.cameraRevision = 0;
@@ -150,7 +153,7 @@ export class MapAtlasRenderer {
       const nearby = this.focusDepth === 0 || distance >= 0 && distance <= this.focusDepth || this.routePaths.has(path);
       item.container.style.setProperty("--atlas-focus-opacity", nearby ? "1" : ".18");
       item.container.classList.toggle("route-member", this.routePaths.has(path));
-      item.container.hidden = !host.small() && host.state?.folderGroups && this.collapsed.has(folderOf(path));
+      item.container.hidden = !viewport.compact && host.state?.folderGroups && this.collapsed.has(folderOf(path));
     }
     for (const item of host.edgePaths ?? []) {
       const onRoute = this.routePairs.has(JSON.stringify([item.edge.source, item.edge.target]));
@@ -161,7 +164,7 @@ export class MapAtlasRenderer {
       item.group.style.setProperty("--atlas-edge-opacity", nearby ? "1" : ".12");
       item.hitPath.setAttribute("tabindex", item.edge.source === host.selected || item.edge.target === host.selected ? "0" : "-1");
     }
-    this.updateZoom();
+    this.updateZoom(viewport);
   }
 
   /** Draw stable, keyboard-accessible islands using full-layout bounds and full-catalog folder counts. */
@@ -172,15 +175,23 @@ export class MapAtlasRenderer {
     }
     const active = new Set();
     if (host.state?.folderGroups && !host.small()) {
+      const membersByFolder = new Map();
+      for (const [path, node] of host.nodes) {
+        const folder = folderOf(path);
+        if (!membersByFolder.has(folder)) {
+          membersByFolder.set(folder, []);
+        }
+        membersByFolder.get(folder).push(node);
+      }
       for (const folder of host.map?.folders ?? []) {
-        const members = [...host.nodes.entries()].filter(([path]) => folderOf(path) === folder.path);
+        const members = membersByFolder.get(folder.path) ?? [];
         if (!members.length) {
           continue;
         }
-        const left = Math.min(...members.map(([, node]) => node.x)) - 32;
-        const top = Math.min(...members.map(([, node]) => node.y)) - 62;
-        const right = Math.max(...members.map(([, node]) => node.x + (node.width ?? host.metrics.width))) + 32;
-        const bottom = Math.max(...members.map(([, node]) => node.y + (node.height ?? host.metrics.height))) + 32;
+        const left = Math.min(...members.map(node => node.x)) - 32;
+        const top = Math.min(...members.map(node => node.y)) - 62;
+        const right = Math.max(...members.map(node => node.x + (node.width ?? host.metrics.width))) + 32;
+        const bottom = Math.max(...members.map(node => node.y + (node.height ?? host.metrics.height))) + 32;
         let group = this.groups.get(folder.path);
         if (!group) {
           const frame = document.createElement("section");
@@ -244,27 +255,46 @@ export class MapAtlasRenderer {
       island: folderOf(path) } : null;
   }
 
-  /** Update semantic content levels from zoom alone; compact lists always retain normal card content. */
-  updateZoom() {
+  /** Read viewport dimensions together before overlay writes can invalidate their layout. */
+  viewportMetrics() {
     const host = this.host;
-    const overview = !host.small() && host.scale < .4;
-    const compact = !host.small() && host.scale >= .4 && host.scale < .72;
-    const detail = !host.small() && host.scale >= 1.05;
-    host.body.classList.toggle("map-overview", overview);
-    host.body.classList.toggle("map-compact", compact);
-    host.body.classList.toggle("map-detail", detail);
-    host.world.style.setProperty("--overview-title-size", Math.min(32, 13 / Math.max(.1, host.scale)) + "px");
-    this.scaleValue.textContent = Math.round(host.scale * 100) + "% · ";
-    localize(this.scaleMode, overview ? "Overview" : detail ? "Detail" : "Documents");
-    this.overview.hidden = host.small();
-    this.scaleLabel.hidden = host.small();
-    this.drawOverviewLabels(overview);
-    this.updateMiniViewport();
+    return { compact: host.small(), width: host.viewport.clientWidth, height: host.viewport.clientHeight };
+  }
+
+  /** Update zoom labels only when their meaning changes; camera movement retains their DOM and text. */
+  updateZoom(viewport = this.viewportMetrics()) {
+    const host = this.host;
+    const overview = !viewport.compact && host.scale < .4;
+    const compact = !viewport.compact && host.scale >= .4 && host.scale < .72;
+    const detail = !viewport.compact && host.scale >= 1.05;
+    const signature = [viewport.compact, overview, compact, detail, document.documentElement.lang].join(":");
+    if (this.zoomSignature !== signature) {
+      host.body.classList.toggle("map-overview", overview);
+      host.body.classList.toggle("map-compact", compact);
+      host.body.classList.toggle("map-detail", detail);
+      localize(this.scaleMode, overview ? "Overview" : detail ? "Detail" : "Documents");
+      this.overview.hidden = viewport.compact;
+      this.scaleLabel.hidden = viewport.compact;
+      this.overviewLabels.hidden = !overview;
+      this.zoomSignature = signature;
+    }
+    // The title size only affects overview cards; avoid inherited CSS invalidation at other zoom levels.
+    const titleSize = Math.min(32, 13 / Math.max(.1, host.scale)) + "px";
+    if (overview && this.overviewTitleSize !== titleSize) {
+      host.world.style.setProperty("--overview-title-size", titleSize);
+      this.overviewTitleSize = titleSize;
+    }
+    const percentage = Math.round(host.scale * 100);
+    if (this.zoomPercentage !== percentage) {
+      this.scaleValue.textContent = percentage + "% · ";
+      this.zoomPercentage = percentage;
+    }
+    this.drawOverviewLabels(overview, viewport);
+    this.updateMiniViewport(viewport);
   }
 
   /** Keep selected/hub and island names at a readable screen size when the graph itself becomes very small. */
-  drawOverviewLabels(visible) {
-    this.overviewLabels.hidden = !visible;
+  drawOverviewLabels(visible, viewport = this.viewportMetrics()) {
     if (!visible) {
       return;
     }
@@ -290,10 +320,10 @@ export class MapAtlasRenderer {
     for (const candidate of candidates) {
       const x = host.x + candidate.x * host.scale;
       const y = host.y + candidate.y * host.scale;
-      if (x < 16 || x > host.viewport.clientWidth - 16 || y < 145 || y > host.viewport.clientHeight - 55) {
+      if (x < 16 || x > viewport.width - 16 || y < 145 || y > viewport.height - 55) {
         continue;
       }
-      const left = Math.max(16, Math.min(host.viewport.clientWidth - 164, x - 74));
+      const left = Math.max(16, Math.min(viewport.width - 164, x - 74));
       const top = y - 14;
       if (occupied.some(rectangle => Math.abs(rectangle.left - left) < 158 && Math.abs(rectangle.top - top) < 36)) {
         continue;
@@ -315,11 +345,17 @@ export class MapAtlasRenderer {
         this.labels.set(candidate.key, label);
         this.overviewLabels.append(label);
       }
-      label.textContent = candidate.title;
-      label.setAttribute("title", candidate.title);
+      if (label.textContent !== candidate.title) {
+        label.textContent = candidate.title;
+        label.setAttribute("title", candidate.title);
+      }
       label.classList.toggle("selected", Boolean(candidate.selected));
-      label.style.left = left + "px";
-      label.style.top = top + "px";
+      if (label.style.left !== left + "px") {
+        label.style.left = left + "px";
+      }
+      if (label.style.top !== top + "px") {
+        label.style.top = top + "px";
+      }
       active.add(candidate.key);
       occupied.push({ left, top });
       if (active.size >= 12) {
@@ -334,43 +370,80 @@ export class MapAtlasRenderer {
     }
   }
 
-  /** Rebuild minimap marks after managed state, membership or card geometry changes, never during camera-only animation. */
+  /** Retain minimap marks across moves and update only changed coordinates, appearance and membership. */
   drawMinimap() {
     const host = this.host;
     if (!host.metrics || !Number.isFinite(host.worldWidth)) {
       return;
     }
+    const viewport = this.viewportMetrics();
     this.miniBounds = { x: host.minX, y: host.minY, width: Math.max(1, host.worldWidth), height: Math.max(1, host.worldHeight) };
     const { x, y, width, height } = this.miniBounds;
-    this.overview.setAttribute("viewBox", [x, y, width, height].join(" "));
-    const marks = document.createDocumentFragment();
+    const viewBox = [x, y, width, height].join(" ");
+    if (this.overview.getAttribute("viewBox") !== viewBox) {
+      this.overview.setAttribute("viewBox", viewBox);
+    }
+    const active = new Set();
     for (const [path, item] of host.cards) {
       const node = host.nodes.get(path);
       if (!node || item.container.hidden) {
         continue;
       }
-      marks.append(svgNode("rect", { x: node.x, y: node.y, width: node.width ?? host.metrics.width,
+      this.updateMiniMark("document:" + path, { x: node.x, y: node.y, width: node.width ?? host.metrics.width,
         height: node.height ?? host.metrics.height, rx: 10, fill: path === host.selected ? "var(--accent)" : node.color,
-        opacity: path === host.selected ? 1 : .65 }));
+        opacity: path === host.selected ? 1 : .65 }, active);
     }
-    for (const group of this.groups.values()) {
+    for (const [folder, group] of this.groups) {
       if (group.frame.classList.contains("collapsed")) {
         const bounds = group.bounds;
-        marks.append(svgNode("rect", { x: bounds.left, y: bounds.top, width: bounds.right - bounds.left,
-          height: bounds.bottom - bounds.top, rx: 12, fill: group.frame.style.getPropertyValue("--island-color") }));
+        this.updateMiniMark("folder:" + folder, { x: bounds.left, y: bounds.top, width: bounds.right - bounds.left,
+          height: bounds.bottom - bounds.top, rx: 12, fill: group.frame.style.getPropertyValue("--island-color") }, active);
       }
     }
-    this.miniNodes.replaceChildren(marks);
-    this.updateMiniViewport();
+    for (const [key, mark] of this.miniMarks) {
+      if (!active.has(key)) {
+        mark.remove();
+        this.miniMarks.delete(key);
+      }
+    }
+    // Preserve document/folder paint order when membership changes, without reparenting marks during moves.
+    const order = JSON.stringify([...active]);
+    if (this.miniOrder !== order) {
+      this.miniNodes.replaceChildren(...[...active].map(key => this.miniMarks.get(key)));
+      this.miniOrder = order;
+    }
+    this.updateMiniViewport(viewport);
+  }
+
+  /** Keep one SVG rectangle per document or collapsed folder, including through selection changes. */
+  updateMiniMark(key, attributes, active) {
+    let mark = this.miniMarks.get(key);
+    if (!mark) {
+      mark = svgNode("rect", attributes);
+      this.miniMarks.set(key, mark);
+      this.miniNodes.append(mark);
+    } else {
+      for (const [name, value] of Object.entries(attributes)) {
+        const text = String(value);
+        if (mark.getAttribute(name) !== text) {
+          mark.setAttribute(name, text);
+        }
+      }
+    }
+    active.add(key);
   }
 
   /** Move the camera rectangle using existing SVG nodes so zoom and pan do not rebuild the minimap. */
-  updateMiniViewport() {
+  updateMiniViewport(viewport = this.viewportMetrics()) {
     const host = this.host;
-    this.miniViewport.setAttribute("x", -host.x / host.scale);
-    this.miniViewport.setAttribute("y", -host.y / host.scale);
-    this.miniViewport.setAttribute("width", host.viewport.clientWidth / host.scale);
-    this.miniViewport.setAttribute("height", host.viewport.clientHeight / host.scale);
+    const attributes = { x: -host.x / host.scale, y: -host.y / host.scale,
+      width: viewport.width / host.scale, height: viewport.height / host.scale };
+    for (const [name, value] of Object.entries(attributes)) {
+      const text = String(value);
+      if (this.miniViewport.getAttribute(name) !== text) {
+        this.miniViewport.setAttribute(name, text);
+      }
+    }
   }
 
   /** Convert a minimap pointer through its SVG matrix, respecting letterboxing and desktop scaling. */
