@@ -8,6 +8,7 @@
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
+ * Modified with AI: OpenAI Codex; retain browser history navigation during workspace opening; 2026-10-23
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; Markdown AI lifecycle and revision integration; 2026-10-11
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
@@ -72,6 +73,8 @@ public partial class MainPage : UserControl
     private CancellationTokenSource _navigation = new(), _indexing = new(), _opening = new(), _exporting = new();
     private bool _exportBusy, _documentBusy, _desktop, _acrylicAvailable, _preferencesPersisted;
     private bool _workspaceTransitionBusy;
+    /// <summary>The latest browser Back/Forward destination received while providers are being replaced.</summary>
+    private HistoryEntry? _pendingHistory;
     private SettingsWindow? _settingsDialog;
     private Preferences _preferences = new();
     private ResumeInfo? _resume;
@@ -85,6 +88,7 @@ public partial class MainPage : UserControl
         InitializeComponent();
         InitializeLayoutPersistence();
         InitializeFileMenus();
+        InitializeRecentLocations();
         InitializeDocumentWatch();
         PublicationFooter.AboutRequested += ShowAbout;
         Loaded += Start;
@@ -124,6 +128,7 @@ public partial class MainPage : UserControl
         {
             var initial = await BrowserServices.CallAsync<InitialState>("initialize");
             _desktop = initial.Desktop;
+            ConfigureRecentLocationButtons();
             _preferences = initial.Preferences.Validated();
             _layout = (initial.Layout ?? new ShellLayout()).Validated();
             MapHost.RestoreInspectorWidth(_layout.MapInspectorWidth);
@@ -219,7 +224,8 @@ public partial class MainPage : UserControl
     }
 
     /// <summary>Freezes graph input around provider replacement, resuming it when opening fails.</summary>
-    private async Task OpenWorkspaceAsync(string mode, string initialPath = "", string anchor = "", ReadingPosition? position = null)
+    private async Task OpenWorkspaceAsync(string mode, string initialPath = "", string anchor = "", ReadingPosition? position = null,
+        string recentPath = "", string recentKind = "")
     {
         AssertMarkdownEditIdle();
         if (_workspaceTransitionBusy)
@@ -227,25 +233,41 @@ public partial class MainPage : UserControl
             throw new WorkspaceException("workspace-busy", "Wait for the workspace to finish opening.");
         }
         _workspaceTransitionBusy = true;
+        OpenFileButton.IsEnabled = false;
+        OpenFolderButton.IsEnabled = false;
         var mapSuspended = false;
         try
         {
             await BrowserServices.CallAsync("map.suspend");
             mapSuspended = true;
-            await OpenWorkspaceCoreAsync(mode, initialPath, anchor, position);
+            await OpenWorkspaceCoreAsync(mode, initialPath, anchor, position, recentPath, recentKind);
         }
         finally
         {
-            _workspaceTransitionBusy = false;
-            if (mapSuspended)
+            try
             {
-                await BrowserServices.CallAsync("map.resume");
+                if (mapSuspended)
+                {
+                    await BrowserServices.CallAsync("map.resume");
+                }
+            }
+            finally
+            {
+                _workspaceTransitionBusy = false;
+                OpenFileButton.IsEnabled = true;
+                OpenFolderButton.IsEnabled = true;
+                if (_pendingHistory is { } pendingHistory)
+                {
+                    _pendingHistory = null;
+                    await RestoreHistoryAsync(pendingHistory);
+                }
             }
         }
     }
 
     /// <summary>Flushes pending edits, opens and seeds a provider, restores its page and starts bounded indexing.</summary>
-    private async Task OpenWorkspaceCoreAsync(string mode, string initialPath, string anchor, ReadingPosition? position)
+    private async Task OpenWorkspaceCoreAsync(string mode, string initialPath, string anchor, ReadingPosition? position,
+        string recentPath, string recentKind)
     {
         if (UnsavedDocumentCount() > 0)
         {
@@ -274,7 +296,7 @@ public partial class MainPage : UserControl
             {
                 throw new WorkspaceException("markdown-unsaved", "Save a Markdown copy or restore edited documents before opening another workspace.");
             }
-            var info = await BrowserServices.CallAsync<WorkspaceInfo>("workspace.open", new { mode }, cancellation);
+            var info = await BrowserServices.CallAsync<WorkspaceInfo>("workspace.open", new { mode, recentPath, recentKind }, cancellation);
             if (initialPath.Length == 0 && mode != "demo")
             {
                 var saved = await BrowserServices.CallAsync<JsonElement>("history.saved", new { workspaceId = info.Id }, cancellation);
@@ -815,6 +837,12 @@ public partial class MainPage : UserControl
         SetBrush("Accent", ParseColor(dark ? "#A894F9" : "#525CE8"));
         SetBrush("AccentSoft", ParseColor(dark ? "#252333" : "#ECEEFE"));
         SetBrush("ErrorText", ParseColor(dark ? "#FFA6B1" : "#A31F34"));
+        SetBrush("IconBlue", ParseColor(dark ? "#75B8FA" : "#2169B5"));
+        SetBrush("IconTeal", ParseColor(dark ? "#59D3C8" : "#087E78"));
+        SetBrush("IconGold", ParseColor(dark ? "#EAC16B" : "#91620C"));
+        SetBrush("IconCoral", ParseColor(dark ? "#F78E9D" : "#BE3849"));
+        SetBrush("IconGreen", ParseColor(dark ? "#83D79C" : "#2C804B"));
+        SetBrush("IconPurple", ParseColor(dark ? "#BAA0F5" : "#7654BD"));
 
         var panelColor = ParseColor(dark ? "#191D23" : "#FFFFFF");
         panelColor.A = acrylic ? (byte)(dark ? 218 : 185) : (byte)255;
@@ -950,7 +978,11 @@ public partial class MainPage : UserControl
                 }
                 break;
             case "file-context":
-                ShowFileMenu(new FileMenuTarget(root.GetProperty("workspaceId").GetString() ?? "", root.GetProperty("path").GetString() ?? "", root.GetProperty("title").GetString() ?? ""),
+                ShowFileMenu(new FileMenuTarget(
+                    root.GetProperty("workspaceId").GetString() ?? "",
+                    root.GetProperty("path").GetString() ?? "",
+                    root.GetProperty("title").GetString() ?? "",
+                    SelectedText: root.GetProperty("selectedText").GetString() ?? ""),
                     new Point(root.GetProperty("x").GetDouble(), root.GetProperty("y").GetDouble()));
                 break;
             case "document-file-changed":
@@ -974,29 +1006,8 @@ public partial class MainPage : UserControl
                 await NavigateAsync(root.GetProperty("path").GetString() ?? "", root.TryGetProperty("anchor", out var anchor) ? anchor.GetString() ?? "" : "");
                 break;
             case "history":
-                AssertMarkdownEditIdle();
-                if (_workspaceTransitionBusy)
-                {
-                    return;
-                }
                 var entry = Wire.Decode<HistoryEntry>(root.GetProperty("entry").GetRawText());
-                if (!_contexts.TryGetValue(entry.WorkspaceId, out var context))
-                {
-                    ShowMessage("Reopen this workspace", "Open its folder, files or bundle again to continue from this page.");
-                    return;
-                }
-
-                _active = context;
-                await LoadReaderAppearanceAsync();
-                await ApplyPreferencesAsync();
-                _history.Restore(entry);
-                await NavigateAsync(entry.Path, entry.Anchor, false, entry.Position);
-                if (!context.Catalog.IndexComplete)
-                {
-                    _indexing.Cancel();
-                    _ = IndexAsync(context);
-                }
-
+                await RestoreHistoryAsync(entry);
                 break;
             case "status":
                 if (root.TryGetProperty("severity", out var severity) && severity.GetString() == "error")
@@ -1025,6 +1036,37 @@ public partial class MainPage : UserControl
                 break;
         }
     });
+
+    /// <summary>Restores browser history after any provider replacement, retaining the latest pending destination.</summary>
+    private async Task RestoreHistoryAsync(HistoryEntry entry)
+    {
+        AssertMarkdownEditIdle();
+        if (_workspaceTransitionBusy)
+        {
+            // The first document becomes interactive before opening finishes. Browser Back
+            // already changes its URL, so retain that destination instead of discarding it.
+            _pendingHistory = entry;
+            return;
+        }
+
+        if (!_contexts.TryGetValue(entry.WorkspaceId, out var context))
+        {
+            ShowMessage("Reopen this workspace", "Open its folder, files or bundle again to continue from this page.");
+            return;
+        }
+
+        _active = context;
+        await LoadReaderAppearanceAsync();
+        await ApplyPreferencesAsync();
+        _history.Restore(entry);
+        await NavigateAsync(entry.Path, entry.Anchor, false, entry.Position);
+        if (!context.Catalog.IndexComplete)
+        {
+            _indexing.Cancel();
+            _ = IndexAsync(context);
+        }
+    }
+
     /// <summary>Refreshes the current catalog and view while preserving pending edits and available history.</summary>
     private async Task ReloadCatalogAsync(string path)
     {
@@ -1218,15 +1260,9 @@ public partial class MainPage : UserControl
         await BrowserServices.CallAsync("history.go", new { delta = 1 });
     });
     /// <summary>Opens selected Markdown files as a workspace.</summary>
-    private async void OpenFiles(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => OpenWorkspaceAsync("files"));
+    private async void OpenFiles(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => ShowRecentLocationsAsync("files", OpenFileButton));
     /// <summary>Opens a connected documentation folder with its provider capabilities.</summary>
-    private async void OpenFolder(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => OpenWorkspaceAsync("folder"));
-    /// <summary>Imports a folder's selected documentation files.</summary>
-    private async void ImportFolder(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => OpenWorkspaceAsync("imported"));
-    /// <summary>Imports a bounded documentation ZIP workspace.</summary>
-    private async void OpenZip(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => OpenWorkspaceAsync("zip"));
-    /// <summary>Reconnects the active workspace through the existing guarded opening flow.</summary>
-    private async void ReopenFolder(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => OpenWorkspaceAsync("reopen"));
+    private async void OpenFolder(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => ShowRecentLocationsAsync("folder", OpenFolderButton));
     /// <summary>Opens the application's local demo workspace.</summary>
     private async void OpenDemo(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => OpenWorkspaceAsync("demo"));
     /// <summary>Switches the shell to the Markdown reader.</summary>
@@ -1237,17 +1273,6 @@ public partial class MainPage : UserControl
     private async void SplitView(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => SetViewAsync("split"));
     /// <summary>Switches the shell to the document graph.</summary>
     private async void MapViewClick(object sender, RoutedEventArgs arguments) => await ExecuteAsync(() => SetViewAsync("map"));
-    /// <summary>Adds selected files to the active workspace and refreshes its catalog.</summary>
-    private async void AddFiles(object sender, RoutedEventArgs arguments) => await ExecuteAsync(async () =>
-    {
-        if (_active == null)
-        {
-            return;
-        }
-
-        await BrowserServices.CallAsync("workspace.addFiles", new { workspaceId = _active.Provider.Info.Id });
-        await ReloadCatalogAsync(_document?.Path ?? "");
-    });
     /// <summary>Selects a missing document file and retries the requested navigation.</summary>
     private async void ChooseMissing(object sender, RoutedEventArgs arguments) => await ExecuteAsync(async () =>
     {
@@ -1258,16 +1283,5 @@ public partial class MainPage : UserControl
 
         await BrowserServices.CallAsync("workspace.addMissing", new { workspaceId = _active.Provider.Info.Id, path = _missingPath });
         await ReloadCatalogAsync(_missingPath);
-    });
-    /// <summary>Refreshes the active provider and reloads its catalog.</summary>
-    private async void RefreshWorkspace(object sender, RoutedEventArgs arguments) => await ExecuteAsync(async () =>
-    {
-        if (_active == null)
-        {
-            return;
-        }
-
-        await _active.Provider.RefreshAsync(_opening.Token);
-        await ReloadCatalogAsync(_document?.Path ?? "");
     });
 }

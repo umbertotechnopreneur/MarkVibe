@@ -20,6 +20,8 @@
  * Modified with AI: OpenAI Codex; source excerpts, heading previews and complete-catalog atlas routes; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement the seven approved document atlas improvements
  * Modified with AI: OpenAI Codex; project attention priorities and expose observed source fingerprints; 2026-10-16
+ * Modified with AI: OpenAI Codex; immutable catalog snapshots and unchanged-source metadata reuse; 2026-10-23
+ * Human guidance: Umberto Giacobbi; optimize repeated work while preserving compatibility and regression coverage
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -70,7 +72,25 @@ public sealed class DocumentCatalog(MarkdownParser parser)
     private readonly Dictionary<string, DocumentSession> _sessions = new(StringComparer.Ordinal);
     private readonly HashSet<string> _workspaceDocumentPaths = new(StringComparer.Ordinal);
     private readonly LinkedList<string> _recency = new();
-    public IReadOnlyList<DocumentCard> Cards => _cards.Values.OrderBy(c => c.Path, StringComparer.Ordinal).ToList();
+    private readonly HashSet<string> _failedIndexPaths = new(StringComparer.Ordinal);
+    private long _cardsMetadataRevision = -1;
+    private IReadOnlyList<DocumentCard> _sortedCards = [];
+    private long _graphMetadataRevision = -1;
+    private DocumentGraph? _graph;
+    /// <summary>Returns a stable, read-only sorted snapshot until visible catalog metadata changes.</summary>
+    public IReadOnlyList<DocumentCard> Cards
+    {
+        get
+        {
+            if (_cardsMetadataRevision != MetadataRevision)
+            {
+                _sortedCards = Array.AsReadOnly(_cards.Values.OrderBy(card => card.Path, StringComparer.Ordinal).ToArray());
+                _cardsMetadataRevision = MetadataRevision;
+            }
+
+            return _sortedCards;
+        }
+    }
     public IReadOnlyCollection<DocumentSession> Sessions => _sessions.Values;
     public List<string> Warnings { get; } = new();
     public bool IndexComplete { get; private set; }
@@ -143,6 +163,7 @@ public sealed class DocumentCatalog(MarkdownParser parser)
         _workspaceDocumentPaths.UnionWith(markdownEntries.Select(entry => entry.Path));
         _cache.Clear();
         _recency.Clear();
+        _failedIndexPaths.Clear();
         Warnings.Clear();
         IndexComplete = false;
         IndexedCount = 0;
@@ -173,11 +194,23 @@ public sealed class DocumentCatalog(MarkdownParser parser)
                 }
 
                 totalBytes += bytes;
-                var model = parser.Parse(path, source);
-                UpdateMetadata(model);
-                if (_cache.ContainsKey(path))
+                // Still read the provider and enforce the budget before reusing parsed metadata.
+                // Local revisions remain authoritative through EffectiveSource above.
+                if (_fingerprints.ContainsKey(path) && HasCurrentMetadata(path, MarkdownParser.Fingerprint(source)))
                 {
-                    Remember(model);
+                    if (_cache.ContainsKey(path))
+                    {
+                        Touch(path);
+                    }
+                }
+                else
+                {
+                    var model = parser.Parse(path, source);
+                    UpdateMetadata(model);
+                    if (_cache.ContainsKey(path))
+                    {
+                        Remember(model);
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -191,11 +224,14 @@ public sealed class DocumentCatalog(MarkdownParser parser)
                     Warnings.Add(path + ": " + error.Message);
                 }
 
-                _cards[path] = _cards[path] with
+                if (_failedIndexPaths.Add(path))
                 {
-                    Introduction = "This page could not be indexed. Open it for details."
-                };
-                MetadataRevision++;
+                    _cards[path] = _cards[path] with
+                    {
+                        Introduction = "This page could not be indexed. Open it for details."
+                    };
+                    MetadataRevision++;
+                }
             }
 
             IndexedCount++;
@@ -291,7 +327,9 @@ public sealed class DocumentCatalog(MarkdownParser parser)
         else
         {
             _cards.Remove(removable.Path);
+            MetadataRevision++;
             _fingerprints.Remove(removable.Path);
+            _failedIndexPaths.Remove(removable.Path);
             _cache.Remove(removable.Path);
             _recency.Remove(removable.Path);
         }
@@ -360,13 +398,17 @@ public sealed class DocumentCatalog(MarkdownParser parser)
     /// <summary>Projects all visible document metadata from one effective parsed revision.</summary>
     private static DocumentCard CreateCard(MarkdownModel model)
     {
-        var lines = model.Source.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n');
         var excerpts = new Dictionary<int, string>();
-        foreach (var line in model.Links.Select(link => link.Line).Distinct().Take(64))
+        if (model.Links.Count > 0)
         {
-            var excerpt = line > 0 && line <= lines.Length ? lines[line - 1].Trim() : "";
-            excerpts[line] = excerpt.Length <= 220 ? excerpt : excerpt[..220] + "…";
+            var lines = model.Source.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n');
+            foreach (var line in model.Links.Select(link => link.Line).Distinct().Take(64))
+            {
+                var excerpt = line > 0 && line <= lines.Length ? lines[line - 1].Trim() : "";
+                excerpts[line] = excerpt.Length <= 220 ? excerpt : excerpt[..220] + "…";
+            }
         }
+
         return new(model.Path, model.Title, model.Introduction, model.Links, DocumentStatistics.FromModel(model))
         {
             Headings = model.Headings.Take(12).ToArray(),
@@ -377,9 +419,22 @@ public sealed class DocumentCatalog(MarkdownParser parser)
     /// <summary>Publishes visible metadata and its source identity together, including for documents outside the parsed cache.</summary>
     private void UpdateMetadata(MarkdownModel model, DocumentCard? card = null)
     {
+        if (HasCurrentMetadata(model.Path, model.Fingerprint))
+        {
+            return;
+        }
+
         _cards[model.Path] = card ?? CreateCard(model);
         _fingerprints[model.Path] = model.Fingerprint;
+        _failedIndexPaths.Remove(model.Path);
         MetadataRevision++;
+    }
+
+    /// <summary>Reuses metadata only for the exact source and never preserves a failed-index placeholder.</summary>
+    private bool HasCurrentMetadata(string path, string fingerprint)
+    {
+        return !_failedIndexPaths.Contains(path) &&
+            _fingerprints.TryGetValue(path, out var current) && current == fingerprint;
     }
 
     /// <summary>Publishes metadata and the parsed cache entry from the same effective document.</summary>
@@ -410,12 +465,24 @@ public sealed class DocumentCatalog(MarkdownParser parser)
         _recency.AddLast(path);
     }
 
+    /// <summary>Reuses sorted catalog cards and graph topology until membership or parsed metadata changes.</summary>
+    private DocumentGraph CurrentGraph()
+    {
+        if (_graph == null || _graphMetadataRevision != MetadataRevision)
+        {
+            _graph = new DocumentGraph(Cards);
+            _graphMetadataRevision = MetadataRevision;
+        }
+
+        return _graph;
+    }
+
     /// <summary>Projects a bounded document graph that retains its hub and selected card, optionally limited to its neighborhood.</summary>
     public MapSnapshot Map(string selected, bool neighborhood, string routeStart = "", string routeEnd = "", int focusDepth = 0,
         IReadOnlyList<string>? priorityPaths = null)
     {
+        var graph = CurrentGraph();
         var cards = Cards;
-        var graph = new DocumentGraph(cards);
         var distances = graph.DistancesFrom(selected);
         var route = graph.ShortestPath(routeStart, routeEnd);
         var outgoing = _cards.TryGetValue(selected, out var card) ? card.Links : [];

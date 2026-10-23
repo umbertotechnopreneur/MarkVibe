@@ -8,6 +8,7 @@
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
+ * Modified with AI: OpenAI Codex; current managed map selectors and filtered Debug browser checks; 2026-10-23
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
@@ -25,6 +26,12 @@ import { zipSync, strToU8 } from "fflate";
 
 const base = process.env.MARKVIBE_BASE_URL || "http://localhost:5080/";
 const artifacts = resolve(process.env.MARKVIBE_ARTIFACTS_DIR || "artifacts/browser");
+const filterIndex = process.argv.indexOf("--filter");
+const filterText = filterIndex < 0 ? "" : process.argv[filterIndex + 1];
+if (filterIndex >= 0 && !filterText) {
+  throw new Error("--filter requires a scenario-name regular expression.");
+}
+const scenarioFilter = filterText ? new RegExp(filterText, "iu") : null;
 const browser = await chromium.launch({ channel: process.env.MARKVIBE_BROWSER_CHANNEL || "msedge", headless: true });
 const results = [];
 await mkdir(artifacts, { recursive: true });
@@ -49,15 +56,30 @@ async function view(page, name) {
 // path: a workspace-relative document identity, not an operating-system path.
 /** Wait until the reader displays the expected synthetic document. */
 async function documentIs(page, path) {
-  await page.waitForFunction(expected => {
-    const hosts = [...document.querySelectorAll(".mv-dom-host")];
-    return hosts.some(host => host.shadowRoot?.querySelector(".document-meta .eyebrow")?.textContent === expected);
-  }, path);
+  try {
+    await page.waitForFunction(expected => {
+      const hosts = [...document.querySelectorAll(".mv-dom-host")];
+      return hosts.some(host => host.shadowRoot?.querySelector(".reader .document-meta .eyebrow")?.textContent === expected);
+    }, path);
+  } catch (error) {
+    const actual = await page.evaluate(() => ({
+      url: location.href,
+      history: history.state?.markvibe,
+      readers: [...document.querySelectorAll(".mv-dom-host")].map(host => ({
+        path: host.shadowRoot?.querySelector(".reader .document-meta .eyebrow")?.textContent,
+        heading: host.shadowRoot?.querySelector(".reader h1")?.textContent
+      }))
+    }));
+    throw new Error("Reader did not reach " + path + ": " + JSON.stringify(actual), { cause: error });
+  }
   assert.equal(new URLSearchParams(new URL(page.url()).hash.slice(1)).get("doc"), path);
 }
 
 /** Run a named browser scenario and record its result with relevant failure evidence. */
 async function check(name, run) {
+  if (scenarioFilter && !scenarioFilter.test(name)) {
+    return;
+  }
   const context = await browser.newContext({ locale: "en-US", viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
   const page = await context.newPage();
   const errors = [];
@@ -87,8 +109,11 @@ async function check(name, run) {
     results.push({ name, passed: true });
     console.log("PASS " + name);
   } catch (error) {
-    await page.screenshot({ path: join(artifacts, "failure-" + results.length + ".png"), fullPage: true });
-    results.push({ name, passed: false, error: error.message, errors, failures, remote });
+    const failureName = "failure-" + results.length;
+    const failure = { name, passed: false, error: error.message, stack: error.stack, url: page.url(), errors, failures, remote };
+    await page.screenshot({ path: join(artifacts, failureName + ".png"), fullPage: true });
+    await writeFile(join(artifacts, failureName + ".json"), JSON.stringify(failure, null, 2));
+    results.push(failure);
     console.error("FAIL " + name + ": " + error.message);
   } finally {
     await context.close();
@@ -138,8 +163,9 @@ async function htmlExport(page) {
 
 /** Download a map snapshot through the visible toolbar and read only the synthetic artifact. */
 async function downloadMap(page, name) {
+  await appCall(page, "map.flush", {});
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download layout", exact: true }).click();
+  await page.locator("[dataid=DownloadButton]").click();
   const path = join(artifacts, name + ".json");
   await (await download).saveAs(path);
   return JSON.parse(await readFile(path, "utf8"));
@@ -207,6 +233,7 @@ try {
     await ready(page);
     await page.getByRole("link", { name: "Prepare a workspace", exact: true }).click();
     await documentIs(page, "guide/setup.md");
+    // Exercise Back immediately: the first document can appear before workspace opening completes.
     await page.goBack();
     await documentIs(page, "README.md");
     await page.goForward();
@@ -250,7 +277,11 @@ try {
     const card = page.getByRole("button", { name: "Select Prepare a workspace, guide/setup.md", exact: true });
     await card.waitFor();
     assert.equal(await page.locator(".page-card").count(), 4);
-    await page.getByRole("button", { name: "Arrange in a grid", exact: true }).click();
+    const originalPositions = await page.locator(".map-card").evaluateAll(cards => cards.map(node => [node.style.left, node.style.top]));
+    await page.locator("[dataid=GridButton]").click();
+    await eventually(async () => assert.notDeepEqual(
+      await page.locator(".map-card").evaluateAll(cards => cards.map(node => [node.style.left, node.style.top])), originalPositions
+    ));
     await card.click();
     await eventually(async () => assert.equal(await card.getAttribute("aria-pressed"), "true"));
     assert.equal(new URLSearchParams(new URL(page.url()).hash.slice(1)).get("doc"), "README.md");
@@ -258,8 +289,8 @@ try {
     await card.hover();
     await page.mouse.wheel(0, -300);
     await eventually(async () => assert.notEqual(await page.locator(".map-world").getAttribute("style"), before));
-    await page.getByRole("button", { name: "Advanced view", exact: true }).click();
-    await page.locator(".advanced-map .map-statistics").first().waitFor();
+    await page.locator("[dataid=AdvancedButton]").click();
+    await page.locator(".advanced-map .map-card.selected .map-statistics").waitFor();
     await page.screenshot({ path: join(artifacts, "desktop-map.png"), fullPage: true });
     await card.dblclick();
     await documentIs(page, "guide/setup.md");
@@ -269,21 +300,24 @@ try {
   await check("card resize persists in downloads and resetting requires explicit confirmation", async page => {
     await ready(page);
     await view(page, "Map");
-    const grip = page.getByRole("button", { name: "Resize Welcome to your reading space", exact: true });
+    // The card title comes from README front matter; the reader's first heading is deliberately different.
+    const grip = page.getByRole("button", { name: "Resize Field notes", exact: true });
     await grip.waitFor();
+    // Opening can render the map before its provider is ready to accept changes.
+    await page.locator(".document-map:not([inert])").waitFor({ state: "visible" });
     await grip.focus();
     await page.keyboard.press("ArrowRight");
     const resized = await downloadMap(page, "resized-map");
     assert.equal(resized.schemaVersion, 4);
     assert.equal(resized.nodes["README.md"].width, 270);
-    await page.getByRole("button", { name: "Reset all", exact: true }).click();
-    let dialog = page.locator(".mv-dialog").last();
-    await dialog.getByText("Cancel", { exact: true }).click();
+    await page.locator("[dataid=ResetButton]").click();
+    let dialog = page.locator('[class~="MarkVibe.Controls.ConfirmationWindow"]').last();
+    await dialog.locator("[dataid=CancelButton]").click();
     await dialog.waitFor({ state: "hidden" });
     assert.deepEqual(await downloadMap(page, "cancelled-reset"), resized);
-    await page.getByRole("button", { name: "Reset all", exact: true }).click();
-    dialog = page.locator(".mv-dialog").last();
-    await dialog.getByText("Reset", { exact: true }).click();
+    await page.locator("[dataid=ResetButton]").click();
+    dialog = page.locator('[class~="MarkVibe.Controls.ConfirmationWindow"]').last();
+    await dialog.locator("[dataid=ConfirmButton]").click();
     await dialog.waitFor({ state: "hidden" });
     const reset = await downloadMap(page, "confirmed-reset");
     assert.equal(reset.nodes["README.md"].width, undefined);
@@ -678,11 +712,11 @@ try {
   });
 
 } finally {
-  await writeFile(join(artifacts, "results.json"), JSON.stringify({ base, browser: browser.version(), results }, null, 2));
+  await writeFile(join(artifacts, "results.json"), JSON.stringify({ base, filter: filterText, browser: browser.version(), results }, null, 2));
   await browser.close();
 }
 
 console.log(results.filter(result => result.passed).length + "/" + results.length + " browser checks passed.");
-if (results.some(result => !result.passed)) {
+if (!results.length || results.some(result => !result.passed)) {
   process.exitCode = 1;
 }

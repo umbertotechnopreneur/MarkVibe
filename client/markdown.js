@@ -24,7 +24,7 @@ import { acquireAsset, releaseAssets, getWorkspace, addFiles } from "./workspace
 import { resourceUrl, safeExternal, checkCancelled, nextFrame } from "./path.js";
 import { t, localize, refreshTranslations } from "./i18n.js";
 import { applyReaderTheme, resolveReaderTheme } from "./themes.js";
-import { attachFileContext } from "./file-context.js";
+import { attachFileContext, fileSelection } from "./file-context.js";
 
 const allowedTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "a", "em", "strong", "del", "s", "sup", "sub", "mark",
   "ul", "ol", "li", "blockquote", "pre", "code", "table", "thead", "tbody", "tr", "th", "td", "hr", "br", "img", "input", "section", "div", "span",
@@ -156,7 +156,7 @@ export class MarkdownHost {
       const link = target.closest?.("a");
       const path = link?.dataset.mvPath || target.closest?.("img[data-mv-asset]")?.dataset.mvAsset || this.model?.path;
       return { workspaceId: this.workspaceId, path, title: path?.split("/").at(-1) };
-    });
+    }, () => fileSelection(this));
     this.body.addEventListener("scroll", () => {
       this.scrollListener?.();
       clearTimeout(this.historyTimer);

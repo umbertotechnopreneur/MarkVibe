@@ -11,7 +11,7 @@ using System.Windows.Media;
 
 namespace MarkVibe.Controls;
 
-/// <summary>Scales a local XAML icon template and inherits the owning control's foreground.</summary>
+/// <summary>Scales a local XAML icon template with semantic action colors and inherited fallback foreground.</summary>
 public partial class VectorIcon : UserControl
 {
     private Button? _ownerButton;
@@ -78,7 +78,7 @@ public partial class VectorIcon : UserControl
         {
             "close" => new SolidColorBrush(Color.FromArgb(255, 223, 61, 80)),
             "send" => new SolidColorBrush(Color.FromArgb(255, 214, 244, 229)),
-            _ => (Brush)Application.Current.Resources["SystemAccent"]
+            _ => ActionIconPalette.ForSymbol(Symbol) ?? (Brush)Application.Current.Resources["SystemAccent"]
         };
     }
 
@@ -88,19 +88,29 @@ public partial class VectorIcon : UserControl
         BindOwnerForeground();
     }
 
-    /// <summary>Keeps normal icon color synchronized with theme and enabled-state changes.</summary>
+    /// <summary>Uses shared semantic palette brushes or the owning button's live foreground binding.</summary>
     private void BindOwnerForeground()
     {
         if (_ownerButton != null)
         {
-            SetBinding(ForegroundProperty, new Binding(nameof(Foreground)) { Source = _ownerButton });
+            var color = ActionIconPalette.ForSymbol(Symbol);
+            if (color != null)
+            {
+                Foreground = color;
+            }
+            else
+            {
+                SetBinding(ForegroundProperty, new Binding(nameof(Foreground)) { Source = _ownerButton });
+            }
         }
     }
 
     /// <summary>Refreshes the template when a reusable icon changes its symbol.</summary>
     private static void SymbolChanged(DependencyObject element, DependencyPropertyChangedEventArgs arguments)
     {
-        ((VectorIcon)element).Refresh();
+        var icon = (VectorIcon)element;
+        icon.Refresh();
+        icon.BindOwnerForeground();
     }
 
     /// <summary>Uses a repository template with an explicit file-symbol fallback.</summary>

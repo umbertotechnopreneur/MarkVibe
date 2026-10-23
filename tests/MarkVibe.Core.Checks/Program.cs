@@ -9,6 +9,8 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; catalog snapshot, invalidation and indexing recovery checks; 2026-10-23
+ * Human guidance: Umberto Giacobbi; run relevant C# and JavaScript regression tests
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -20,6 +22,80 @@ using System.Text;
 
 var checks = new (string Name, Func<Task> Run)[]
 {
+    ("catalog snapshots remain sorted, read-only and stable across later revisions", async () =>
+    {
+        var documents = new Dictionary<string, string> { ["z.md"] = "# Last", ["a.md"] = "# First" };
+        await using var workspace = new MemoryWorkspace(documents);
+        var catalog = new DocumentCatalog(new());
+        catalog.Seed(await workspace.EnumerateAsync(default));
+        var pending = catalog.Cards;
+        Equal("a.md", pending[0].Path);
+        True(ReferenceEquals(pending, catalog.Cards));
+        Throws<NotSupportedException>(() => ((IList<DocumentCard>)pending)[0] = pending[1]);
+
+        await catalog.IndexAsync(workspace, (_, _) => { }, default);
+        var indexed = catalog.Cards;
+        Equal("First", indexed[0].Title);
+        Equal("a.md", pending[0].Title);
+        True(ReferenceEquals(indexed, catalog.Cards));
+        documents.Remove("a.md");
+        catalog.Seed(await workspace.EnumerateAsync(default));
+        Equal(1, catalog.Cards.Count);
+        Equal(2, indexed.Count);
+        Equal("First", indexed[0].Title);
+    }),
+    ("unchanged indexing reuses metadata while external changes invalidate graph and cached source", async () =>
+    {
+        var documents = new Dictionary<string, string> { ["a.md"] = "# First", ["b.md"] = "# Second" };
+        await using var workspace = new MemoryWorkspace(documents);
+        var catalog = new DocumentCatalog(new());
+        catalog.Seed(await workspace.EnumerateAsync(default));
+        await catalog.IndexAsync(workspace, (_, _) => { }, default);
+        var initialRevision = catalog.MetadataRevision;
+        await catalog.OpenAsync(workspace, "a.md", default);
+        Equal(initialRevision, catalog.MetadataRevision);
+        var indexed = catalog.Cards;
+        var metadataRevision = catalog.MetadataRevision;
+        Equal(0, catalog.Map("a.md", false).Edges.Count);
+
+        await catalog.IndexAsync(workspace, (_, _) => { }, default);
+        True(ReferenceEquals(indexed, catalog.Cards));
+        Equal(metadataRevision, catalog.MetadataRevision);
+        Equal(3, workspace.Reads["a.md"]);
+        documents["a.md"] = "# Changed\n\n[Next](b.md)";
+        await catalog.IndexAsync(workspace, (_, _) => { }, default);
+        Equal(metadataRevision + 1, catalog.MetadataRevision);
+        Equal("First", indexed[0].Title);
+        Equal("Changed", catalog.Cards[0].Title);
+        Equal("b.md", catalog.Map("a.md", false).Edges.Single().Target);
+        Equal(documents["a.md"], (await catalog.OpenAsync(workspace, "a.md", default)).Source);
+    }),
+    ("index failures recover metadata even when the restored source has the same fingerprint", async () =>
+    {
+        var documents = new Dictionary<string, string> { ["a.md"] = "# First\n\nOriginal introduction." };
+        await using var workspace = new MemoryWorkspace(documents);
+        var catalog = new DocumentCatalog(new());
+        catalog.Seed(await workspace.EnumerateAsync(default));
+        await catalog.IndexAsync(workspace, (_, _) => { }, default);
+        var original = catalog.Cards[0];
+        var fingerprint = catalog.FingerprintFor("a.md");
+        documents.Clear();
+        await catalog.IndexAsync(workspace, (_, _) => { }, default);
+        Equal(1, catalog.Warnings.Count);
+        True(catalog.Cards[0].Introduction != original.Introduction);
+        Equal(fingerprint, catalog.FingerprintFor("a.md"));
+
+        documents["a.md"] = "# First\n\nOriginal introduction.";
+        await catalog.IndexAsync(workspace, (_, _) => { }, default);
+        Equal(0, catalog.Warnings.Count);
+        Equal(original.Introduction, catalog.Cards[0].Introduction);
+        True(catalog.IndexComplete);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var reads = workspace.Reads["a.md"];
+        await ThrowsAsync<OperationCanceledException>(() => catalog.IndexAsync(workspace, (_, _) => { }, cancellation.Token));
+        Equal(reads, workspace.Reads["a.md"]);
+    }),
     ("relative paths decode exactly once and remain inside the workspace", Sync(() =>
     {
         var target = WorkspacePath.Resolve("guide/reading.md", "../reference/setup%20notes.md#caf%C3%A9");

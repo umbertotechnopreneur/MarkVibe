@@ -94,6 +94,13 @@ The original `MarkVibe` browser profile remains available for command-line use a
 does not open a browser automatically. Do not start both browser profiles at once
 on the same port.
 
+For explicitly requested JavaScript profiling, run `npm run bundle:debug` before
+the Debug build. It keeps readable modules and linked source maps. The Release
+guard rejects that bundle; `npm run bundle` restores normal optimized assets.
+`scripts/profile-graph.mjs` records local browser DevTools traces after indexing;
+see [the graph profiling report](graph-profile-2026-10-23.md) for commands and limits.
+Restart a running development server after rebuilding its WebAssembly assemblies.
+
 If the shared startup profiles are not shown, use **Configure Startup Projects**
 on the solution. Enable multi-project launch profiles in Visual Studio's options
 if that installation requires it. Alternatively, set `MarkVibe.Windows` as the

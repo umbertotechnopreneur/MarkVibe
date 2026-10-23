@@ -53,6 +53,7 @@ internal sealed partial class DesktopWindow : Window
     private const string Origin = "https://" + Host;
     private readonly DesktopOptions _options;
     private readonly NativeFiles _files;
+    private readonly RecentLocations _recentLocations;
     private readonly CurrentDocumentWatcher _documentWatcher;
     private readonly AiConnectionService _aiConnections;
     private readonly WebViewDiagnostics _diagnostics = new();
@@ -84,6 +85,7 @@ internal sealed partial class DesktopWindow : Window
     {
         _options = options;
         _files = new(options.DataDirectory);
+        _recentLocations = new(options.DataDirectory);
         _documentWatcher = new CurrentDocumentWatcher(_files, Dispatcher, NotifyDocumentChange);
         _aiConnections = new(options.DataDirectory);
         _startupDocument = options.Document;
@@ -423,6 +425,8 @@ internal sealed partial class DesktopWindow : Window
                 return true;
             case "file.browser":
                 return await OpenBrowserPreviewAsync(Text("html"), token);
+            case "workspace.recent":
+                return _recentLocations.List(Text("kind"));
             case "workspace.open":
             {
                 var mode = Text("mode");
@@ -433,7 +437,19 @@ internal sealed partial class DesktopWindow : Window
                     return _files.Resume();
                 }
 
-                if (_startupDocument != null)
+                if (mode == "recent")
+                {
+                    var recent = _recentLocations.Resolve(Text("recentPath"), Text("recentKind"));
+                    if (recent.Kind == "folder")
+                    {
+                        root = recent.Path;
+                    }
+                    else
+                    {
+                        selected = recent.Path;
+                    }
+                }
+                else if (_startupDocument != null)
                 {
                     selected = _startupDocument;
                     _startupDocument = null;
@@ -484,6 +500,15 @@ internal sealed partial class DesktopWindow : Window
                 }
 
                 var info = _files.Open(root);
+                try
+                {
+                    await _recentLocations.RememberAsync(selected ?? root, selected == null ? "folder" : "files", token);
+                }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                {
+                    // Opening an accessible document must still work if the local history cannot be saved.
+                    DesktopLog.Write("warning", "recent-locations.save-failed");
+                }
                 if (selected != null)
                 {
                     return new

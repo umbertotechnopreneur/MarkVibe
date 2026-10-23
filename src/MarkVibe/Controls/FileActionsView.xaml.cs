@@ -10,7 +10,7 @@ using System.Windows.Controls;
 namespace MarkVibe.Controls;
 
 /// <summary>Identifies the workspace-relative target captured when a context menu opens.</summary>
-public sealed record FileMenuTarget(string WorkspaceId, string Path, string Title, bool IsFolder = false);
+public sealed record FileMenuTarget(string WorkspaceId, string Path, string Title, bool IsFolder = false, string SelectedText = "");
 
 /// <summary>Shares action captions and availability between document menus and the card appearance picker.</summary>
 public partial class FileActionsView : UserControl
@@ -21,6 +21,8 @@ public partial class FileActionsView : UserControl
     public FileActionsView()
     {
         InitializeComponent();
+        CopyButton.Content = new IconLabel("copy", "Copy");
+        CopyFileButton.Content = new IconLabel("copy", "Copy entire file content");
         BrowserButton.Content = new IconLabel("map-globe", "Open in browser");
         ExplorerButton.Content = new IconLabel("folder", "Show in File Explorer");
         TerminalButton.Content = new IconLabel("code", "Open in terminal");
@@ -28,14 +30,22 @@ public partial class FileActionsView : UserControl
     }
 
     /// <summary>Hides actions unavailable for virtual workspaces, folders or non-document assets.</summary>
-    public void Configure(bool localFiles, bool markdown, bool folder)
+    public void Configure(bool localFiles, bool markdown, bool folder, bool hasSelection = false)
     {
+        CopyButton.Visibility = folder ? Visibility.Collapsed : Visibility.Visible;
+        CopyButton.IsEnabled = hasSelection;
+        CopyFileButton.Visibility = markdown && !folder ? Visibility.Visible : Visibility.Collapsed;
         ExplorerButton.Visibility = localFiles ? Visibility.Visible : Visibility.Collapsed;
         TerminalButton.Visibility = localFiles ? Visibility.Visible : Visibility.Collapsed;
         BrowserButton.Visibility = localFiles && markdown && !folder ? Visibility.Visible : Visibility.Collapsed;
         DeleteButton.Visibility = localFiles && !folder ? Visibility.Visible : Visibility.Collapsed;
         DeleteDivider.Visibility = DeleteButton.Visibility;
     }
+
+    /// <summary>Copies the text captured before the menu received focus.</summary>
+    private async void CopySelection(object sender, RoutedEventArgs arguments) => await RequestAsync("copySelection");
+    /// <summary>Copies the captured document's complete Markdown source.</summary>
+    private async void CopyFile(object sender, RoutedEventArgs arguments) => await RequestAsync("copyFile");
 
     /// <summary>Requests a standalone browser preview of the captured document.</summary>
     private async void OpenBrowser(object sender, RoutedEventArgs arguments) => await RequestAsync("browser");

@@ -132,6 +132,18 @@ VBWR E -->
    <Button Grid.Column="2" Content="×" controls:IconLabel.HideIcon="True" ToolTipService.ToolTip="Close" AutomationProperties.Name="Close" Click="DismissStatus" FontSize="18" Margin="8,0,0,0" />
   </Grid>
   </Border>
+  <Popup x:Name="RecentLocationsPopup">
+   <Border x:Name="RecentLocationsSurface" Width="480" Style="{StaticResource FlyoutSurface}" Padding="10" KeyDown="RecentLocationsKeyDown">
+    <StackPanel>
+     <Button x:Name="BrowseRecentLocationButton" Style="{StaticResource FileMenuButton}" Click="BrowseRecentLocation" />
+     <Border Height="1" Margin="0,6" Background="{StaticResource ShellBorder}" />
+     <TextBlock x:Name="RecentLocationsTitle" Margin="10,6,10,10" FontWeight="SemiBold" />
+     <ScrollViewer x:Name="RecentLocationsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel x:Name="RecentLocationItems" />
+     </ScrollViewer>
+    </StackPanel>
+   </Border>
+  </Popup>
   <Popup x:Name="FileMenuPopup">
    <Border x:Name="FileMenuSurface" Width="310" Style="{StaticResource FlyoutSurface}" Padding="10" KeyDown="FileMenuKeyDown">
     <ScrollViewer x:Name="FileMenuScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

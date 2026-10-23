@@ -8,6 +8,7 @@
  * Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
+ * Modified with AI: OpenAI Codex; record Debug source-map configuration for Release bundle validation; 2026-10-23
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
@@ -22,6 +23,7 @@ import { dirname, resolve, join, relative } from "node:path";
 import { clientFingerprint, verifyInstalledPackages } from "./client-inputs.mjs";
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
+const debug = process.argv.includes("--debug");
 const bundleDirectory = join(repositoryRoot, "src/MarkVibe.Browser/wwwroot/js");
 await verifyInstalledPackages();
 const inputFingerprint = await clientFingerprint();
@@ -48,8 +50,8 @@ const result = await build({
   format: "esm",
   platform: "browser",
   target: ["es2022"],
-  minify: true,
-  sourcemap: false,
+  minify: !debug,
+  sourcemap: debug ? "linked" : false,
   metafile: true,
   legalComments: "external",
   assetNames: "assets/[name]-[hash]",
@@ -101,6 +103,7 @@ await writeFile(join(bundleDirectory, "THIRD_PARTY_NOTICES.txt"), notices.join("
 // Publish freshness evidence only after every bundle output and notice has been written.
 await writeFile(join(bundleDirectory, "input-fingerprint.json"), JSON.stringify({
   fingerprint: inputFingerprint,
+  configuration: debug ? "Debug" : "Release",
   outputs: Object.keys(result.metafile.outputs)
 }, null, 2));
 console.log("Client modules, editor worker, CSS, fonts and third-party notices bundled at " + relative(repositoryRoot, bundleDirectory));

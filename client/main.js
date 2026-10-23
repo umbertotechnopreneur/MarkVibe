@@ -383,8 +383,13 @@ async function dispatch(operation, args, signal) {
       (await getView(args.hostId, signal)).find(args.query);
       return true;
     case "source.copy":
-      try { await navigator.clipboard.writeText(views.get(args.hostId)?.source ?? ""); }
-      catch { throw new WorkspaceError("clipboard", "Select the source text and copy it with your keyboard."); }
+    case "document.copy":
+      try {
+        const text = operation === "source.copy" ? views.get(args.hostId)?.source ?? "" : args.text;
+        await navigator.clipboard.writeText(text);
+      } catch {
+        throw new WorkspaceError("clipboard", "Select the source text and copy it with your keyboard.");
+      }
       return true;
     case "document.selection.clear":
       for (const view of views.values()) {
@@ -420,7 +425,9 @@ async function dispatch(operation, args, signal) {
     case "file.delete":
       return nativeCall(operation, args, signal);
     case "workspace.open":
-      return openWorkspace(args.mode, signal);
+      return openWorkspace(args.mode, signal, args.recentPath, args.recentKind);
+    case "workspace.recent":
+      return isDesktop() ? nativeCall(operation, args, signal) : [];
     case "map.command": {
       const view = await getView(args.hostId, signal);
       if (args.action.startsWith("explore-")) await view.effects.command(args.action.slice(8), args.data);

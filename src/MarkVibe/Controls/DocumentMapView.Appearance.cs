@@ -38,7 +38,7 @@ public partial class DocumentMapView
         AppLocalization.SetRaw(AppearancePath, _appearancePath);
         var local = _workspaceId.StartsWith("native:", StringComparison.Ordinal);
         AppearanceFileActions.Configure(local, true, false);
-        AppearanceFileDivider.Visibility = local ? Visibility.Visible : Visibility.Collapsed;
+        AppearanceFileDivider.Visibility = Visibility.Visible;
         var root = (FrameworkElement)Application.Current.RootVisual;
         MapFlyoutSurface.Width = Math.Max(240, Math.Min(360, root.ActualWidth - 24));
         _appearanceColumns = Math.Clamp((int)((MapFlyoutSurface.Width - 48) / 38), 4, 8);

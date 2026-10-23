@@ -10,6 +10,13 @@
     "ja"
   ],
   "strings": {
+    "Browse for a folder…": ["Sfoglia cartelle…","Parcourir les dossiers…","Duyệt thư mục…","浏览文件夹…","瀏覽資料夾…","Jelajahi folder…","폴더 찾아보기…","フォルダーを参照…"],
+    "Browse for a file…": ["Sfoglia file…","Parcourir les fichiers…","Duyệt tệp…","浏览文件…","瀏覽檔案…","Jelajahi file…","파일 찾아보기…","ファイルを参照…"],
+    "Recent folders": ["Cartelle recenti","Dossiers récents","Thư mục gần đây","最近的文件夹","最近嘅資料夾","Folder terbaru","최근 폴더","最近使ったフォルダー"],
+    "Recent files": ["File recenti","Fichiers récents","Tệp gần đây","最近的文件","最近嘅檔案","File terbaru","최근 파일","最近使ったファイル"],
+    "No recent locations yet.": ["Nessun percorso recente.","Aucun emplacement récent.","Chưa có vị trí gần đây.","暂无最近使用的位置。","暫時冇最近使用嘅位置。","Belum ada lokasi terbaru.","최근 위치가 없습니다.","最近使った場所はまだありません。"],
+    "This recent file or folder is unavailable. Browse to its new location.": ["Questo file o questa cartella recente non è disponibile. Sfoglia per selezionare il nuovo percorso.","Ce fichier ou dossier récent est indisponible. Parcourez son nouvel emplacement.","Tệp hoặc thư mục gần đây này không khả dụng. Hãy duyệt đến vị trí mới.","此最近使用的文件或文件夹不可用。请浏览其新位置。","呢個最近使用嘅檔案或資料夾無法使用。請瀏覽新位置。","File atau folder terbaru ini tidak tersedia. Jelajahi lokasi barunya.","최근 파일 또는 폴더를 사용할 수 없습니다. 새 위치를 찾아보세요.","この最近使ったファイルまたはフォルダーは利用できません。新しい場所を参照してください。"],
+    "Copy entire file content": ["Copia contenuto dell’intero file","Copier tout le contenu du fichier","Sao chép toàn bộ nội dung tệp","复制整个文件内容","複製整個檔案內容","Salin seluruh isi file","파일 전체 내용 복사","ファイル全体の内容をコピー"],
     "Yes": ["Sì","Oui","Có","是","係","Ya","예","はい"],
     "No": ["No","Non","Không","否","唔係","Tidak","아니요","いいえ"],
     "File changed": ["File modificato","Fichier modifié","Tệp đã thay đổi","文件已更改","檔案已更改","File berubah","파일 변경됨","ファイルが変更されました"],

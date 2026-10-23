@@ -112,7 +112,7 @@ public partial class MainPage
     {
         element.MouseRightButtonDown += (_, arguments) =>
         {
-            if (!arguments.Handled && targetProvider() is { } target && CanUseLocalFileMenu(target))
+            if (!arguments.Handled && targetProvider() is { } target)
             {
                 arguments.Handled = true;
                 ShowFileMenu(target, arguments.GetPosition(Application.Current.RootVisual));
@@ -121,7 +121,7 @@ public partial class MainPage
         element.KeyDown += (_, arguments) =>
         {
             if (!arguments.Handled && arguments.Key == Key.F10 && (Keyboard.Modifiers & ModifierKeys.Shift) != 0 &&
-                targetProvider() is { } target && CanUseLocalFileMenu(target))
+                targetProvider() is { } target)
             {
                 arguments.Handled = true;
                 var position = element.TransformToVisual(Application.Current.RootVisual).Transform(new Point(16, Math.Min(32, element.ActualHeight)));
@@ -143,7 +143,9 @@ public partial class MainPage
         _fileMenuTarget = target;
         AppLocalization.SetRaw(FileMenuTitle, target.Title);
         AppLocalization.SetRaw(FileMenuPath, target.Path.Length == 0 ? _active!.Provider.Info.Name : target.Path);
-        DocumentFileActions.Configure(CanUseLocalFileMenu(target), WorkspacePath.IsMarkdown(target.Path), target.IsFolder);
+        DocumentFileActions.Configure(
+            CanUseLocalFileMenu(target), WorkspacePath.IsMarkdown(target.Path), target.IsFolder,
+            target.SelectedText.Length > 0);
         DocumentAppearance.Update(ReaderPreferences);
         _ = LoadReaderFontsAsync();
         var root = (FrameworkElement)Application.Current.RootVisual;
@@ -174,7 +176,32 @@ public partial class MainPage
     /// <summary>Routes file actions for the captured target without changing map selection or opening another document.</summary>
     private async Task OpenFileActionAsync(FileMenuTarget target, string action)
     {
-        if (!CanUseLocalFileMenu(target) || _workspaceTransitionBusy)
+        if (_active?.Provider.Info.Id != target.WorkspaceId || _workspaceTransitionBusy)
+        {
+            return;
+        }
+
+        if (action == "copySelection" && !target.IsFolder && target.SelectedText.Length > 0)
+        {
+            await BrowserServices.CallAsync("document.copy", new { text = target.SelectedText });
+            return;
+        }
+
+        if (action == "copyFile" && !target.IsFolder && WorkspacePath.IsMarkdown(target.Path))
+        {
+            var context = _active!;
+            // The open snapshot includes local revisions that may not have been saved to disk yet.
+            var document = _document?.Path == target.Path
+                ? _document
+                : await context.Catalog.OpenAsync(context.Provider, target.Path, _opening.Token);
+            if (ReferenceEquals(context, _active))
+            {
+                await BrowserServices.CallAsync("document.copy", new { text = document.Source });
+            }
+            return;
+        }
+
+        if (!CanUseLocalFileMenu(target))
         {
             return;
         }

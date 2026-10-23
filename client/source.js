@@ -11,6 +11,8 @@
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; source fingerprints and selection notifications; 2026-10-11
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
+ * Modified with AI: OpenAI Codex; source cache eviction and detached fallback cleanup; 2026-10-23
+ * Human guidance: Umberto Giacobbi; reduce retained resources while preserving source behavior
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -21,7 +23,7 @@
 import { createRoot, textElement, uiText } from "./markdown.js";
 import { t, localize } from "./i18n.js";
 import { checkCancelled, nextFrame } from "./path.js";
-import { attachFileContext } from "./file-context.js";
+import { attachFileContext, fileSelection } from "./file-context.js";
 
 const modelCache = new Map();
 let monacoPromise;
@@ -55,13 +57,14 @@ function remember(key, entry) {
   modelCache.delete(key);
   modelCache.set(key, entry);
 
-  while (modelCache.size > 3) {
-    const [oldest, oldEntry] = modelCache.entries().next().value;
+  for (const [oldest, oldEntry] of modelCache) {
+    if (modelCache.size <= 3) {
+      break;
+    }
+
     // Keep a model still used by a visible host, even when the cache is over its limit.
     if (oldEntry.users) {
-      modelCache.delete(oldest);
-      modelCache.set(oldest, oldEntry);
-      break;
+      continue;
     }
     oldEntry.model.dispose();
     modelCache.delete(oldest);
@@ -88,7 +91,7 @@ export class SourceHost {
       workspaceId: this.workspaceId,
       path: this.path,
       title: this.path?.split("/").at(-1)
-    }));
+    }), () => fileSelection(this));
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.container);
@@ -108,6 +111,10 @@ export class SourceHost {
     this.scrollSubscription = null;
     this.selectionSubscription?.dispose();
     this.selectionSubscription = null;
+    // Detached fallback rows can otherwise retain an entire previous document beside Monaco.
+    this.textarea = null;
+    this.lineElements = null;
+    this.pane = null;
   }
 
   /** Display read-only source with cached Monaco state or a usable plain-text fallback. */
@@ -218,6 +225,7 @@ export class SourceHost {
           return;
         }
 
+        this.saveEditor();
         this.simple = true;
         this.emit({
           type: "status",

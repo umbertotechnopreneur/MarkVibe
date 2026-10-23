@@ -22,6 +22,8 @@
  * Modified with AI: OpenAI Codex; recognize document double activation across selection redraws; 2026-10-16
  * Modified with AI: OpenAI Codex; integrate bounded exploration gestures and finite directional effects; 2026-10-16
  * Modified with AI: OpenAI Codex; cancel stale graph effects and avoid repeated geometry-mode queries; 2026-10-16
+ * Modified with AI: OpenAI Codex; measured camera batching and bounded gesture presentation; 2026-10-23
+ * Human guidance: Umberto Giacobbi; profile and optimize the graph in an isolated Debug browser
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -122,14 +124,16 @@ export class MapHost {
     });
 
     this.viewport.addEventListener("pointermove", event => {
+      this.pointerPosition = { x: event.clientX, y: event.clientY };
 
       if (!this.drag || this.drag.pointer !== event.pointerId) {
         return;
       }
 
+      this.beginCameraGesture();
       this.x = event.clientX - this.drag.x;
       this.y = event.clientY - this.drag.y;
-      this.transform();
+      this.scheduleTransform();
 
     });
     /** Finish the matching pointer gesture while retaining its established pan and card-drag behavior. */
@@ -140,6 +144,11 @@ export class MapHost {
       }
 
       this.drag = null;
+      if (this.cameraGesture) {
+        this.finishCameraGesture();
+      } else {
+        this.transform();
+      }
       if (this.viewport.hasPointerCapture(event.pointerId)) {
         this.viewport.releasePointerCapture(event.pointerId);
       }
@@ -154,6 +163,7 @@ export class MapHost {
     });
 
     this.viewport.addEventListener("wheel", event => {
+      this.pointerPosition = { x: event.clientX, y: event.clientY };
       this.cancelCamera();
       if (this.small() || this.suspended || this.arranging || event.deltaY === 0) {
         return;
@@ -344,7 +354,10 @@ export class MapHost {
   }
   /** Render graph cards and connections from the current catalog projection and saved layout. */
   render({ map, selected, workspaceId, state, focused = false, advanced = false, depth = true, preserveCamera = false }) {
+    this.cancelCameraGesture();
+    this.cancelScheduledTransform();
 
+    this.cancelGeometryUpdate();
     this.rendering = true;
     this.cancelCamera();
     // Rebuilt connections must not leave pulses attached to the previous SVG or
@@ -514,17 +527,21 @@ export class MapHost {
 
       card.addEventListener("click", event => this.activateCard(node.path, event));
       container.addEventListener("pointerenter", event => {
-        if (event.pointerType !== "touch" && !this.drag && !this.cardDrag && !this.cardResize) {
+        if (event.pointerType !== "touch" && !this.cameraGesture && !this.drag && !this.cardDrag && !this.cardResize) {
           this.cancelReveal();
           container.classList.add("hovered");
           this.effects.focus(node.path);
-          this.animateConnections();
+          if (node.path !== this.selected) {
+            this.animateConnections();
+          }
         }
       });
       container.addEventListener("pointerleave", () => {
         container.classList.remove("hovered");
         this.effects.focus(null);
-        this.animateConnections();
+        if (!this.cameraGesture && node.path !== this.selected) {
+          this.animateConnections();
+        }
       });
 
       card.addEventListener("contextmenu", event => {
@@ -936,9 +953,7 @@ export class MapHost {
     resize.moved = true;
     resize.current = this.boundedSize(resize.width + deltaX / resize.pointerScale, resize.height + deltaY / resize.pointerScale);
     Object.assign(this.nodes.get(resize.path), resize.current);
-    this.syncCards();
-    this.updateBounds();
-    this.updateEdges();
+    this.scheduleGeometryUpdate();
   }
   /** Commit one resize mutation after releasing capture, preserving the existing autosave boundary. */
   finishCardResize(event) {
@@ -964,6 +979,7 @@ export class MapHost {
     if (!resize) {
       return;
     }
+    this.cancelGeometryUpdate();
     this.cardResize = null;
     this.cards.get(resize.path)?.container.classList.remove("resizing");
     if (resize.grip.hasPointerCapture(resize.pointer)) {
@@ -1053,9 +1069,7 @@ export class MapHost {
     Object.assign(this.nodes.get(drag.path), drag.current);
     this.cards.get(drag.path).container.classList.add("dragging");
 
-    this.syncCards();
-    this.updateBounds();
-    this.updateEdges();
+    this.scheduleGeometryUpdate();
 
   }
   /** Commit the completed card gesture through the managed map change boundary. */
@@ -1088,6 +1102,7 @@ export class MapHost {
     if (!drag) {
       return;
     }
+    this.cancelGeometryUpdate();
 
     this.cardDrag = null;
     this.cards.get(drag.path)?.container.classList.remove("dragging");
@@ -1120,9 +1135,7 @@ export class MapHost {
     this.pendingEdits.set(changeId, { path, changes });
 
     Object.assign(this.nodes.get(path), changes);
-    this.syncCards();
-    this.updateBounds();
-    this.updateEdges();
+    this.flushGeometryUpdate();
 
 
     const operation = this.emit({
@@ -1152,6 +1165,10 @@ export class MapHost {
     }
 
     this.lastCardClick = null;
+    this.cancelCameraGesture();
+    this.cancelScheduledTransform();
+    this.cancelCamera();
+    this.transform();
     this.effects.cancelPulses();
     this.effects.cancelRectangle();
     this.cancelCardDrag();
@@ -1196,6 +1213,32 @@ export class MapHost {
     }
 
   }
+  /** Coalesce high-frequency drag and resize events into one geometry/minimap redraw per animation frame. */
+  scheduleGeometryUpdate() {
+    if (!this.geometryFrame) {
+      this.geometryFrame = requestAnimationFrame(() => {
+        this.geometryFrame = null;
+        this.flushGeometryUpdate();
+      });
+    }
+  }
+
+  /** Cancel a deferred preview before synchronous commits, restoration, rendering or disposal. */
+  cancelGeometryUpdate() {
+    if (this.geometryFrame) {
+      cancelAnimationFrame(this.geometryFrame);
+      this.geometryFrame = null;
+    }
+  }
+
+  /** Draw the latest model coordinates and cancel redundant queued previews before persisting a gesture. */
+  flushGeometryUpdate() {
+    this.cancelGeometryUpdate();
+    this.syncCards();
+    this.updateBounds();
+    this.updateEdges();
+  }
+
   /** Fit logical card bounds plus selected-card magnification, retaining room for folder frames and shadows. */
   updateBounds() {
 
@@ -1254,11 +1297,15 @@ export class MapHost {
     }
 
     const geometry = this.cardGeometry();
-    for (const { edge, path, hitPath, group } of this.edgePaths ?? []) {
+    for (const item of this.edgePaths ?? []) {
+      const { edge, path, hitPath, group } = item;
       const source = this.atlas.connectionGeometry(edge.source, geometry.get(edge.source));
       const target = this.atlas.connectionGeometry(edge.target, geometry.get(edge.target));
       const hidden = !source || !target || source.island !== undefined && source.island === target.island;
-      group.style.display = hidden ? "none" : "";
+      const display = hidden ? "none" : "";
+      if (group.style.display !== display) {
+        group.style.display = display;
+      }
       if (hidden) {
         if (this.hoveredEdge?.group === group) {
           this.setHoveredEdge(null);
@@ -1296,8 +1343,12 @@ export class MapHost {
         connection = `M${sourceCenterX},${startY} C${sourceCenterX},${startY + direction * bend} ${targetCenterX},${endY - direction * bend} ${targetCenterX},${endY}`;
 
       }
-      path.setAttribute("d", connection);
-      hitPath.setAttribute("d", connection);
+      // Stationary connections keep their SVG geometry through other cards' scale/drag frames.
+      if (item.connection !== connection) {
+        path.setAttribute("d", connection);
+        hitPath.setAttribute("d", connection);
+        item.connection = connection;
+      }
     }
 
     this.effects.updateGeometry(geometry);
@@ -1352,6 +1403,7 @@ export class MapHost {
       return;
     }
 
+    this.beginCameraGesture();
     const previous = this.scale;
     this.scale = Math.max(.001, Math.min(1.8, previous * factor));
 
@@ -1361,7 +1413,7 @@ export class MapHost {
     this.x = cx - (cx - this.x) * this.scale / previous;
     this.y = cy - (cy - this.y) * this.scale / previous;
 
-    this.transform();
+    this.scheduleTransform();
 
   }
   /** Fit the current map bounds within the available viewport. */
@@ -1391,14 +1443,85 @@ export class MapHost {
     this.transform();
 
   }
-  /** Apply the current pan and zoom transform or the compact untransformed layout. */
+  /** Coalesce camera input while keeping its logical coordinates current for subsequent pointer events. */
+  scheduleTransform() {
+    if (!this.transformFrame) {
+      this.transformFrame = requestAnimationFrame(() => {
+        this.transformFrame = null;
+        this.transform();
+      });
+    }
+  }
+
+  /** Keep camera gestures free of hover magnification and repeated SVG stroke/marker repainting. */
+  beginCameraGesture() {
+    clearTimeout(this.cameraGestureTimer);
+    if (!this.cameraGesture) {
+      this.cameraGesture = true;
+      this.body.classList.add("map-camera-moving");
+      for (const item of this.cards.values()) {
+        item.container.classList.remove("hovered");
+      }
+      this.effects.focus(null);
+      if (this.connectionFrame) {
+        cancelAnimationFrame(this.connectionFrame);
+        this.connectionFrame = null;
+      }
+      // Freeze connections at the resting card geometry before the camera starts moving.
+      this.updateEdges();
+    }
+    this.cameraGestureTimer = setTimeout(() => this.finishCameraGesture(), 180);
+  }
+
+  /** Restore exact stroke widths and the card under a stationary pointer after the camera settles. */
+  finishCameraGesture() {
+    if (!this.cameraGesture) {
+      return;
+    }
+    this.cancelCameraGesture();
+    this.transform();
+    const pointer = this.pointerPosition;
+    const target = pointer && this.root.elementFromPoint(pointer.x, pointer.y)?.closest(".map-card");
+    const path = target?.dataset.mapNode;
+    if (path && this.cards.get(path)?.container === target && !this.drag && !this.cardDrag && !this.cardResize) {
+      target.classList.add("hovered");
+      this.effects.focus(path);
+      if (path !== this.selected) {
+        this.animateConnections();
+      }
+    }
+  }
+
+  /** Cancel transient camera presentation without scheduling work against replaced or disposed DOM. */
+  cancelCameraGesture() {
+    clearTimeout(this.cameraGestureTimer);
+    this.cameraGestureTimer = null;
+    this.cameraGesture = false;
+    this.body.classList.remove("map-camera-moving");
+  }
+
+  /** Discard queued camera drawing before an immediate transform, replacement or disposal. */
+  cancelScheduledTransform() {
+    if (this.transformFrame) {
+      cancelAnimationFrame(this.transformFrame);
+      this.transformFrame = null;
+    }
+  }
+
+  /** Apply pan and zoom after one layout read, limiting changing stroke variables to the SVG subtree. */
   transform() {
+    this.cancelScheduledTransform();
+    const viewport = this.atlas.viewportMetrics();
     // Rectangle bounds are captured in screen space; any camera change invalidates them.
     this.effects.cancelRectangle();
-    this.world.style.transform = this.small() ? "none" : "translate(" + this.x + "px," + this.y + "px) scale(" + this.scale + ")";
-    this.world.style.setProperty("--edge-hit-width", 14 / this.scale + "px");
-    this.world.style.setProperty("--edge-hover-width", 3 / this.scale + "px");
-    this.atlas.updateZoom();
+    this.world.style.transform = viewport.compact ? "none" : "translate(" + this.x + "px," + this.y + "px) scale(" + this.scale + ")";
+    if (!this.cameraGesture && this.graph && (this.strokeGraph !== this.graph || this.strokeScale !== this.scale)) {
+      this.graph.style.setProperty("--edge-hit-width", 14 / this.scale + "px");
+      this.graph.style.setProperty("--edge-hover-width", 3 / this.scale + "px");
+      this.strokeGraph = this.graph;
+      this.strokeScale = this.scale;
+    }
+    this.atlas.updateZoom(viewport);
   }
   /** Stop an in-flight camera move immediately; the next user gesture continues from the current position. */
   cancelCamera() {
@@ -1525,6 +1648,9 @@ export class MapHost {
   }
   /** Cancel gestures and release observers, picker resources and the graph DOM root. */
   dispose() {
+    this.cancelCameraGesture();
+    this.cancelScheduledTransform();
+    this.cancelGeometryUpdate();
     this.effects.dispose();
     this.cancelCamera();
     clearTimeout(this.arrangementTimer);

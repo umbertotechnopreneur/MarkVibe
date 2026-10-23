@@ -18,7 +18,17 @@ Local SVG assets use a separate, stricter profile that removes style, links, scr
 
 No Markdown content can select an interop method, load a library URL or supply a JavaScript callback. Ink and sticky-note editing, their codecs and their sidecar schemas are retired; annotation files are excluded from providers without deleting user files.
 
+## Recent local paths
+
+Desktop Open file and Open folder menus store up to twenty selected paths per
+kind in `recent-locations.json` under the application data directory. Lists show
+full paths alphabetically, with middle abbreviation only in the visible caption.
+This local history is separate from automatic last-document restoration and
+contains paths and last-open times, not document contents. Reopening an entry
+uses the existing local workspace validation and never changes source documents.
+
 ## AI connections and OpenAI credentials
+
 
 Settings retains the selected `api-key` or `codex-cli` provider separately from
 credentials. The API connection is the default. Changing connection never

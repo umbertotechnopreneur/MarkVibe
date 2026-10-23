@@ -2,6 +2,32 @@
 
 Keep durable, repository-specific findings here; omit temporary commands and plans.
 
+- When a file read permits concurrent writes, capture its length once and use
+  that same value for the size check and buffer allocation. Re-reading length
+  after validation can defeat the bound if an external editor grows the file.
+
+- Separate graph indexing from interaction profiling by waiting for indexComplete.
+  Measure browser layout, paint and compositing as well as JavaScript: SVG opacity
+  and stroke transitions caused larger camera stalls than the host calculations.
+  Freeze hover geometry before changing logical camera coordinates, and cancel
+  camera timers/frames when suspending or replacing a view. Verify endpoint
+  alignment and restoration of arrowheads/hit targets after gestures.
+- Debug source maps need an explicit bundle configuration marker. A content
+  fingerprint alone can consider an unminified Debug bundle fresh for Release.
+
+- Fingerprint reuse must distinguish valid metadata from a failed-index placeholder.
+  Keep provider reads and byte/cancellation checks before reusing a parsed revision;
+  test external changes, identical-source recovery, local drafts and old snapshots.
+- An active oldest cache entry must not stop eviction of other unused models.
+  Clear references to detached source fallback DOM when returning to Monaco.
+  Synthetic disposal checks complement, but do not replace, real editor acceptance.
+
+- Core graph projections can reuse sorted cards and topology by MetadataRevision;
+  every membership mutation, including retained-draft eviction, must invalidate it.
+  During graph gestures, keep pointer state current but batch DOM geometry and
+  minimap rebuilding per animation frame. Skip unchanged SVG path writes.
+  These structural reductions do not establish a measured frame-rate improvement.
+
 - Give internal AI commands one provider-explicit contract and change every caller
   and dispatcher together. Do not retain a second family of names as speculative
   compatibility. Reject unknown providers instead of silently using another key.

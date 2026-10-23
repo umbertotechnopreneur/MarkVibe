@@ -1,5 +1,82 @@
 # AI development disclosure
 
+## Authorized local delivery and Git integration — 2026-10-23
+
+Umberto requested a local Release build and installation before commit, push and
+PR merge. Codex built current source as Release x64 0.1.0.29, trusted its generated
+development certificate, updated the existing MSIX installation and verified the
+running process at the installed package path. Profiling evidence was preserved.
+
+A separate static review found a native-read race: a file could grow between
+checking its size and allocating its buffer. Codex changed both operations to use
+one captured length. Nine Native checks passed, including active-writer reads at
+and above the size limit. No other actionable review findings remain. Existing
+dependency advisories and native GUI/performance acceptance remain unresolved.
+The owner authorized updating and merging existing PR #3; formal GitHub author
+self-approval is not claimed. No installer, private document or raw trace is published.
+
+## Authorized Debug browser graph profiling — 2026-10-23
+
+Umberto requested browser Developer Tools profiling of the slow graph in Debug
+and supplied a local Markdown folder. Codex reused the existing Browser project,
+imported 32 Markdown files read-only in isolated headless Edge and recorded CDP
+timeline/CPU traces after indexing. Camera batching, retained atlas elements and
+removing SVG emphasis transitions reduced measured zoom p95 from 66.7 to 33.4 ms.
+All 674 endpoint checks passed after each gesture; some short stalls remain.
+The profile is browser evidence, not native desktop acceptance.
+
+Codex added an explicit readable Debug bundle and guards that prevent its reuse
+in Release. Twenty client checks, 22 Core checks, three targeted browser scenarios
+and Debug source compilation passed. Browser checks exposed a startup race that
+discarded Back while opening was finishing; Codex retained that history entry
+until the provider was ready, and the immediate navigation regression passed.
+No external dependency import, app installation, Git delivery or publication ran. Details and
+validation limits are in `docs/graph-profile-2026-10-23.md`.
+
+## Performance cleanup and authorized regression checks — 2026-10-23
+
+Umberto requested a broader redundancy/performance review, preservation of
+compatibility and relevant C# and JavaScript tests. Codex added catalog snapshot
+and unchanged-source reuse, corrected source-view resource retention and removed
+five unused private handlers without changing stored formats or bridge commands.
+New native checks exposed a missing first-save data directory in recent history;
+Codex fixed it. All 43 Core, Native and JavaScript checks passed. A synthetic
+512-document comparison measured lower repeated-index time and allocation;
+`docs/performance-review-2026-10-23.md` records the baseline and limits.
+No GUI checks, new application delivery, external dependency imports or publication
+ran. Installed Release remains 0.1.0.27 and later source changes await delivery.
+
+## Recent menus, graph rendering and action colors — 2026-10-23
+
+Umberto requested persistent recent file/folder paths, alphabetic display and
+middle abbreviation; a single graph-card border; static performance review;
+and colored action icons. Codex added separate bounded local histories, guarded
+reopening, measured Unicode-safe path captions and complete accessible names.
+Graph topology is reused until catalog metadata changes; drag/resize redraws
+are batched per frame and unchanged connection curves keep their SVG attributes.
+Selection uses one border. Shared action glyph colors adapt to light/dark themes
+without recoloring VibeWare artwork or text labels. Validation is static only;
+no runtime performance improvement or visual acceptance has been established.
+C#/JavaScript/CSS syntax, XAML XML, eight-language translation structure and diff
+checks passed. No build, tests, installation or publication ran for this request.
+
+## Context menu copying — 2026-10-23
+
+Umberto requested Copy and Copy entire file content in the Monaco and reader
+context menus, retaining the existing Explorer action and excluding Paste.
+Codex added selection capture before popup focus, shared copy commands and
+eight-language captions. Full-file copying uses the open Markdown snapshot,
+including local revisions, or loads the captured target through its provider.
+JavaScript and C# syntax, XAML XML, translation structure and diff checks passed.
+No build, tests, GUI interaction, installation or Git delivery was requested.
+
+The owner subsequently requested compilation and installation. Current source,
+including file monitoring and context copying, was built and packaged as Release
+x64 0.1.0.27 with existing tools. Its development certificate was trusted and its
+MSIX bundle updated the installed app from 0.1.0.26. Windows reports Status Ok;
+the process was verified at the installed package path. Existing NuGet security
+advisories remain. No tests, GUI acceptance, publication or Git delivery ran.
+
 ## Current-file change notifications — 2026-10-23
 
 Umberto requested a Yes/No reload dialog when the current file changes outside

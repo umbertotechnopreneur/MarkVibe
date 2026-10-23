@@ -9,6 +9,8 @@
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:controls="clr-namespace:MarkVibe.Controls">
  <StackPanel>
+  <Button x:Name="CopyButton" Style="{StaticResource FileMenuButton}" Click="CopySelection" ToolTipService.ToolTip="Copy" />
+  <Button x:Name="CopyFileButton" Style="{StaticResource FileMenuButton}" Click="CopyFile" ToolTipService.ToolTip="Copy entire file content" />
   <Button x:Name="BrowserButton" Style="{StaticResource FileMenuButton}" Click="OpenBrowser" ToolTipService.ToolTip="Open in browser" />
   <Button x:Name="ExplorerButton" Style="{StaticResource FileMenuButton}" Click="Reveal" ToolTipService.ToolTip="Show in File Explorer" />
   <Button x:Name="TerminalButton" Style="{StaticResource FileMenuButton}" Click="OpenTerminal" ToolTipService.ToolTip="Open in terminal" />

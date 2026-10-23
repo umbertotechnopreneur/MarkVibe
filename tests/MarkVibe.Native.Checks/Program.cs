@@ -9,6 +9,10 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; recent-location persistence, bounds and cancellation checks; 2026-10-23
+ * Human guidance: Umberto Giacobbi; run relevant C# and JavaScript regression tests
+ * Modified with AI: OpenAI Codex; check bounded reads with an active external writer; 2026-10-23
+ * Human guidance: Umberto Giacobbi; review and deliver the performance improvements
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -33,6 +37,46 @@ var info = files.Open(root);
 var model = new MarkdownParser().Parse("README.md", source);
 var checks = new (string Name, Func<Task> Run)[]
 {
+    ("recent locations persist alphabetically with separate bounded file and folder histories", async () =>
+    {
+        var historyProfile = Path.Combine(directory, "recent-profile");
+        var recent = new RecentLocations(historyProfile);
+        for (var index = 0; index < 23; index++)
+        {
+            await recent.RememberAsync(Path.Combine(root, $"page-{index:D2}.md"), "files", default);
+        }
+
+        await recent.RememberAsync(root, "folder", default);
+        var selected = Path.Combine(root, "next.md");
+        await recent.RememberAsync(selected, "files", default);
+        await recent.RememberAsync(selected.ToUpperInvariant(), "files", default);
+        // Restore the on-disk spelling so the fixture also resolves on case-sensitive filesystems.
+        await recent.RememberAsync(selected, "files", default);
+        var restored = new RecentLocations(historyProfile);
+        var paths = restored.List("files").Select(entry => entry.Path).ToArray();
+        Equal(20, paths.Length);
+        Equal(1, paths.Count(path => string.Equals(path, selected, StringComparison.OrdinalIgnoreCase)));
+        Equal(true, paths.SequenceEqual(paths.Order(StringComparer.OrdinalIgnoreCase)));
+        Equal(root, restored.Resolve(root, "folder").Path);
+        Equal(true, string.Equals(selected, restored.Resolve(selected, "files").Path, StringComparison.OrdinalIgnoreCase));
+        Throws<WorkspaceException>(() => restored.Resolve(Path.Combine(root, "page-22.md"), "files"));
+        Throws<WorkspaceException>(() => restored.Resolve(Path.Combine(root, "README.md"), "files"));
+    }),
+    ("cancelled recent writes preserve prior history and malformed history leaves user files untouched", async () =>
+    {
+        var historyProfile = Path.Combine(directory, "recent-cancel-profile");
+        var recent = new RecentLocations(historyProfile);
+        await recent.RememberAsync(root, "folder", default);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        await ThrowsAsync<OperationCanceledException>(() => recent.RememberAsync(Path.Combine(root, "next.md"), "files", cancellation.Token));
+        Equal(0, new RecentLocations(historyProfile).List("files").Length);
+        var historyFile = Path.Combine(historyProfile, "recent-locations.json");
+        await File.WriteAllTextAsync(historyFile, "{invalid");
+        Equal(0, new RecentLocations(historyProfile).List("folder").Length);
+        Equal("{invalid", await File.ReadAllTextAsync(historyFile));
+        Equal(source, await File.ReadAllTextAsync(Path.Combine(root, "README.md")));
+    }),
     ("native enumeration ignores generated files and includes adjacent pages", async () =>
     {
         Directory.CreateDirectory(Path.Combine(root, "node_modules"));
@@ -60,6 +104,27 @@ var checks = new (string Name, Func<Task> Run)[]
         }
 
         return Task.CompletedTask;
+    }),
+    ("watched reads allow an active writer while enforcing the document size limit", async () =>
+    {
+        var watchedPath = Path.Combine(root, "watched.md");
+        await File.WriteAllTextAsync(watchedPath, source);
+        await using var writer = new FileStream(
+            watchedPath,
+            FileMode.Open,
+            FileAccess.Write,
+            FileShare.ReadWrite | FileShare.Delete);
+
+        var sharing = FileShare.ReadWrite | FileShare.Delete;
+        Equal(source, Encoding.UTF8.GetString(await files.ReadAsync(info.Id, "watched.md", sharing: sharing)));
+
+        writer.SetLength(Limits.DocumentBytes);
+        await writer.FlushAsync();
+        Equal(Limits.DocumentBytes, (await files.ReadAsync(info.Id, "watched.md", sharing: sharing)).Length);
+
+        writer.SetLength(Limits.DocumentBytes + 1L);
+        await writer.FlushAsync();
+        await ThrowsAsync<WorkspaceException>(() => files.ReadAsync(info.Id, "watched.md", sharing: sharing));
     }),
     ("remembered native workspace reopens and disabling memory clears its metadata", async () =>
     {
