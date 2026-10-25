@@ -25,6 +25,7 @@
  * Modified with AI: OpenAI Codex; track successful navigation and route guarded exploration commands; 2026-10-16
  * Modified with AI: OpenAI Codex; host the shared publication footer and canonical initiative badge; 2026-10-16
  * Modified with AI: OpenAI Codex; refresh AI connections only when provider or validated credentials change; 2026-10-16
+ * Modified with AI: OpenAI Codex; notify the startup service after initialization; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -172,6 +173,7 @@ public partial class MainPage : UserControl
                 await OpenWorkspaceAsync("demo", initial.Path, initial.Anchor, initial.Position);
             }
         });
+        await ExecuteAsync(() => BrowserServices.CallAsync("startup.ready"));
     }
 
     /// <summary>Cancels outstanding work and releases workspace providers and browser resources on unload.</summary>

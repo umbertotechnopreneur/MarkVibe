@@ -98,7 +98,8 @@ For explicitly requested JavaScript profiling, run `npm run bundle:debug` before
 the Debug build. It keeps readable modules and linked source maps. The Release
 guard rejects that bundle; `npm run bundle` restores normal optimized assets.
 `scripts/profile-graph.mjs` records local browser DevTools traces after indexing;
-see [the graph profiling report](graph-profile-2026-10-23.md) for commands and limits.
+see [the current graph profiling report](graph-profile-2026-10-25.md) for commands,
+F12/source-map instructions, trace import and validation limits.
 Restart a running development server after rebuilding its WebAssembly assemblies.
 
 If the shared startup profiles are not shown, use **Configure Startup Projects**

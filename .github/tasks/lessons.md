@@ -2,6 +2,12 @@
 
 Keep durable, repository-specific findings here; omit temporary commands and plans.
 
+- Dense SVG graphs can be dominated by paint, raster and layer work while
+  JavaScript looks inexpensive. Capture compositor categories alongside CPU
+  profiles. Coalesce hover geometry and avoid long decorative size transitions;
+  stabilize semantic text layout while the camera moves. Compare the same real
+  graph and retain endpoint/hit-target checks before claiming a speedup.
+
 - Intermediate models own application state; services own its transitions and
   platform operations. Views render and forward intents. Separating MainPage
   into partial files does not separate responsibilities. Do not describe the

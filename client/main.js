@@ -18,6 +18,7 @@
  * Human guidance: Umberto Giacobbi; implement the approved document atlas controls
  * Modified with AI: OpenAI Codex; apply reader width through the existing layout command; 2026-10-24
  * Human guidance: Umberto Giacobbi; use the available horizontal reading space
+ * Modified with AI: OpenAI Codex; forward managed startup readiness to the splash service; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -335,6 +336,9 @@ async function dispatch(operation, args, signal) {
     case "reader.appearance.save":
       getWorkspace(args.workspaceId);
       return saveReaderAppearance(args.workspaceId, args.appearance);
+    case "startup.ready":
+      window.dispatchEvent(new Event("markvibe-startup-ready"));
+      return true;
     case "initialize":
       {
         preferences = readPreferences();

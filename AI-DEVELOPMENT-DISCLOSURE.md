@@ -1,5 +1,45 @@
 # AI development disclosure
 
+## Release 0.1.0.32 delivery — 2026-10-25
+
+On Umberto's subsequent installation and Git delivery request, Codex built
+signed Release x64 packages from current source, trusted the local development
+certificate, updated the existing MSIX installation and launched it. Packaged
+startup/graph assets match source; Windows package status and the running
+installed executable were verified. Graph traces remain local and ignored.
+No new test suite or interactive native acceptance ran. Existing dependency
+advisories remain. This delivery includes the dense graph, splash and subtle
+hyperlink changes together with the previously delivered document services.
+
+## Dense graph performance and startup presentation — 2026-10-25
+
+Umberto requested further performance work on his real Markdown folder and a
+cleaner splash with one extra second, dismissible by clicking. Codex profiled
+the current 55-document / 506-link graph in isolated Debug Edge using DevTools
+traces. It reduced dense-map decorative animation, batched geometry updates
+and stabilized semantic detail during camera movement. Two final runs reduced
+hover p95 from 100 to 33.3 ms; zoom improved from 66.6 to 33.3–50 ms.
+The dated graph report records methodology, endpoint checks and limits.
+
+The splash now has a wider responsive title and a separate startup state/service
+with a DOM binding. Managed initialization signals readiness; clicks skip the
+optional second without skipping initialization. Debug compilation and browser
+startup during profiling passed. Splash visual/click acceptance, broad tests and
+native validation were not performed. No installation or Git delivery ran;
+the supplied documents and existing pending changes were preserved.
+
+## Discreet hyperlink underlines — 2026-10-25
+
+Umberto requested dotted or more discreet link underlines with additional space
+below the text. Codex updated document CSS and the shared theme adapter to use
+1px dots, a .25em offset and 55% of the link color in the reader and exports.
+The existing option to hide underlines remains effective. Initial JavaScript/CSS
+parsing and diff checks passed. On Umberto's subsequent build/install request,
+Codex compiled Release x64 0.1.0.31 from current source, verified the new CSS in
+the signed MSIX, updated the local installation and launched the installed app.
+Windows package status and process path were verified. Existing NuGet warnings
+remain; no tests, interactive GUI validation or Git delivery ran for this request.
+
 ## Local Release delivery — 2026-10-25
 
 Umberto requested installation, commit and push and confirmed inclusion of all

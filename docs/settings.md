@@ -18,6 +18,7 @@ separate. See the task archive for the current build and launch evidence.
 | Document presentation | Technical | Technical, Editorial or Compact reading |
 | Light/dark document themes | MarkVibe | Select independent reader themes for the two appearances |
 | Light/dark code themes | Automatic | Follow the selected reader theme or choose a code theme |
+| Underline hyperlinks | On | Subtle dotted underlines spaced below the text, following the link color; turn off to hide them in the reader and exports |
 | Reading size | 100% | Toolbar zoom, clamped to 80–150% |
 | Lightweight source | Off | Prefer the selectable read-only fallback over Monaco |
 | Remember last workspace | On | Retain workspace identity, relative document path, anchor and source-based position |

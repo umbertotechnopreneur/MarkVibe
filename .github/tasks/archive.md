@@ -3,6 +3,57 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-25 — Release x64 0.1.0.32 delivery
+
+- Built signed Release x64 packages from current source and installed the MSIX
+  bundle over 0.1.0.31 after trusting its generated development certificate.
+  Windows reports package status `Ok`; the launched process belongs to 0.1.0.32.
+- Checked packaged startup/graph assets against source. Retained the local graph
+  traces across packaging cleanup. Build and installation metadata stay in ignored
+  `artifacts/`. Existing dependency advisories remain; no new dependencies,
+  automated tests or interactive GUI checks were added for this delivery.
+- The owner requested installation, commit and push, with earlier authorization
+  to create and merge the PR for this app work. Formal self-approval is not required.
+
+## 2026-10-25 — Dense graph profiling and startup presentation
+
+- Profiled the real folder read-only in isolated Debug Edge: 55 documents,
+  506 links. Two final runs reduced hover p95 from 100 to 33.3 ms, pan from
+  33.4 to 16.8 ms and zoom from 66.6 to 33.3–50 ms. All 1,012 settled endpoints,
+  arrow/hit-target restoration and browser-error checks passed.
+- Dense graphs skip decorative card transitions and shadows, coalesce geometry
+  reads and defer semantic text changes until camera movement settles.
+  Documents, links and persisted model contracts remain intact. Commands,
+  DevTools instructions and evidence limits are in the dated profiling report.
+- Added a startup service with a separate transient state object and DOM binding.
+  Managed initialization signals readiness; the service retains the splash for
+  one extra second unless clicked. Early clicks skip only the optional delay.
+  The wider responsive title stays on one line. Runtime failures retain the
+  startup error. Click/keyboard/localized visual acceptance remains with owner.
+- Debug compilation succeeded with existing dependency advisories. No broad test
+  suite, installation, Git delivery or native GUI acceptance ran for this work.
+
+## 2026-10-25 — Release x64 0.1.0.31 local delivery
+
+- Built the updated link styles from current repository source with SDK
+  10.0.402 and Node 24.19.0. Signed packaging produced the Release x64 artifacts;
+  verified dotted decoration and .25em offset inside the MSIX document CSS.
+- Trusted this build's development certificate, closed the previous app and
+  updated the existing MSIX installation to 0.1.0.31. Windows reported `Ok`;
+  the launched process belongs to the installed package. Build/install metadata
+  and bundle SHA-256 remain in ignored repository `artifacts/`.
+- Existing NU1902/NU1903 dependency warnings remain. No automated tests,
+  interactive GUI validation or Git delivery ran for this request.
+
+## 2026-10-25 — Discreet document hyperlinks
+
+- Changed underlines to thin dots with a .25em gap and a softened link color.
+  Theme text colors remain intact. The shared theme adapter replaces border,
+  background-image and shadow underlines in the reader and exports while
+  preserving the existing underline-off preference.
+- JavaScript/CSS parsing and diff checks passed. No build, automated tests,
+  installation, GUI validation or Git delivery ran for this source change.
+
 ## 2026-10-25 — Release x64 0.1.0.30 local delivery
 
 - The owner requested installation, commit and push, and explicitly included

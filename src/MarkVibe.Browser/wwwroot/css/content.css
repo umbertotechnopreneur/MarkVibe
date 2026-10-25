@@ -21,6 +21,9 @@
  * Modified with AI: OpenAI Codex; lighter card surfaces, relation lens and unfiltered finite link effects; 2026-10-16
  * Modified with AI: OpenAI Codex; full-width reading with responsive side margins; 2026-10-24
  * Human guidance: Umberto Giacobbi; normal and expanded reader columns
+ * Modified with AI: OpenAI Codex; subtle dotted link underlines; 2026-10-25
+ * Human guidance: Umberto Giacobbi; lighter underlines with more space below link text
+ * Modified with AI: OpenAI Codex; lighter dense graph surfaces; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -44,7 +47,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus
 .markdown{max-width:850px;padding:24px 52px 100px;margin:auto;font-size:calc(16px * var(--reading-scale,1));line-height:1.78;overflow-wrap:anywhere}
 .markdown>section{scroll-margin-top:24px}.markdown h1,.markdown h2,.markdown h3,.markdown h4{line-height:1.25;color:var(--text);font-weight:650;letter-spacing:-.03em}
 .markdown h1{font-size:2.6em;letter-spacing:-.045em;margin:.1em 0 .6em}.markdown h2{font-size:1.6em;margin:1.65em 0 .65em}.markdown h3{font-size:1.15em;margin:1.5em 0 .6em}
-.markdown p{margin:0 0 1.2em}.markdown p:first-child{margin-top:0}.markdown a{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.markdown p{margin:0 0 1.2em}.markdown p:first-child{margin-top:0}
+/* Keep link decoration light and proportional to document font size. */
+.markdown a {
+  color: var(--accent);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .25em;
+  text-decoration-skip-ink: auto;
+}
 .markdown a[aria-disabled=true]{color:var(--muted);text-decoration-style:dotted;cursor:help}
 .markdown details{margin:1.2em 0;padding:12px 16px;border:1px solid var(--line);border-radius:8px}
 .markdown summary{cursor:pointer;font-weight:600}.markdown summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
@@ -240,6 +253,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus
 }
 .document-map.map-camera-moving .map-card {
   transition: none;
+}
+/* Dense maps retain magnification and relation emphasis without animated
+   geometry or large blurred surfaces that must be rasterized on every hover. */
+.document-map.map-dense .map-card,
+.document-map.map-dense .page-card {
+  transition: none;
+}
+.document-map.map-dense .page-card,
+.document-map.map-dense .page-card:hover,
+.document-map.map-dense .page-card.selected,
+.document-map.map-dense.depth-map .page-card.selected,
+.document-map.map-dense .map-card.edge-endpoint .page-card {
+  box-shadow: none;
 }
 .document-map .map-edges > g:focus-within {
   opacity: 1;

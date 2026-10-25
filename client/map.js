@@ -24,6 +24,7 @@
  * Modified with AI: OpenAI Codex; cancel stale graph effects and avoid repeated geometry-mode queries; 2026-10-16
  * Modified with AI: OpenAI Codex; measured camera batching and bounded gesture presentation; 2026-10-23
  * Human guidance: Umberto Giacobbi; profile and optimize the graph in an isolated Debug browser
+ * Modified with AI: OpenAI Codex; dense graph geometry batching and immediate magnification; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -386,6 +387,10 @@ export class MapHost {
     this.selected = selected;
     this.nodeSignature = renderedNodeSignature;
     this.map = map;
+    // Dense graphs keep every relation, but avoid repainting hundreds of curves
+    // on every frame of decorative card magnification.
+    this.dense = map.edges.length >= 250;
+    this.body.classList.toggle("map-dense", this.dense);
     this.advanced = advanced;
     this.depth = Boolean(depth);
     this.body.classList.toggle("advanced-map", advanced);
@@ -1380,6 +1385,17 @@ export class MapHost {
   }
   /** Refresh edge geometry during the short card-scale transition, with no continuing animation loop. */
   animateConnections() {
+    if (this.dense) {
+      // Leave/enter and focus can arrive together. Measure their final geometry
+      // once before paint instead of forcing layout separately for every event.
+      if (!this.connectionFrame) {
+        this.connectionFrame = requestAnimationFrame(() => {
+          this.connectionFrame = null;
+          this.updateEdges();
+        });
+      }
+      return;
+    }
     this.connectionAnimationUntil = performance.now() + (this.reducedMotion.matches ? 0 : 460);
     this.updateEdges();
     if (!this.connectionFrame && !this.reducedMotion.matches) {

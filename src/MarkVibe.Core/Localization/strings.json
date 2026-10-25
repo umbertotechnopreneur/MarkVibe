@@ -10,6 +10,7 @@
     "ja"
   ],
   "strings": {
+    "Open workspace": ["Apri area di lavoro","Ouvrir l’espace de travail","Mở không gian làm việc","打开工作区","開啟工作區","Buka ruang kerja","작업 영역 열기","ワークスペースを開く"],
     "Copy file path": ["Copia percorso del file","Copier le chemin du fichier","Sao chép đường dẫn tệp","复制文件路径","複製檔案路徑","Salin jalur file","파일 경로 복사","ファイルのパスをコピー"],
     "Find in document": ["Cerca nel documento","Rechercher dans le document","Tìm trong tài liệu","在文档中查找","喺文件中尋找","Cari dalam dokumen","문서에서 찾기","文書内を検索"],
     "Go to source here": ["Vai al sorgente qui","Aller à la source ici","Đến mã nguồn tại đây","转到此处的源代码","跳到呢度嘅原始碼","Buka sumber di sini","이 위치의 소스로 이동","この位置のソースへ移動"],
