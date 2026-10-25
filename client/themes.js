@@ -9,6 +9,8 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; consistent subtle link decoration across reader themes; 2026-10-25
+ * Human guidance: Umberto Giacobbi; dotted, spaced underlines that respect the reading preference
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -160,15 +162,24 @@ export function resolveReaderTheme(preferences = {}, mode = "light") {
   const fontFamilyFallback = palette?.fontFamily
     ? `${documentScope}{font-family:${palette.fontFamily}}`
     : "";
-  // Apply the explicit reading preference after theme rules, including imported
-  // themes that draw their link underline using a border or background image.
-  const linkStyle = preferences.underlineLinks === false
-    ? ".markdown.markdown.markdown.markdown.markdown a,"
-      + ".markdown.markdown.markdown.markdown.markdown a:hover,"
-      + ".markdown.markdown.markdown.markdown.markdown a:focus,"
-      + ".markdown.markdown.markdown.markdown.markdown a:visited{"
-      + "text-decoration:none!important;border-bottom:0!important;background-image:none!important;box-shadow:none!important}"
-    : "";
+  // Apply one link treatment after imported themes, including those using
+  // borders or background images. Keep the selected theme's text color.
+  const linkSelectors = [
+    ".markdown.markdown.markdown.markdown.markdown a",
+    ".markdown.markdown.markdown.markdown.markdown a:hover",
+    ".markdown.markdown.markdown.markdown.markdown a:focus",
+    ".markdown.markdown.markdown.markdown.markdown a:visited"
+  ].join(",");
+  const linkDecoration = preferences.underlineLinks === false
+    ? "text-decoration:none!important;"
+    : "text-decoration-line:underline!important;"
+      + "text-decoration-style:dotted!important;"
+      + "text-decoration-color:color-mix(in srgb,currentColor 55%,transparent)!important;"
+      + "text-decoration-thickness:1px!important;"
+      + "text-underline-offset:.25em!important;"
+      + "text-decoration-skip-ink:auto!important;";
+  const linkStyle = linkSelectors + "{" + linkDecoration
+    + "border-bottom:0!important;background-image:none!important;box-shadow:none!important}";
   const documentFont = monospaceFamilies.find(family => family === preferences.documentFont);
   // Validate against the local family catalog before constructing CSS. Apply
   // after theme rules, including headings, tables and code with their own fonts.

@@ -171,7 +171,7 @@ public partial class MainPage
             {
                 context.AiContext.Add(path);
             }
-            _layout = _layout with { AiOpen = true };
+            _readerPresentation.SetAiOpen(true);
             await SaveLayoutAsync();
         }
         finally

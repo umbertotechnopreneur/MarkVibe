@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; isolated Debug browser graph profiling; 2026-10-23
  * Human guidance: Umberto Giacobbi; profile the real graph with browser Developer Tools and local Markdown
+ * Modified with AI: OpenAI Codex; report compositor and raster costs in DevTools summaries; 2026-10-25
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 import { chromium } from "playwright";
@@ -166,7 +167,9 @@ try {
       frame95: durations[Math.floor(durations.length * .95)],
       framesOver32: durations.filter(value => value > 32).length,
       longTasks: frames.longTasks,
-      timeline: Object.fromEntries(["Layout", "UpdateLayoutTree", "Paint", "PrePaint"].map(eventName => {
+      // Compositor/raster costs can dominate even when JavaScript is mostly idle.
+      // These trace totals overlap across threads and are not additive wall time.
+      timeline: Object.fromEntries(["Layout", "UpdateLayoutTree", "Paint", "PrePaint", "Layerize", "Commit", "RasterTask", "GPUTask"].map(eventName => {
         const matching = events.filter(event => event.name === eventName && event.ph === "X");
         return [eventName, { count: matching.length, milliseconds: matching.reduce((sum, event) => sum + (event.dur ?? 0), 0) / 1000 }];
       }))

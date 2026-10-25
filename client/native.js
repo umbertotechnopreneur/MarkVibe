@@ -25,6 +25,10 @@ const pending = new Map();
 export const isDesktop = () => window.markvibeDesktop?.version === 1 && !!window.chrome?.webview;
 window.chrome?.webview?.addEventListener("message", event => {
   const reply = event.data;
+  if (reply?.version === 1 && reply.notification === "activated") {
+    window.dispatchEvent(new CustomEvent("markvibe-native-activated"));
+    return;
+  }
   if (reply?.version === 1 && reply.notification === "appearance") {
     window.dispatchEvent(new CustomEvent("markvibe-native-appearance"));
     return;

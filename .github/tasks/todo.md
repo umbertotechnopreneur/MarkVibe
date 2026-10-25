@@ -3,6 +3,68 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
+Current local delivery: Release x64 MSIX **0.1.0.32**, built from the current
+source, installed and launched on 2026-10-25. This delivery includes dotted link
+underlines, document services, expanded reading, Markdown associations and parent
+links, dense graph optimizations and the dismissible splash. Windows package
+status and installed process path were verified. No tests
+or GUI interaction ran for this delivery; historical static-only notes below
+describe implementation checkpoints, not the current installation state.
+Changes explicitly marked source-only await a later delivery.
+
+- [ ] Owner-check dense graph presentation and the dismissible splash in
+  installed Release 0.1.0.32. Dense maps retain relations with immediate magnification;
+  the splash stays one second after readiness, or skips that delay on a click.
+  Debug browser profiling passed on 55 documents / 506 links; see
+  `docs/graph-profile-2026-10-25.md`. Splash click/keyboard and localized appearance
+  still need GUI acceptance. Signed packaging, installation and launch passed.
+
+- [ ] Owner-check subtle hyperlink underlines in installed Release x64 0.1.0.32:
+  dotted 1px decoration, .25em offset and 55% of the link color, including imported
+  document themes and exports. Verify dark/light appearances, wrapped links,
+  visited/focused links and the underline-off preference. Source compilation,
+  signed packaging, installation and launch passed; the MSIX contains the new
+  link CSS. No automated tests or interactive GUI validation ran.
+
+- [ ] Owner-check document context commands after a requested build: checked
+  Column/Expanded column, Ctrl+F with selection and next/previous, source location,
+  native/relative file path, local section anchor, table Markdown/Excel TSV,
+  code-only copy, PDF/HTML export and collapsed Appearance. Verify reader, Monaco,
+  plain source and split panes, workspace changes and stale-menu rejection.
+  Models and services own menu/search/preferences/layout state. Static checks
+  passed; no build, tests, installation, GUI checks or Git delivery ran.
+
+- [ ] Complete the application-wide model/service separation described in
+  `docs/architecture.md`. Workspace/navigation, AI, map persistence and
+  watch/deletion transitions still have MainPage ownership. Their state and
+  operation lifetimes must move into models/services; moving fields alone is
+  insufficient. The context-command work does not claim this migration complete.
+
+- [ ] Owner-check `../` before the header path and sidebar folder name after a
+  requested build. Both links open the native workspace's parent through existing
+  draft/map/history guards. They disable at drive roots and during opening;
+  browser providers hide them. Static C#/JavaScript syntax, XAML XML,
+  translations and diff checks passed. No build, tests, installation or GUI checks ran.
+
+- [ ] Owner-check the optional Markdown association offer after a requested build.
+  Source registers `.md` and `.markdown` for MSIX/MSI and opens documents with
+  `--open`. Yes opens Windows Default apps; No preserves existing defaults.
+  The response persists across updates. Check installer/first-launch timing,
+  double-click opening, quiet installation, repair/uninstall and portable behavior.
+  Settings now includes effective default indicators for each extension and
+  an explicit Windows setup action, refreshed when the desktop app regains focus.
+  Verify separate/unknown states and changing defaults outside MarkVibe.
+  Static C#/JavaScript syntax, JSON/translation and XAML/XML checks passed; no build, tests,
+  installation, GUI interaction or Git delivery requested.
+
+- [ ] Owner-check reader toolbar Column / Expanded column after a requested build.
+  Expanded mode fills the reader with responsive 16–32px side margins; the choice
+  persists with shell layout and preserves the source-backed reading position.
+  Verify tables, all document styles, reopening and split/AI/sidebar resizing.
+  Source implementation and static review are complete; C#/JavaScript/CSS syntax,
+  XAML XML, eight-language JSON and diff checks passed. No build, tests,
+  installation, GUI interaction or Git delivery requested for this change.
+
 - [ ] Owner-check the profiled graph in installed Release x64 0.1.0.29. On the
   supplied folder (32 documents, 337 connections), zoom p95 fell from 66.7 to
   33.4 ms and style work from 864.7 to 62.4 ms. Endpoint and restored-gesture

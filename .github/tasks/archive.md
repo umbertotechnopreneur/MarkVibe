@@ -3,6 +3,137 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-25 — Release x64 0.1.0.32 delivery
+
+- Built signed Release x64 packages from current source and installed the MSIX
+  bundle over 0.1.0.31 after trusting its generated development certificate.
+  Windows reports package status `Ok`; the launched process belongs to 0.1.0.32.
+- Checked packaged startup/graph assets against source. Retained the local graph
+  traces across packaging cleanup. Build and installation metadata stay in ignored
+  `artifacts/`. Existing dependency advisories remain; no new dependencies,
+  automated tests or interactive GUI checks were added for this delivery.
+- The owner requested installation, commit and push, with earlier authorization
+  to create and merge the PR for this app work. Formal self-approval is not required.
+
+## 2026-10-25 — Dense graph profiling and startup presentation
+
+- Profiled the real folder read-only in isolated Debug Edge: 55 documents,
+  506 links. Two final runs reduced hover p95 from 100 to 33.3 ms, pan from
+  33.4 to 16.8 ms and zoom from 66.6 to 33.3–50 ms. All 1,012 settled endpoints,
+  arrow/hit-target restoration and browser-error checks passed.
+- Dense graphs skip decorative card transitions and shadows, coalesce geometry
+  reads and defer semantic text changes until camera movement settles.
+  Documents, links and persisted model contracts remain intact. Commands,
+  DevTools instructions and evidence limits are in the dated profiling report.
+- Added a startup service with a separate transient state object and DOM binding.
+  Managed initialization signals readiness; the service retains the splash for
+  one extra second unless clicked. Early clicks skip only the optional delay.
+  The wider responsive title stays on one line. Runtime failures retain the
+  startup error. Click/keyboard/localized visual acceptance remains with owner.
+- Debug compilation succeeded with existing dependency advisories. No broad test
+  suite, installation, Git delivery or native GUI acceptance ran for this work.
+
+## 2026-10-25 — Release x64 0.1.0.31 local delivery
+
+- Built the updated link styles from current repository source with SDK
+  10.0.402 and Node 24.19.0. Signed packaging produced the Release x64 artifacts;
+  verified dotted decoration and .25em offset inside the MSIX document CSS.
+- Trusted this build's development certificate, closed the previous app and
+  updated the existing MSIX installation to 0.1.0.31. Windows reported `Ok`;
+  the launched process belongs to the installed package. Build/install metadata
+  and bundle SHA-256 remain in ignored repository `artifacts/`.
+- Existing NU1902/NU1903 dependency warnings remain. No automated tests,
+  interactive GUI validation or Git delivery ran for this request.
+
+## 2026-10-25 — Discreet document hyperlinks
+
+- Changed underlines to thin dots with a .25em gap and a softened link color.
+  Theme text colors remain intact. The shared theme adapter replaces border,
+  background-image and shadow underlines in the reader and exports while
+  preserving the existing underline-off preference.
+- JavaScript/CSS parsing and diff checks passed. No build, automated tests,
+  installation, GUI validation or Git delivery ran for this source change.
+
+## 2026-10-25 — Release x64 0.1.0.30 local delivery
+
+- The owner requested installation, commit and push, and explicitly included
+  every pending app change: document commands/services, reader widths, Markdown
+  association setup and parent folder links.
+- Built current source with SDK 10.0.402 and Node 24.19.0. Release x64 packaging
+  produced signed MSIX/bundle, MSI and portable artifacts; only the MSIX bundle
+  was installed. Trusted this build's development certificate and updated the
+  existing 0.1.0.29 installation to 0.1.0.30 without removing user data.
+- Windows reported package status `Ok`; the launched process path belongs to
+  the installed 0.1.0.30 package. Build/install metadata and hashes are in ignored
+  `artifacts/BUILD-INFO.json`, `INSTALL-INFO.json` and `SHA256SUMS.txt`.
+- No automated tests or interactive GUI validation ran. Existing NU1902/NU1903
+  warnings remain for transitive System.Security.Cryptography.Pkcs 8.0.1 and
+  System.Security.Cryptography.Xml 8.0.4. No dependency versions changed.
+
+## 2026-10-25 — Service-backed document context commands
+
+- Added checked reader widths, selection-prefilled find, source navigation,
+  file paths, local heading links, Markdown/Excel table copies, code block copy
+  and grouped exports. Appearance starts collapsed; paste remains absent.
+- Core owns interaction models and source extraction. Application-composed
+  services own menu policy, search transitions, preferences and persisted layout;
+  the UI displays results. Source context resolves against C# semantic spans.
+  Search uses cached renderer indexes without inserting Markdown DOM wrappers.
+- Static review corrected nested-document anchor links, sequential appearance
+  changes, search cleanup during pane/empty-workspace transitions and cache
+  invalidation after diagram/image changes. C# syntax (20 files), JavaScript
+  syntax (5), XAML XML (3), 16 labels in eight languages and diff checks passed.
+  No build, tests, installation, GUI interaction or Git delivery ran.
+- The wider MainPage migration remains open; see the architecture boundary and
+  active task. Installed Release 0.1.0.29 does not contain this source work.
+
+## 2026-10-25 — Parent folder links
+
+- Added clickable `../` immediately before the header's workspace/document path
+  and the sidebar workspace name. Both use the existing workspace transition,
+  including unsaved-edit, map, history and indexing guards.
+- Native opening derives the parent from the registered workspace root and
+  validates it through the existing file service. Links disable at drive roots
+  and while opening; browser providers expose no parent access. Drive-root labels
+  retain their actual root name rather than displaying an empty folder name.
+- C#/JavaScript syntax, XAML XML, eight-language JSON and diff checks passed.
+  No build, tests, installation, GUI interaction or Git delivery ran.
+
+## 2026-10-25 — Optional Markdown default-app setup
+
+- Registered `.md` and `.markdown` in the MSIX manifest and per-user MSI
+  capabilities/Open with entries, using the existing quoted `--open` contract.
+- Added a localized Yes/No offer with No selected initially. Yes opens the
+  distribution's Windows Default apps entry; Windows confirms the actual default.
+  A per-user marker remembers the answer across updates. Portable/source builds
+  and diagnostic smoke mode skip the offer.
+- The MSIX helper and interactive MSI installation start setup after installation.
+  MSIX double-click/basic or quiet MSI routes offer it on first normal launch.
+  MSI repair/removal skip setup; the helper supports unattended opt-out.
+- Added a Windows Settings section with per-extension check marks based on shell
+  queries of the effective AppUserModelID/ProgID. The setup action remains usable
+  after declining the installation offer, hides when both types are already
+  assigned, and refreshes on desktop activation. Browser UI hides the section;
+  unregistered/source/portable modes report configuration unavailable.
+- C#/JavaScript/PowerShell syntax, JSON/translation coverage, XAML/XML and diff checks passed.
+  Full manifest schema validation was unavailable: the installed SDK schema set
+  references an undeclared `rescap5:ImmediateRegistration` attribute. No build,
+  tests, installation, GUI checks or Git delivery ran. Owner acceptance is open.
+
+## 2026-10-24 — Reader column width controls
+
+- Added Column and Expanded column toolbar actions with distinct colored icons,
+  localized captions and accessible selection state. Expanded mode removes the
+  reading-width cap for all document styles with bounded responsive margins.
+- Retained the choice as shell geometry. Width changes preserve the source-backed
+  reading position without replacing Markdown or regenerating diagrams/themes.
+  Existing layouts default to Column; standalone HTML/PDF sizing stays independent.
+- Toolbar presentation follows the actual document pane after AI/sidebar/splitter
+  changes, with compact captions, stacked actions and scrollable view tabs for
+  narrow panes. Static peer review found no remaining actionable findings.
+- C#/JavaScript/CSS syntax, XAML XML, localization structure and diff checks passed.
+  No build, automated tests, installation, GUI checks or Git delivery requested.
+
 ## 2026-10-23 — Release x64 0.1.0.29 performance delivery
 
 - Built current source, packaged signed x64 Release distributions and updated

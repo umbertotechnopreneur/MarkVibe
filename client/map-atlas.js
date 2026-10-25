@@ -4,6 +4,7 @@
  * Human guidance: Umberto Giacobbi; implement all seven document atlas improvements
  * Modified with AI: OpenAI Codex; share document activation between overview labels and cards; 2026-10-16
  * Modified with AI: OpenAI Codex; batch viewport reads and retain semantic zoom and minimap elements; 2026-10-23
+ * Modified with AI: OpenAI Codex; stable semantic detail during dense graph gestures; 2026-10-25
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 import { textElement, uiText } from "./markdown.js";
@@ -264,9 +265,15 @@ export class MapAtlasRenderer {
   /** Update zoom labels only when their meaning changes; camera movement retains their DOM and text. */
   updateZoom(viewport = this.viewportMetrics()) {
     const host = this.host;
-    const overview = !viewport.compact && host.scale < .4;
-    const compact = !viewport.compact && host.scale >= .4 && host.scale < .72;
-    const detail = !viewport.compact && host.scale >= 1.05;
+    // Keep text layout stable during dense-map gestures. The camera, labels and
+    // minimap still move on every frame; semantic detail catches up on settling.
+    const presentationScale = host.dense && host.cameraGesture
+      ? this.presentationScale ?? host.scale
+      : host.scale;
+    this.presentationScale = presentationScale;
+    const overview = !viewport.compact && presentationScale < .4;
+    const compact = !viewport.compact && presentationScale >= .4 && presentationScale < .72;
+    const detail = !viewport.compact && presentationScale >= 1.05;
     const signature = [viewport.compact, overview, compact, detail, document.documentElement.lang].join(":");
     if (this.zoomSignature !== signature) {
       host.body.classList.toggle("map-overview", overview);
@@ -279,7 +286,7 @@ export class MapAtlasRenderer {
       this.zoomSignature = signature;
     }
     // The title size only affects overview cards; avoid inherited CSS invalidation at other zoom levels.
-    const titleSize = Math.min(32, 13 / Math.max(.1, host.scale)) + "px";
+    const titleSize = Math.min(32, 13 / Math.max(.1, presentationScale)) + "px";
     if (overview && this.overviewTitleSize !== titleSize) {
       host.world.style.setProperty("--overview-title-size", titleSize);
       this.overviewTitleSize = titleSize;

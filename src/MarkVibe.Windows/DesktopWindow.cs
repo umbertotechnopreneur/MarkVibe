@@ -112,6 +112,7 @@ internal sealed partial class DesktopWindow : Window
         }
 
         Loaded += Initialize;
+        Activated += OnActivated;
         SystemEvents.UserPreferenceChanged += UserPreferenceChanged;
         Closing += OnClosing;
         Closed += (_, _) =>
@@ -403,6 +404,11 @@ internal sealed partial class DesktopWindow : Window
             case "ui.fonts":
                 return UiFontCatalog.Installed(System.Windows.Media.Fonts.SystemFontFamilies
                     .SelectMany(family => family.FamilyNames.Values.Append(family.Source)));
+            case "fileAssociations.status":
+                return MarkdownFileAssociations.GetStatus(_options);
+            case "fileAssociations.configure":
+                MarkdownFileAssociations.OpenSettings(_options);
+                return true;
             case "window.appearance":
                 _dark = args.GetProperty("dark").GetBoolean();
                 UiStrings.SetLanguage(Text("language"), _systemLanguage);
@@ -414,6 +420,8 @@ internal sealed partial class DesktopWindow : Window
                 };
             case "document.saveCopy":
                 return await SaveMarkdownCopyAsync(Text("source"), Text("filename"), Text("workspaceId"), Text("path"), token);
+            case "file.path":
+                return _files.ResolveLocation(Text("workspaceId"), Text("path"));
             case "file.reveal":
             case "file.terminal":
                 DesktopFileActions.OpenLocation(_files, Text("workspaceId"), Text("path"), operation == "file.terminal");
@@ -448,6 +456,12 @@ internal sealed partial class DesktopWindow : Window
                     {
                         selected = recent.Path;
                     }
+                }
+                else if (mode == "parent")
+                {
+                    var currentRoot = _files.Root(Text("workspaceId"));
+                    root = Directory.GetParent(currentRoot)?.FullName
+                        ?? throw new WorkspaceException("no-parent", "This folder has no parent folder.");
                 }
                 else if (_startupDocument != null)
                 {
@@ -927,6 +941,15 @@ internal sealed partial class DesktopWindow : Window
                 _closing = true;
                 Close();
             }
+        }
+    }
+
+    /// <summary>Lets an open Settings dialog reread Windows defaults when this app becomes active again.</summary>
+    private void OnActivated(object? sender, EventArgs arguments)
+    {
+        if (_initialized && !_closing)
+        {
+            _view.CoreWebView2.PostWebMessageAsJson(Wire.Encode(new { version = 1, notification = "activated" }));
         }
     }
 

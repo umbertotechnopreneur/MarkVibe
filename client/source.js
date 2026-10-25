@@ -23,7 +23,8 @@
 import { createRoot, textElement, uiText } from "./markdown.js";
 import { t, localize } from "./i18n.js";
 import { checkCancelled, nextFrame } from "./path.js";
-import { attachFileContext, fileSelection } from "./file-context.js";
+import { attachFileContext, fileContextTarget, fileSelection } from "./file-context.js";
+import { clearDocumentFind, findDocument } from "./document-find.js";
 
 const modelCache = new Map();
 let monacoPromise;
@@ -87,11 +88,9 @@ export class SourceHost {
     this.body.append(this.content);
 
     /** Resolve the current document when its context gesture occurs, after any navigation. */
-    this.disposeFileContext = attachFileContext(this.body, emit, () => ({
-      workspaceId: this.workspaceId,
-      path: this.path,
-      title: this.path?.split("/").at(-1)
-    }), () => fileSelection(this));
+    this.disposeFileContext = attachFileContext(this.body, emit,
+      (target, event) => fileContextTarget(this, target, event),
+      () => fileSelection(this));
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.container);
@@ -99,6 +98,7 @@ export class SourceHost {
 
   /** Retain the current editor view state before disposing or replacing its active model. */
   saveEditor() {
+    clearDocumentFind(this);
     if (this.editor && this.key && modelCache.has(this.key)) {
       const entry = modelCache.get(this.key);
       entry.state = this.editor.saveViewState();
@@ -371,37 +371,13 @@ export class SourceHost {
     }
   }
 
-  /** Find the requested text using the active editor or the established fallback search. */
+  /** Reuse document search for the existing source-toolbar bridge command. */
   find(query) {
-    if (!query) {
-      return;
+    const result = findDocument([this], { workspaceId: this.workspaceId, path: this.path, query, view: "source" });
+    if (query && !result.total) {
+      this.emit({ type: "status", message: "No source matches found." });
     }
-
-    if (this.editor) {
-      const match = this.editor.getModel()
-        .findMatches(query, false, false, false, null, false, 1)[0];
-      if (!match) {
-        return this.emit({ type: "status", message: "No source matches found." });
-      }
-      this.editor.setSelection(match.range);
-      this.editor.revealRangeInCenter(match.range);
-      return;
-    }
-
-    const start = (this.source || "").toLowerCase().indexOf(query.toLowerCase());
-    if (start < 0) {
-      return this.emit({ type: "status", message: "No source matches found." });
-    }
-
-    const line = this.source.slice(0, start).split("\n").length;
-    this.scrollToLine(line);
-    const row = this.lineElements?.[line - 1];
-    this.root.querySelector(".source-match")?.classList.remove("source-match");
-    row?.classList.add("source-match");
-    if (this.textarea) {
-      this.textarea.focus();
-      this.textarea.setSelectionRange(start, start + query.length);
-    }
+    return result;
   }
 
   /** Refresh Monaco's light or dark theme and translated accessible editor label. */

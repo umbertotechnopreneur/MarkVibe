@@ -10,6 +10,7 @@
 
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+  Modified with AI: OpenAI Codex; independent dismissible startup overlay; 2026-10-25
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
   Copyright (c) 2026 Umberto Giacobbi
@@ -30,7 +31,18 @@ VBWR E -->
  <link rel="stylesheet" href="js/markvibe.css">
 </head>
 <body>
- <div id="app" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mark">M</span><h1 data-mv-i18n="A little space to read.">A little space to read.</h1><p id="boot-message" data-mv-i18n="Preparing your workspace…">Preparing your workspace…</p><div class="boot-progress"></div></div></div>
+ <div id="app"></div>
+ <div id="startup">
+  <div class="boot-card">
+   <span class="boot-mark" aria-hidden="true">M</span>
+   <h1 data-mv-i18n="A little space to read.">A little space to read.</h1>
+   <p id="boot-message" role="status" aria-live="polite"
+      data-mv-i18n="Preparing your workspace…">Preparing your workspace…</p>
+   <div class="boot-progress"></div>
+   <button id="startup-continue" type="button" hidden
+           data-mv-i18n="Open workspace">Open workspace</button>
+  </div>
+ </div>
  <main id="opensilver-root" aria-label="MarkVibe Markdown viewer"></main>
  <div id="blazor-error-ui" role="alert"><span data-mv-i18n="Something interrupted this session.">Something interrupted this session.</span> <a href="index.html" data-mv-i18n="Reload the viewer" title="Reload the viewer">Reload the viewer</a></div>
  <noscript>Enable JavaScript to read Markdown in this viewer.</noscript>

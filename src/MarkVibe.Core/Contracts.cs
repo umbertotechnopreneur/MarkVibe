@@ -66,7 +66,8 @@ public sealed record WorkspaceCapabilities(
     bool CanWriteSidecars = false,
     bool CanExport = true,
     bool CanAddFiles = false,
-    bool HandleRemembered = false
+    bool HandleRemembered = false,
+    bool CanOpenParent = false
 );
 
 /// <summary>Identifies the active workspace and its provider-specific capabilities.</summary>

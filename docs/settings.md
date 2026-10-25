@@ -18,6 +18,7 @@ separate. See the task archive for the current build and launch evidence.
 | Document presentation | Technical | Technical, Editorial or Compact reading |
 | Light/dark document themes | MarkVibe | Select independent reader themes for the two appearances |
 | Light/dark code themes | Automatic | Follow the selected reader theme or choose a code theme |
+| Underline hyperlinks | On | Subtle dotted underlines spaced below the text, following the link color; turn off to hide them in the reader and exports |
 | Reading size | 100% | Toolbar zoom, clamped to 80–150% |
 | Lightweight source | Off | Prefer the selectable read-only fallback over Monaco |
 | Remember last workspace | On | Retain workspace identity, relative document path, anchor and source-based position |
@@ -31,6 +32,14 @@ successful candidate replaces the saved key. Codex CLI testing makes a short
 synthetic request using the existing CLI login on Windows. Neither test sends an
 open document. The CLI probe can consume account usage; its presence/login status
 alone is not a remote test. See [AI connection details](ai-editing.md).
+
+The Windows dialog includes **Open Markdown files with MarkVibe**. A check mark
+shows when this installation is the effective default for `.md` or `.markdown`;
+each extension is queried separately. **Use MarkVibe for Markdown files** opens
+Windows Default apps for confirmation and remains available after declining the
+installation offer. Status refreshes when you return to MarkVibe. Unknown status
+is labeled explicitly; portable/source copies cannot configure an installed handler.
+This Windows choice is separate from Reset preferences.
 
 ## Coordinated theme application
 

@@ -358,6 +358,12 @@ open PowerShell as administrator and run .\Install-MarkVibe.ps1 -TrustDevelopmen
 Then open MarkVibe from Start. The public CER is included; the private key is not distributed.
 Each signed build uses a fresh development certificate; trust its supplied CER for installation.
 
+MARKDOWN: installation offers to open Windows Default apps for .md and .markdown.
+Confirm MarkVibe there to make it the default; declining preserves existing defaults.
+Double-clicked MSIX/basic or quiet MSI installs offer this on first app launch instead.
+The MSIX helper supports -SkipFileAssociationPrompt for unattended installation.
+The response is remembered across updates. Portable copies do not register file types.
+
 PORTABLE: choose the matching ZIP, extract everything to a writable folder,
 and open MarkVibe.Windows.exe. Profile/settings stay in its data folder.
 

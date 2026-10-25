@@ -9,6 +9,8 @@
  *
  * Modified with AI: OpenAI Codex; readability revision; 2026-10-11
  * Modified with AI: OpenAI Codex; retain browser history navigation during workspace opening; 2026-10-23
+ * Modified with AI: OpenAI Codex; adapt toolbar spacing for reader width controls; 2026-10-24
+ * Human guidance: Umberto Giacobbi; use the available horizontal reading space
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; Markdown AI lifecycle and revision integration; 2026-10-11
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
@@ -23,6 +25,7 @@
  * Modified with AI: OpenAI Codex; track successful navigation and route guarded exploration commands; 2026-10-16
  * Modified with AI: OpenAI Codex; host the shared publication footer and canonical initiative badge; 2026-10-16
  * Modified with AI: OpenAI Codex; refresh AI connections only when provider or validated credentials change; 2026-10-16
+ * Modified with AI: OpenAI Codex; notify the startup service after initialization; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -71,17 +74,20 @@ public partial class MainPage : UserControl
     private Context? _active;
     private MarkdownModel? _document;
     private CancellationTokenSource _navigation = new(), _indexing = new(), _opening = new(), _exporting = new();
-    private bool _exportBusy, _documentBusy, _desktop, _acrylicAvailable, _preferencesPersisted;
+    private bool _exportBusy, _documentBusy, _desktop, _acrylicAvailable;
+    /// <summary>Projects the persistence result owned by the reader preference service.</summary>
+    private bool _preferencesPersisted => _readerPresentation.State.PreferencesPersisted;
     private bool _workspaceTransitionBusy;
     /// <summary>The latest browser Back/Forward destination received while providers are being replaced.</summary>
     private HistoryEntry? _pendingHistory;
     private SettingsWindow? _settingsDialog;
-    private Preferences _preferences = new();
+    /// <summary>Reads the application's authoritative preference model.</summary>
+    private Preferences _preferences => _readerPresentation.State.Preferences;
     private ResumeInfo? _resume;
     private string _view = "read", _missingPath = "";
     private string _missingAsset = "", _missingAssetWorkspace = "";
     private bool _sidebarOpen = true, _updating, _started, _narrow;
-    private int _generation, _preferenceGeneration;
+    private int _generation;
     /// <summary>Initializes the shell controls and responsive layout handlers.</summary>
     public MainPage()
     {
@@ -104,7 +110,7 @@ public partial class MainPage : UserControl
         MapHost.CenterDocumentRequested += (workspaceId, path) => ExecuteAsync(() => CenterMapDocumentAsync(workspaceId, path));
         SourceHost.SimpleRequested += simple => ExecuteAsync(async () =>
         {
-            _preferences = _preferences with { SimpleSource = simple };
+            _readerPresentation.SetSimpleSource(simple);
             SynchronizeSettings();
             await ApplyPreferencesAsync();
             await ShowSourceAsync();
@@ -129,11 +135,11 @@ public partial class MainPage : UserControl
             var initial = await BrowserServices.CallAsync<InitialState>("initialize");
             _desktop = initial.Desktop;
             ConfigureRecentLocationButtons();
-            _preferences = initial.Preferences.Validated();
-            _layout = (initial.Layout ?? new ShellLayout()).Validated();
+            _readerPresentation.SetPreferences(initial.Preferences);
+            _readerPresentation.RestoreLayout(initial.Layout ?? new ShellLayout());
             MapHost.RestoreInspectorWidth(_layout.MapInspectorWidth);
             _sidebarOpen = _layout.SidebarOpen && !_narrow;
-            _layoutReady = true;
+
             LayoutViews();
             SynchronizeSettings();
             await ApplyPreferencesAsync();
@@ -167,6 +173,7 @@ public partial class MainPage : UserControl
                 await OpenWorkspaceAsync("demo", initial.Path, initial.Anchor, initial.Position);
             }
         });
+        await ExecuteAsync(() => BrowserServices.CallAsync("startup.ready"));
     }
 
     /// <summary>Cancels outstanding work and releases workspace providers and browser resources on unload.</summary>
@@ -235,6 +242,7 @@ public partial class MainPage : UserControl
         _workspaceTransitionBusy = true;
         OpenFileButton.IsEnabled = false;
         OpenFolderButton.IsEnabled = false;
+        UpdateParentFolderActions();
         var mapSuspended = false;
         try
         {
@@ -256,6 +264,7 @@ public partial class MainPage : UserControl
                 _workspaceTransitionBusy = false;
                 OpenFileButton.IsEnabled = true;
                 OpenFolderButton.IsEnabled = true;
+                UpdateParentFolderActions();
                 if (_pendingHistory is { } pendingHistory)
                 {
                     _pendingHistory = null;
@@ -273,6 +282,7 @@ public partial class MainPage : UserControl
         {
             throw new WorkspaceException("markdown-unsaved", "Save a Markdown copy or restore edited documents before opening another workspace.");
         }
+        await CloseDocumentFindAsync();
         CancelMarkdownAi();
         await FlushMapAsync(changingWorkspace: true);
         _exporting.Cancel();
@@ -296,7 +306,13 @@ public partial class MainPage : UserControl
             {
                 throw new WorkspaceException("markdown-unsaved", "Save a Markdown copy or restore edited documents before opening another workspace.");
             }
-            var info = await BrowserServices.CallAsync<WorkspaceInfo>("workspace.open", new { mode, recentPath, recentKind }, cancellation);
+            var info = await BrowserServices.CallAsync<WorkspaceInfo>("workspace.open", new
+            {
+                mode,
+                recentPath,
+                recentKind,
+                workspaceId = _active?.Provider.Info.Id ?? ""
+            }, cancellation);
             if (initialPath.Length == 0 && mode != "demo")
             {
                 var saved = await BrowserServices.CallAsync<JsonElement>("history.saved", new { workspaceId = info.Id }, cancellation);
@@ -435,6 +451,7 @@ public partial class MainPage : UserControl
             return;
         }
 
+        await CloseDocumentFindAsync();
         CancelMarkdownAi();
         await FlushMapAsync();
         _exporting.Cancel();
@@ -610,6 +627,7 @@ public partial class MainPage : UserControl
     private async Task SetViewCoreAsync(string view)
     {
         AssertMarkdownEditIdle();
+        await CloseDocumentFindAsync();
         await BrowserServices.CallAsync("map.flush");
         await CaptureHistoryAsync();
         var position = _history.Current?.Position;
@@ -664,7 +682,6 @@ public partial class MainPage : UserControl
         SidebarColumn.Width = new GridLength(sidebarVisible && !_narrow
             ? Math.Min(_layout.SidebarWidth, SidebarColumn.MaxWidth)
             : 0);
-        var toolbarWidth = DocumentPanel.ActualWidth > 0 ? DocumentPanel.ActualWidth : Math.Max(0, ActualWidth - (sidebarVisible && !_narrow ? 220 : 0));
         SidebarDividerColumn.Width = new GridLength(sidebarVisible && !_narrow ? 6 : 0);
         SidebarSplitter.Visibility = sidebarVisible && !_narrow ? Visibility.Visible : Visibility.Collapsed;
         BrandBadge.Visibility = _narrow ? Visibility.Collapsed : Visibility.Visible;
@@ -672,21 +689,7 @@ public partial class MainPage : UserControl
         OpenFolderButton.Visibility = _narrow ? Visibility.Collapsed : Visibility.Visible;
         ButtonIcons.SetText(OpenFileButton, _narrow ? "Open" : "Open file");
         ButtonIcons.SetCompact(SettingsButton, true);
-        ButtonIcons.SetCompact(ExportHtmlButton, true);
-        ButtonIcons.SetCompact(ExportPdfButton, true);
-        foreach (var button in new[]
-        {
-            ReadButton,
-            SourceButton,
-            SplitButton,
-            MapButton,
-            AiButton
-        }
-
-        )
-        {
-            ButtonIcons.SetCompact(button, toolbarWidth < 570);
-        }
+        LayoutDocumentToolbar();
 
         SplitButton.Visibility = ActualWidth < 1050 ? Visibility.Collapsed : Visibility.Visible;
         var source = _view is "source" or "split";
@@ -755,8 +758,33 @@ public partial class MainPage : UserControl
 
         var info = _active.Provider.Info;
         WorkspaceName.Text = info.Name;
+        UpdateParentFolderActions();
         SynchronizeSettings();
     }
+
+    /// <summary>Shows both parent links only for native folders and disables them during transitions or at a drive root.</summary>
+    private void UpdateParentFolderActions()
+    {
+        var info = _active?.Provider.Info;
+        var visibility = info?.Mode == "native" ? Visibility.Visible : Visibility.Collapsed;
+        var canOpenParent = info?.Capabilities.CanOpenParent == true && !_workspaceTransitionBusy;
+        foreach (var button in new[] { HeaderParentFolderButton, SidebarParentFolderButton })
+        {
+            button.Visibility = visibility;
+            button.IsEnabled = canOpenParent;
+        }
+    }
+
+    /// <summary>Opens one native parent folder using the same draft, map and history guards as other workspace changes.</summary>
+    private async void OpenParentFolder(object sender, RoutedEventArgs arguments) => await ExecuteAsync(async () =>
+    {
+        if (_active?.Provider.Info.Capabilities.CanOpenParent != true || _workspaceTransitionBusy)
+        {
+            return;
+        }
+
+        await OpenWorkspaceAsync("parent");
+    });
 
     /// <summary>Shows a single workspace-relative path without repeating a document heading.</summary>
     private void UpdateDocumentTitle(string path, bool draft = false, string? workspaceName = null)
@@ -780,18 +808,12 @@ public partial class MainPage : UserControl
     /// <summary>Applies validated preferences to browser and managed appearance while rejecting stale results.</summary>
     private async Task ApplyPreferencesAsync()
     {
-        var generation = ++_preferenceGeneration;
-        var result = await BrowserServices.CallAsync<JsonElement>("preferences.apply", new
-        {
-            preferences = _preferences,
-            readerPreferences = ReaderPreferences,
-            readerId = ReaderHost.HostId,
-            sourceId = SourceHost.HostId
-        });
-        if (generation != _preferenceGeneration)
+        var response = await _readerPresentation.ApplyAsync(ReaderHost.HostId, SourceHost.HostId);
+        if (response == null)
         {
             return;
         }
+        var result = response.Value;
 
         var dark = result.GetProperty("dark").GetBoolean();
         var acrylic = result.TryGetProperty("acrylic", out var backdrop) && backdrop.GetBoolean();
@@ -816,7 +838,6 @@ public partial class MainPage : UserControl
         SynchronizeSettings();
         DocumentAppearance.Update(ReaderPreferences);
         LayoutViews();
-        _preferencesPersisted = result.GetProperty("persisted").GetBoolean();
         if (!_preferencesPersisted)
         {
             SetStatus("Preferences are available for this session. Browser storage is unavailable.");
@@ -933,7 +954,7 @@ public partial class MainPage : UserControl
             _aiModelsReady = false;
         }
 
-        _preferences = validated;
+        _readerPresentation.SetPreferences(validated);
         await ApplyPreferencesAsync();
         if (providerChanged)
         {
@@ -978,12 +999,11 @@ public partial class MainPage : UserControl
                 }
                 break;
             case "file-context":
-                ShowFileMenu(new FileMenuTarget(
-                    root.GetProperty("workspaceId").GetString() ?? "",
-                    root.GetProperty("path").GetString() ?? "",
-                    root.GetProperty("title").GetString() ?? "",
-                    SelectedText: root.GetProperty("selectedText").GetString() ?? ""),
+                ShowFileMenu(Wire.Decode<FileMenuTarget>(root.GetRawText()),
                     new Point(root.GetProperty("x").GetDouble(), root.GetProperty("y").GetDouble()));
+                break;
+            case "document-find":
+                await OpenDocumentFindAsync(Wire.Decode<FileMenuTarget>(root.GetRawText()));
                 break;
             case "document-file-changed":
                 QueueDiskChange(root);
@@ -1022,11 +1042,14 @@ public partial class MainPage : UserControl
             case "appearance":
                 await ApplyPreferencesAsync();
                 break;
-            case "source-preference":
-                _preferences = _preferences with
+            case "desktop-activated":
+                if (_settingsDialog != null)
                 {
-                    SimpleSource = root.GetProperty("simple").GetBoolean()
-                };
+                    await _settingsDialog.RefreshFileAssociationsAsync();
+                }
+                break;
+            case "source-preference":
+                _readerPresentation.SetSimpleSource(root.GetProperty("simple").GetBoolean());
                 SynchronizeSettings();
                 await ApplyPreferencesAsync();
                 await ShowSourceAsync();
@@ -1111,7 +1134,7 @@ public partial class MainPage : UserControl
     {
         await CaptureHistoryAsync();
         _sidebarOpen = !_sidebarOpen;
-        _layout = _layout with { SidebarOpen = _sidebarOpen };
+        _readerPresentation.SetSidebarOpen(_sidebarOpen);
         LayoutViews();
         await SaveLayoutAsync();
     });
@@ -1209,11 +1232,8 @@ public partial class MainPage : UserControl
         ShowActionNotice("Preparing document export…");
         try
         {
-            var result = await BrowserServices.CallAsync<JsonElement>(
-                "document.export",
-                new { document = model, workspaceId = context.Provider.Info.Id, preferences = ReaderPreferences, format },
-                cancellation
-            );
+            var result = await _documentMenus.ExportAsync(
+                model, context.Provider.Info.Id, ReaderPreferences, format, cancellation);
             cancellation.ThrowIfCancellationRequested();
             var warnings = result.GetProperty("warnings").GetInt32();
             var filename = result.GetProperty("filename").GetString() ?? "";

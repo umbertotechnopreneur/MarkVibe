@@ -1,5 +1,112 @@
 # AI development disclosure
 
+## Release 0.1.0.32 delivery — 2026-10-25
+
+On Umberto's subsequent installation and Git delivery request, Codex built
+signed Release x64 packages from current source, trusted the local development
+certificate, updated the existing MSIX installation and launched it. Packaged
+startup/graph assets match source; Windows package status and the running
+installed executable were verified. Graph traces remain local and ignored.
+No new test suite or interactive native acceptance ran. Existing dependency
+advisories remain. This delivery includes the dense graph, splash and subtle
+hyperlink changes together with the previously delivered document services.
+
+## Dense graph performance and startup presentation — 2026-10-25
+
+Umberto requested further performance work on his real Markdown folder and a
+cleaner splash with one extra second, dismissible by clicking. Codex profiled
+the current 55-document / 506-link graph in isolated Debug Edge using DevTools
+traces. It reduced dense-map decorative animation, batched geometry updates
+and stabilized semantic detail during camera movement. Two final runs reduced
+hover p95 from 100 to 33.3 ms; zoom improved from 66.6 to 33.3–50 ms.
+The dated graph report records methodology, endpoint checks and limits.
+
+The splash now has a wider responsive title and a separate startup state/service
+with a DOM binding. Managed initialization signals readiness; clicks skip the
+optional second without skipping initialization. Debug compilation and browser
+startup during profiling passed. Splash visual/click acceptance, broad tests and
+native validation were not performed. No installation or Git delivery ran;
+the supplied documents and existing pending changes were preserved.
+
+## Discreet hyperlink underlines — 2026-10-25
+
+Umberto requested dotted or more discreet link underlines with additional space
+below the text. Codex updated document CSS and the shared theme adapter to use
+1px dots, a .25em offset and 55% of the link color in the reader and exports.
+The existing option to hide underlines remains effective. Initial JavaScript/CSS
+parsing and diff checks passed. On Umberto's subsequent build/install request,
+Codex compiled Release x64 0.1.0.31 from current source, verified the new CSS in
+the signed MSIX, updated the local installation and launched the installed app.
+Windows package status and process path were verified. Existing NuGet warnings
+remain; no tests, interactive GUI validation or Git delivery ran for this request.
+
+## Local Release delivery — 2026-10-25
+
+Umberto requested installation, commit and push and confirmed inclusion of all
+pending app changes. Codex built Release x64 0.1.0.30 from repository source,
+trusted the generated local development certificate, updated the existing MSIX
+installation and launched its installed executable. Windows package status and
+the process path were verified. Packaging also generated MSI and portable files;
+those distributions were not installed. Existing NuGet vulnerability warnings
+remain; dependencies were unchanged. No tests or GUI interaction ran.
+
+## Document commands and model ownership — 2026-10-25
+
+Umberto approved the proposed context commands and required an intermediate
+object model with services below the UI. Codex added checked reader widths,
+selection-prefilled find, source navigation, path/section/table/code copying,
+grouped exports and collapsed appearance controls. Core contains the source
+extraction and interaction models; App composes menu, search and reader services.
+Global preferences, folder appearance and shell layout now use these services.
+Existing workspace/navigation, AI, map and watch/deletion workflows still require
+further separation; this change does not claim a complete application migration.
+
+Static C# and JavaScript syntax, XAML XML, eight-language labels and whitespace
+checks passed. No build, automated tests, installation, GUI interaction, new
+dependency import or Git delivery ran for this change. Native clipboard, Excel
+paste, visual search and context-menu acceptance remain unverified at runtime.
+
+## Parent folder links — 2026-10-25
+
+Umberto requested clickable `../` prefixes at both displayed workspace paths.
+Codex added the two links and native parent opening through the existing guarded
+workspace transition. Drive roots disable the links, and browser providers hide
+them. Static C#/JavaScript syntax, XAML XML, translation and diff checks passed.
+No build, tests, installation, GUI interaction or Git delivery ran.
+
+## Optional Markdown association — 2026-10-25
+
+Umberto requested a choice to associate Markdown files during installation.
+Codex registered `.md` and `.markdown` handlers for MSI and MSIX, preserved quoted
+document paths through `--open`, and added a localized Yes/No offer. Yes opens
+Windows Default apps for final user confirmation; No preserves existing defaults.
+The installer helper/interactive MSI invokes setup after installation. Other
+installed routes offer it at first launch, remembering the answer across updates.
+Portable/source and diagnostic modes skip setup. Static C#/PowerShell syntax,
+JSON/translation coverage, XML and diff checks passed. Full SDK schema validation
+was unavailable because the installed schema set references an undeclared
+`rescap5:ImmediateRegistration` attribute. No build, tests, installation, GUI
+interaction, dependency import or Git delivery ran.
+
+Umberto also requested a Settings entry. Codex added separate effective-default
+indicators for `.md` and `.markdown`, using Windows shell AppUserModelID/ProgID
+queries, and an explicit setup action that remains available after declining the
+installation offer. The UI refreshes on desktop activation, labels unavailable
+queries and hides the action when both defaults match. C#/JavaScript syntax,
+XAML XML, translation coverage and diff checks passed. Runtime/UI acceptance,
+build and installation remain unperformed.
+
+## Reader column width — 2026-10-24
+
+Umberto requested normal and expanded reading columns to use horizontal space,
+especially for wide tables. Codex added two localized toolbar actions, original
+vector icons and a persisted shell-layout choice. Expanded mode removes the
+reader width cap while retaining modest responsive margins and reading position.
+Changing width does not rerender Markdown, Mermaid or themes. Static review
+corrected toolbar responsiveness when AI/sidebar panes resize the document area.
+C#/JavaScript/CSS syntax, XAML XML, translation structure and diff checks passed.
+No application build, tests, installation, GUI interaction or Git delivery ran.
+
 ## Authorized local delivery and Git integration — 2026-10-23
 
 Umberto requested a local Release build and installation before commit, push and

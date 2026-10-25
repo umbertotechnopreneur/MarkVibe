@@ -391,11 +391,14 @@ class NativeWorkspace extends Workspace {
 }
 
 /** Opens the requested provider and derives imported identity independently of map and note sidecars. */
-export async function openWorkspace(mode, signal, recentPath = "", recentKind = "") {
+export async function openWorkspace(
+  mode, signal, recentPath = "", recentKind = "", workspaceId = ""
+) {
   checkCancelled(signal);
-  if (isDesktop() && ["files", "folder", "connected", "reopen", "resume", "startup", "recent"].includes(mode)) {
+  if (isDesktop() &&
+      ["files", "folder", "connected", "reopen", "resume", "startup", "recent", "parent"].includes(mode)) {
     const info = await nativeCall("workspace.open", {
-      mode: mode === "startup" ? "files" : mode, recentPath, recentKind
+      mode: mode === "startup" ? "files" : mode, recentPath, recentKind, workspaceId
     }, signal);
     const workspace = new NativeWorkspace(info);
     await workspace.scan(signal);

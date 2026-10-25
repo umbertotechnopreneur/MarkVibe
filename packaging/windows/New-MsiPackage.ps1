@@ -238,6 +238,8 @@ $channelName = if ($Configuration -eq 'Debug') { 'MarkVibe (Debug)' } else { 'Ma
 $productName = "$channelName ($Architecture, MSI)"
 $installFolderName = "MarkVibe-$($Configuration.ToLowerInvariant())-$Architecture"
 $registryKey = "Software\VibeWare\MarkVibe\MSI\$Configuration\$Architecture"
+$registrationName = "MarkVibe.$Configuration.$Architecture"
+$markdownProgId = "$registrationName.Markdown"
 $makeCab = (Get-Command makecab.exe -ErrorAction Stop).Source
 
 if (Test-Path -LiteralPath $outputFile) {
@@ -335,6 +337,7 @@ $cabinetDirectives.Add('.Set InfFileName="' + (Join-Path $workRoot 'MarkVibe.inf
 $cabinetDirectives.Add('.Set RptFileName="' + (Join-Path $workRoot 'MarkVibe.rpt') + '"')
 
 $fileSequence = 0
+$applicationFileId = $null
 foreach ($file in $payloadFiles) {
     if ($file.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
         throw "MSI payload must not contain file links: $($file.FullName)."
@@ -346,6 +349,10 @@ foreach ($file in $payloadFiles) {
     $resourceBytes = [Text.Encoding]::UTF8.GetBytes($resourceIdentity)
     $resourceHash = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($resourceBytes))
     $fileId = 'File' + $resourceHash.Substring(0, 32)
+    if ($relativePath -eq 'MarkVibe.Windows.exe') {
+        $applicationFileId = $fileId
+    }
+
     $componentId = 'Component' + $resourceHash.Substring(0, 32)
     $registryId = 'Registry' + $resourceHash.Substring(0, 32)
     $componentGuid = Get-ResourceGuid "$identity/file/$resourceIdentity"
@@ -376,6 +383,48 @@ $shortcutRegistry = 'StartMenuRegistry'
 Add-InstallerRow $tables.Component @($shortcutComponent, (Get-ResourceGuid "$identity/shortcut"), 'INSTALLFOLDER', 260, $null, $shortcutRegistry)
 Add-InstallerRow $tables.FeatureComponents @('MainApplication', $shortcutComponent)
 Add-InstallerRow $tables.Registry @($shortcutRegistry, 1, $registryKey, 'InstalledVersion', $Version.ToString(), $shortcutComponent)
+
+# Registration advertises an available handler without changing the user's default.
+# Keep each architecture/channel's ProgID separate so uninstall removes only its own entries.
+$associationComponent = 'MarkdownAssociations'
+$associationRegistry = 'MarkdownCapabilities'
+$capabilitiesKey = "$registryKey\Capabilities"
+Add-InstallerRow $tables.Component @(
+    $associationComponent, (Get-ResourceGuid "$identity/markdown-associations"),
+    'INSTALLFOLDER', 260, $null, $associationRegistry)
+Add-InstallerRow $tables.FeatureComponents @('MainApplication', $associationComponent)
+Add-InstallerRow $tables.Registry @(
+    $associationRegistry, 1, $capabilitiesKey,
+    'ApplicationName', $productName, $associationComponent)
+Add-InstallerRow $tables.Registry @(
+    'MarkdownDescription', 1, $capabilitiesKey, 'ApplicationDescription',
+    'Read and explore Markdown documents', $associationComponent)
+Add-InstallerRow $tables.Registry @(
+    'MarkdownApplicationIcon', 1, $capabilitiesKey, 'ApplicationIcon',
+    '"[INSTALLFOLDER]MarkVibe.Windows.exe",0', $associationComponent)
+Add-InstallerRow $tables.Registry @(
+    'MarkdownRegisteredApplication', 1, 'Software\RegisteredApplications',
+    $registrationName, $capabilitiesKey, $associationComponent)
+Add-InstallerRow $tables.Registry @(
+    'MarkdownProgId', 1, "Software\Classes\$markdownProgId", $null,
+    'Markdown document', $associationComponent)
+Add-InstallerRow $tables.Registry @(
+    'MarkdownIcon', 1, "Software\Classes\$markdownProgId\DefaultIcon", $null,
+    '"[INSTALLFOLDER]MarkVibe.Windows.exe",0', $associationComponent)
+Add-InstallerRow $tables.Registry @(
+    'MarkdownOpenCommand', 1, "Software\Classes\$markdownProgId\shell\open\command", $null,
+    '"[INSTALLFOLDER]MarkVibe.Windows.exe" --open "%1"', $associationComponent)
+
+foreach ($extension in @('.md', '.markdown')) {
+    $extensionId = $extension.TrimStart('.')
+    Add-InstallerRow $tables.Registry @(
+        "MarkdownCapability$extensionId", 1, "$capabilitiesKey\FileAssociations",
+        $extension, $markdownProgId, $associationComponent)
+    Add-InstallerRow $tables.Registry @(
+        "MarkdownOpenWith$extensionId", 1, "Software\Classes\$extension\OpenWithProgids",
+        $markdownProgId, $null, $associationComponent)
+}
+
 Add-InstallerRow $tables.Shortcut @(
     'StartMenu',
     'ApplicationMenuFolder',
@@ -439,6 +488,14 @@ $executeActions = [ordered]@{
 foreach ($action in $executeActions.GetEnumerator()) {
     Add-InstallerRow $tables.InstallExecuteSequence @($action.Key, $null, $action.Value)
 }
+
+# A type-18 action starts our installed executable after installation commits.
+# Async + Continue leaves installation success independent of the optional dialog.
+# Quiet installs, repair and removal never start UI; first normal launch can offer it later.
+Add-InstallerRow $tables.CustomAction @(
+    'OfferMarkdownAssociation', 210, $applicationFileId, '--configure-file-associations')
+Add-InstallerRow $tables.InstallExecuteSequence @(
+    'OfferMarkdownAssociation', 'NOT Installed AND NOT REMOVE AND UILevel >= 4', 6700)
 
 $directiveFile = Join-Path $workRoot 'MarkVibe.ddf'
 [System.IO.File]::WriteAllLines($directiveFile, $cabinetDirectives, [Text.Encoding]::Default)

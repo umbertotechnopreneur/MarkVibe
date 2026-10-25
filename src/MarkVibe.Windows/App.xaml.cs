@@ -18,6 +18,7 @@
 using System.Windows;
 
 namespace MarkVibe.Windows;
+/// <summary>Starts the desktop workspace or the installer's optional default-app setup.</summary>
 public partial class App : Application
 {
     /// <summary>Parses startup options and opens the desktop window, reporting initialization failures.</summary>
@@ -37,7 +38,16 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += (_, args) => DesktopLog.Error("application.unobservedTask", args.Exception);
         try
         {
+            if (options.ConfigureFileAssociations)
+            {
+                ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                MarkdownFileAssociations.Offer(options);
+                Shutdown();
+                return;
+            }
+
             MainWindow = new DesktopWindow(options);
+            MainWindow.ContentRendered += (_, _) => MarkdownFileAssociations.Offer(options, MainWindow);
             MainWindow.Show();
         }
         catch (Exception error)

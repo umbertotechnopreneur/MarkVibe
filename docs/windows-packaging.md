@@ -57,6 +57,23 @@ the bundle is another installation route. Each build gets a fresh development
 certificate; trust the CER supplied with that build. The private key is not distributed.
 See Microsoft's [MSIX signing and certificate trust guidance](https://learn.microsoft.com/en-us/windows/msix/package/sign-msix-package-guide).
 
+## Markdown file association
+
+The MSIX helper and a full/reduced-UI MSI installation offer to use MarkVibe for
+`.md` and `.markdown`. Choosing **Yes** opens Windows Default apps, where the
+user selects MarkVibe for each extension. **No** keeps the existing defaults.
+The response is remembered per Windows user and distribution, including updates.
+The same choice remains available in Settings, alongside the effective default
+status for each extension, even after answering No during installation.
+
+Double-clicked MSIX installations and quiet MSI installations offer the same
+choice at the first normal app launch. For an unattended MSIX helper run, use
+`-SkipFileAssociationPrompt`. Portable and source builds do not register file
+types or display this request. Repair and uninstall do not display it.
+
+Windows controls the final default selection; the installer only registers an
+available handler. See Microsoft's [Default Apps setup](https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-default-apps-settings).
+
 ## Portable
 
 Extract the matching ZIP completely into a writable folder; run `MarkVibe.Windows.exe`.

@@ -57,6 +57,8 @@ public partial class SettingsWindow : ChildWindow
     private bool _uiFontsLoaded;
     private bool _desktop;
     private bool _closed;
+    private FileAssociationStatus? _fileAssociations;
+    private bool _fileAssociationsBusy;
 
     /// <summary>Reports a successful explicit connection test so the shell can refresh the selected provider.</summary>
     public bool AiConnectionChanged { get; private set; }
@@ -106,7 +108,7 @@ public partial class SettingsWindow : ChildWindow
         if (!_openAiLoaded)
         {
             _openAiLoaded = true;
-            await Task.WhenAll(LoadOpenAiStatusAsync(), LoadUiFontsAsync());
+            await Task.WhenAll(LoadOpenAiStatusAsync(), LoadUiFontsAsync(), RefreshFileAssociationsAsync());
         }
     }
 
@@ -200,6 +202,7 @@ public partial class SettingsWindow : ChildWindow
         _updating = true;
         _preferences = preferences;
         _desktop = availability.Desktop;
+        MarkdownAssociationSection.Visibility = _desktop ? Visibility.Visible : Visibility.Collapsed;
         AppearanceCombo.SelectedIndex = Array.IndexOf(Appearances, preferences.Appearance);
         LanguageCombo.SelectedIndex = Array.IndexOf(Languages, preferences.Language);
         SelectTheme(UiFontCombo, preferences.UiFont);
@@ -239,6 +242,7 @@ public partial class SettingsWindow : ChildWindow
     {
         Title = UiStrings.T("Settings");
         AppLocalization.Apply(this);
+        RefreshFileAssociationControls();
         // Localization supplies ordinary tooltip labels first; richer provider
         // help must be attached afterwards so that it remains a ToolTip object.
         SetConnectionInformation(CodexInfoButton,
@@ -248,6 +252,109 @@ public partial class SettingsWindow : ChildWindow
             _desktop
                 ? "After validation, the key is saved as the Windows user environment variable OPENAI_API_KEY. Other programs running as your user can read it."
                 : "Warning: isolated browser storage is not secure. The key is saved without encryption in this site's localStorage and can be read by its scripts.");
+    }
+
+    /// <summary>Reads current Windows choices on opening Settings and returning from Windows setup.</summary>
+    internal async Task RefreshFileAssociationsAsync()
+    {
+        if (!_desktop || _closed || _closing || _fileAssociationsBusy)
+        {
+            return;
+        }
+
+        _fileAssociationsBusy = true;
+        RefreshFileAssociationControls();
+        try
+        {
+            var status = await BrowserServices.CallAsync<FileAssociationStatus>(
+                "fileAssociations.status", cancellationToken: _openAiLifetime.Token);
+            if (!_closed && !_closing)
+            {
+                _fileAssociations = status;
+            }
+        }
+        catch (OperationCanceledException) when (_openAiLifetime.IsCancellationRequested)
+        {
+        }
+        catch (Exception)
+        {
+            _fileAssociations = null;
+        }
+        finally
+        {
+            _fileAssociationsBusy = false;
+            if (!_closed && !_closing)
+            {
+                RefreshFileAssociationControls();
+            }
+        }
+    }
+
+    /// <summary>Shows independent, read-only check marks instead of claiming that a button changed Windows.</summary>
+    private void RefreshFileAssociationControls()
+    {
+        if (!_desktop)
+        {
+            return;
+        }
+
+        AppLocalization.SetRaw(MdAssociationStatus, AssociationStatusText(".md", _fileAssociations?.MdDefault));
+        AppLocalization.SetRaw(MarkdownAssociationStatus, AssociationStatusText(".markdown", _fileAssociations?.MarkdownDefault));
+        var bothDefault = _fileAssociations is { MdDefault: true, MarkdownDefault: true };
+        ConfigureMarkdownButton.Visibility = bothDefault ? Visibility.Collapsed : Visibility.Visible;
+        ConfigureMarkdownButton.IsEnabled = !_fileAssociationsBusy && _fileAssociations?.CanConfigure == true;
+        AppLocalization.SetText(MarkdownAssociationHelp, _fileAssociations is { CanConfigure: false }
+            ? "Install MarkVibe to configure Markdown file associations."
+            : "Windows confirms the default app for each file type. This status refreshes when you return.");
+    }
+
+    /// <summary>Labels one extension using only the latest effective-default query result.</summary>
+    private string AssociationStatusText(string extension, bool? isDefault)
+    {
+        var status = _fileAssociationsBusy
+            ? "Checking Windows defaults…"
+            : isDefault switch
+            {
+                true => "✓ MarkVibe is the default app",
+                false => "MarkVibe is not the default app",
+                null => "Default app status unavailable"
+            };
+        return extension + ": " + UiStrings.T(status);
+    }
+
+    /// <summary>Opens Windows setup explicitly; declining the installation offer does not disable this action.</summary>
+    private async void ConfigureMarkdownFiles(object sender, RoutedEventArgs arguments)
+    {
+        if (_fileAssociationsBusy || _fileAssociations?.CanConfigure != true || _closed || _closing)
+        {
+            return;
+        }
+
+        _fileAssociationsBusy = true;
+        RefreshFileAssociationControls();
+        try
+        {
+            await BrowserServices.CallAsync("fileAssociations.configure", cancellationToken: _openAiLifetime.Token);
+        }
+        catch (OperationCanceledException) when (_openAiLifetime.IsCancellationRequested)
+        {
+        }
+        catch (Exception)
+        {
+            if (!_closed && !_closing)
+            {
+                AppLocalization.SetText(SettingsStatus,
+                    "Default-app setup could not be opened. Open Windows Settings > Apps > Default apps and select MarkVibe.");
+            }
+        }
+        finally
+        {
+            _fileAssociationsBusy = false;
+            if (!_closed && !_closing)
+            {
+                await RefreshFileAssociationsAsync();
+            }
+        }
     }
 
     /// <summary>Shares compact pointer and keyboard help without keeping provider explanations in the form.</summary>

@@ -2,6 +2,32 @@
 
 Keep durable, repository-specific findings here; omit temporary commands and plans.
 
+- Dense SVG graphs can be dominated by paint, raster and layer work while
+  JavaScript looks inexpensive. Capture compositor categories alongside CPU
+  profiles. Coalesce hover geometry and avoid long decorative size transitions;
+  stabilize semantic text layout while the camera moves. Compare the same real
+  graph and retain endpoint/hit-target checks before claiming a speedup.
+
+- Intermediate models own application state; services own its transitions and
+  platform operations. Views render and forward intents. Separating MainPage
+  into partial files does not separate responsibilities. Do not describe the
+  entire application as migrated while legacy workflows still own state there.
+- Publish validated appearance changes before awaiting storage, so consecutive
+  choices compose. Search cleanup must follow pending renderer requests and run
+  on empty-workspace transitions as well as navigation. Invalidate text indexes
+  when diagrams or missing-image placeholders replace source-mapped DOM nodes.
+
+- Registering a Markdown handler makes it available in Open with; it does not
+  establish the user's default. Use Windows Default apps for the final choice.
+  MSI and MSIX need separate registration identities but can share the same
+  quoted `--open` activation contract and optional first-launch offer.
+  Default indicators must query the effective AppUserModelID/ProgID for each
+  extension; installed registration and an answered prompt are not default status.
+
+- Responsive document controls must observe DocumentPanel.SizeChanged, not only
+  the root window: AI/sidebar changes can shrink the pane without resizing the app.
+  Keep reader width changes on the layout path to avoid unnecessary theme/diagram work.
+
 - When a file read permits concurrent writes, capture its length once and use
   that same value for the size check and buffer allocation. Re-reading length
   after validation can defeat the bound if an external editor grows the file.

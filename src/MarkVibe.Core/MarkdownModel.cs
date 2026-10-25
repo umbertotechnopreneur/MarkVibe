@@ -52,7 +52,7 @@ public sealed class MarkdownParser
     private readonly MarkdownPipeline _pipeline = CreatePipeline();
 
     /// <summary>Preserves normal Markdown after inline comment prefixes while recognizing disclosure blocks.</summary>
-    private static MarkdownPipeline CreatePipeline()
+    internal static MarkdownPipeline CreatePipeline()
     {
         var builder = new MarkdownPipelineBuilder()
             .UsePipeTables()

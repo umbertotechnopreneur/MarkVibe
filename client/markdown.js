@@ -11,6 +11,8 @@
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; sanitized exact source selection attributes; 2026-10-11
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
+ * Modified with AI: OpenAI Codex; preserve reading position during column width changes; 2026-10-24
+ * Human guidance: Umberto Giacobbi; use the available horizontal reading space
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -24,7 +26,8 @@ import { acquireAsset, releaseAssets, getWorkspace, addFiles } from "./workspace
 import { resourceUrl, safeExternal, checkCancelled, nextFrame } from "./path.js";
 import { t, localize, refreshTranslations } from "./i18n.js";
 import { applyReaderTheme, resolveReaderTheme } from "./themes.js";
-import { attachFileContext, fileSelection } from "./file-context.js";
+import { attachFileContext, fileContextTarget, fileSelection } from "./file-context.js";
+import { clearDocumentFind } from "./document-find.js";
 
 const allowedTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "a", "em", "strong", "del", "s", "sup", "sub", "mark",
   "ul", "ol", "li", "blockquote", "pre", "code", "table", "thead", "tbody", "tr", "th", "td", "hr", "br", "img", "input", "section", "div", "span",
@@ -152,19 +155,34 @@ export class MarkdownHost {
     this.body.setAttribute("role", "document");
     localize(this.body, "Rendered Markdown document", "aria-label");
     this.body.addEventListener("click", event => this.click(event));
-    this.disposeFileContext = attachFileContext(this.body, emit, target => {
-      const link = target.closest?.("a");
-      const path = link?.dataset.mvPath || target.closest?.("img[data-mv-asset]")?.dataset.mvAsset || this.model?.path;
-      return { workspaceId: this.workspaceId, path, title: path?.split("/").at(-1) };
-    }, () => fileSelection(this));
+    this.disposeFileContext = attachFileContext(this.body, emit,
+      (target, event) => fileContextTarget(this, target, event),
+      () => fileSelection(this),
+      (target, event) => fileContextTarget(this, target, event, false));
     this.body.addEventListener("scroll", () => {
       this.scrollListener?.();
       clearTimeout(this.historyTimer);
       this.historyTimer = setTimeout(() => this.positionListener?.(this.capture()), 220);
     }, { passive: true });
   }
+  /** Change only reader width, retaining the current source-backed reading position. */
+  setExpanded(expanded) {
+    const width = expanded ? "expanded" : "column";
+    if (this.container.dataset.readerWidth === width) {
+      return;
+    }
+
+    const visible = this.model && this.body.clientHeight > 0;
+    const position = visible ? this.capture() : null;
+    this.container.dataset.readerWidth = width;
+    if (position) {
+      // Read the new block geometry only after changing width; no content is replaced.
+      this.restore(position);
+    }
+  }
   /** Replace reader content and its local asset leases while rejecting obsolete asynchronous work. */
   async render({ document: model, workspaceId, position, anchor }, signal) {
+    clearDocumentFind(this);
     const revision = ++this.revision;
     this.abort.abort();
     const rendering = new AbortController();
@@ -225,6 +243,10 @@ export class MarkdownHost {
       checkCancelled(signal);
       if (revision !== this.revision) {
         return;
+      }
+      if (diagrams.length) {
+        // Diagram rendering replaces source disclosure nodes after asynchronous work.
+        clearDocumentFind(this);
       }
       await nextFrame();
       if (position) {
@@ -289,6 +311,7 @@ export class MarkdownHost {
     if (image.dataset.elementId) {
       figure.dataset.elementId = image.dataset.elementId;
     }
+    clearDocumentFind(this);
     image.replaceWith(figure);
   }
   /** Route allowed document links, anchors and external URLs without executing Markdown content. */
@@ -396,6 +419,9 @@ export class MarkdownHost {
     if (diagrams.length) {
       const { renderDiagrams } = await import("./diagrams.js");
       await renderDiagrams(diagrams, current);
+      if (current()) {
+        clearDocumentFind(this);
+      }
     }
   }
   /** Refresh the captured position after the reader host's layout changes. */
@@ -406,6 +432,7 @@ export class MarkdownHost {
 
   /** Cancel reader work and release local asset leases, observers and DOM resources. */
   dispose() {
+    clearDocumentFind(this);
     this.revision++;
     this.disposeFileContext();
     this.abort.abort();

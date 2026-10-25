@@ -21,7 +21,10 @@
 Install the adjacent MSIX bundle; trust its development certificate only when the explicit switch is supplied.
 #>
 
-param([switch]$TrustDevelopmentCertificate)
+param(
+    [switch]$TrustDevelopmentCertificate,
+    [switch]$SkipFileAssociationPrompt
+)
 $ErrorActionPreference = 'Stop'
 $msixBundles = @(
     Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.msixbundle' -File)
@@ -38,3 +41,43 @@ if ($TrustDevelopmentCertificate) {
 }
 Add-AppxPackage -Path $msixBundles[0].FullName
 Write-Host 'MarkVibe installed for the current Windows user. Open it from Start.'
+
+if (-not $SkipFileAssociationPrompt -and [Environment]::UserInteractive) {
+    try {
+        # Read the installed bundle's own identity, including custom publisher/name builds.
+        $bundleArchive = [System.IO.Compression.ZipFile]::OpenRead($msixBundles[0].FullName)
+        try {
+            $manifestEntry = $bundleArchive.GetEntry('AppxMetadata/AppxBundleManifest.xml')
+            if ($null -eq $manifestEntry) {
+                throw 'The installed bundle has no identity manifest.'
+            }
+
+            $manifestReader = [System.IO.StreamReader]::new($manifestEntry.Open())
+            try {
+                [xml]$bundleManifest = $manifestReader.ReadToEnd()
+            }
+            finally {
+                $manifestReader.Dispose()
+            }
+        }
+        finally {
+            $bundleArchive.Dispose()
+        }
+
+        $bundleIdentity = $bundleManifest.Bundle.Identity
+        $installedPackages = @(
+            Get-AppxPackage -Name $bundleIdentity.Name | Where-Object {
+                $_.Publisher -eq $bundleIdentity.Publisher -and
+                $_.Version -eq [version]$bundleIdentity.Version
+            })
+        if ($installedPackages.Count -ne 1) {
+            throw 'Could not identify the installed MarkVibe application.'
+        }
+
+        $installedExecutable = Join-Path $installedPackages[0].InstallLocation 'MarkVibe.Windows.exe'
+        Start-Process -FilePath $installedExecutable -ArgumentList '--configure-file-associations' -Wait
+    }
+    catch {
+        Write-Warning 'MarkVibe is installed, but default-app setup could not be shown. Open MarkVibe from Start to choose Markdown defaults.'
+    }
+}

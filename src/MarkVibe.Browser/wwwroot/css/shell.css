@@ -11,6 +11,7 @@
  * Modified with AI: OpenAI Codex; frosted modal surfaces with 300 ms entry and exit; 2026-10-16
  * Modified with AI: OpenAI Codex; stable template selectors for persistent modal blur; 2026-10-16
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
+ * Modified with AI: OpenAI Codex; wider responsive startup presentation; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -22,10 +23,67 @@
 :root[data-theme=dark]{--shell:#14171c;--panel:#191d23;--text:#edf0f5;--muted:#afb5c1;--line:#30353f;--accent:#a894f9;--accent-soft:#252333;--code:#14171c;color-scheme:dark}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--shell);font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text)}
 #opensilver-root{position:relative;width:100%;height:100%;overflow:hidden}
-#app:empty{display:none}#app:has(.boot-card){position:fixed;inset:0;z-index:100;background:var(--shell);display:grid;place-items:center}
-.boot-card{text-align:center;max-width:420px;padding:32px}.boot-mark{display:inline-grid;place-items:center;width:56px;height:56px;border-radius:18px;background:var(--accent);color:white;font-size:28px;font-weight:700}
-.boot-card h1{font-size:28px;letter-spacing:-.7px;margin:24px 0 10px}.boot-card p{font-size:14px;color:var(--muted);line-height:1.7}.boot-progress{height:4px;width:150px;margin:28px auto;border-radius:8px;background:var(--line);overflow:hidden}
-.boot-progress:after{content:"";display:block;width:60px;height:4px;background:var(--accent);animation:progress 1.4s ease-in-out infinite}
+#app:empty { display: none; }
+#startup {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--shell);
+  display: grid;
+  place-items: center;
+}
+#startup[hidden] { display: none; }
+.boot-card {
+  text-align: center;
+  width: min(640px, 100%);
+  padding: 24px;
+}
+.boot-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: var(--accent);
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+}
+.boot-card h1 {
+  font-size: clamp(16px, 4.5vw, 28px);
+  white-space: nowrap;
+  letter-spacing: -.7px;
+  margin: 24px 0 10px;
+}
+.boot-card p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+.boot-progress {
+  height: 4px;
+  width: 150px;
+  margin: 28px auto;
+  border-radius: 8px;
+  background: var(--line);
+  overflow: hidden;
+}
+.boot-progress::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: var(--accent);
+  animation: progress 1.4s ease-in-out infinite;
+}
+#startup.startup-ready { cursor: pointer; }
+.startup-ready .boot-progress, .startup-ready #boot-message { visibility: hidden; }
+.startup-ready .boot-progress::after { animation: none; }
+#startup-continue {
+  font: inherit;
+  color: var(--text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
 @keyframes progress{from{transform:translateX(-60px)}to{transform:translateX(150px)}}
 #blazor-error-ui{display:none;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:var(--panel);border-top:1px solid var(--line);padding:16px;color:var(--text);font-size:14px}
 #blazor-error-ui a{color:var(--accent);margin-left:12px}
