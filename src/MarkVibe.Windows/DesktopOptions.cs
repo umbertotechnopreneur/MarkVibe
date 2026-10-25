@@ -18,8 +18,12 @@
 using System.IO;
 
 namespace MarkVibe.Windows;
+/// <summary>Contains desktop startup paths, installer setup and opt-in diagnostic settings.</summary>
 internal sealed record DesktopOptions(string DataDirectory, string AssetsDirectory, string? Document, bool SmokeTest, int DebugPort, string? ExportDirectory)
 {
+    /// <summary>Requests only the optional default-app setup dialog, without opening a workspace.</summary>
+    public bool ConfigureFileAssociations { get; init; }
+
     /// <summary>Parses desktop paths and opt-in diagnostics while enforcing isolated Debug-only smoke settings.</summary>
     public static DesktopOptions Parse(string[] args)
     {
@@ -29,6 +33,7 @@ internal sealed record DesktopOptions(string DataDirectory, string AssetsDirecto
         string? document = null, exportDirectory = null;
         var smokeTest = false;
         var debugPort = 0;
+        var configureFileAssociations = false;
         for (var argumentIndex = 0; argumentIndex < args.Length; argumentIndex++)
         {
             switch (args[argumentIndex])
@@ -41,6 +46,9 @@ internal sealed record DesktopOptions(string DataDirectory, string AssetsDirecto
                     break;
                 case "--open":
                     document = Path.GetFullPath(args[++argumentIndex]);
+                    break;
+                case "--configure-file-associations":
+                    configureFileAssociations = true;
                     break;
                 case "--smoke-test":
                     smokeTest = true;
@@ -79,6 +87,9 @@ internal sealed record DesktopOptions(string DataDirectory, string AssetsDirecto
             throw new ArgumentException("Invalid debug port.");
         }
 
-        return new(dataDirectory, assetsDirectory, document, smokeTest, debugPort, exportDirectory);
+        return new(dataDirectory, assetsDirectory, document, smokeTest, debugPort, exportDirectory)
+        {
+            ConfigureFileAssociations = configureFileAssociations
+        };
     }
 }

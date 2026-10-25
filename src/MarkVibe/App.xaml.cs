@@ -16,10 +16,15 @@
  *
  * VBWR E */
 using System.Windows;
+using MarkVibe.Services;
 
 namespace MarkVibe;
+/// <summary>Composes application models and services before creating the OpenSilver shell.</summary>
 public partial class App : Application
 {
+    /// <summary>Owns document interaction data and services independently of the visual shell.</summary>
+    public DocumentApplicationServices Documents { get; } = new();
+
     /// <summary>Initializes application resources and creates the main OpenSilver shell.</summary>
     public App()
     {

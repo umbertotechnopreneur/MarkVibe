@@ -3,6 +3,86 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-25 — Release x64 0.1.0.30 local delivery
+
+- The owner requested installation, commit and push, and explicitly included
+  every pending app change: document commands/services, reader widths, Markdown
+  association setup and parent folder links.
+- Built current source with SDK 10.0.402 and Node 24.19.0. Release x64 packaging
+  produced signed MSIX/bundle, MSI and portable artifacts; only the MSIX bundle
+  was installed. Trusted this build's development certificate and updated the
+  existing 0.1.0.29 installation to 0.1.0.30 without removing user data.
+- Windows reported package status `Ok`; the launched process path belongs to
+  the installed 0.1.0.30 package. Build/install metadata and hashes are in ignored
+  `artifacts/BUILD-INFO.json`, `INSTALL-INFO.json` and `SHA256SUMS.txt`.
+- No automated tests or interactive GUI validation ran. Existing NU1902/NU1903
+  warnings remain for transitive System.Security.Cryptography.Pkcs 8.0.1 and
+  System.Security.Cryptography.Xml 8.0.4. No dependency versions changed.
+
+## 2026-10-25 — Service-backed document context commands
+
+- Added checked reader widths, selection-prefilled find, source navigation,
+  file paths, local heading links, Markdown/Excel table copies, code block copy
+  and grouped exports. Appearance starts collapsed; paste remains absent.
+- Core owns interaction models and source extraction. Application-composed
+  services own menu policy, search transitions, preferences and persisted layout;
+  the UI displays results. Source context resolves against C# semantic spans.
+  Search uses cached renderer indexes without inserting Markdown DOM wrappers.
+- Static review corrected nested-document anchor links, sequential appearance
+  changes, search cleanup during pane/empty-workspace transitions and cache
+  invalidation after diagram/image changes. C# syntax (20 files), JavaScript
+  syntax (5), XAML XML (3), 16 labels in eight languages and diff checks passed.
+  No build, tests, installation, GUI interaction or Git delivery ran.
+- The wider MainPage migration remains open; see the architecture boundary and
+  active task. Installed Release 0.1.0.29 does not contain this source work.
+
+## 2026-10-25 — Parent folder links
+
+- Added clickable `../` immediately before the header's workspace/document path
+  and the sidebar workspace name. Both use the existing workspace transition,
+  including unsaved-edit, map, history and indexing guards.
+- Native opening derives the parent from the registered workspace root and
+  validates it through the existing file service. Links disable at drive roots
+  and while opening; browser providers expose no parent access. Drive-root labels
+  retain their actual root name rather than displaying an empty folder name.
+- C#/JavaScript syntax, XAML XML, eight-language JSON and diff checks passed.
+  No build, tests, installation, GUI interaction or Git delivery ran.
+
+## 2026-10-25 — Optional Markdown default-app setup
+
+- Registered `.md` and `.markdown` in the MSIX manifest and per-user MSI
+  capabilities/Open with entries, using the existing quoted `--open` contract.
+- Added a localized Yes/No offer with No selected initially. Yes opens the
+  distribution's Windows Default apps entry; Windows confirms the actual default.
+  A per-user marker remembers the answer across updates. Portable/source builds
+  and diagnostic smoke mode skip the offer.
+- The MSIX helper and interactive MSI installation start setup after installation.
+  MSIX double-click/basic or quiet MSI routes offer it on first normal launch.
+  MSI repair/removal skip setup; the helper supports unattended opt-out.
+- Added a Windows Settings section with per-extension check marks based on shell
+  queries of the effective AppUserModelID/ProgID. The setup action remains usable
+  after declining the installation offer, hides when both types are already
+  assigned, and refreshes on desktop activation. Browser UI hides the section;
+  unregistered/source/portable modes report configuration unavailable.
+- C#/JavaScript/PowerShell syntax, JSON/translation coverage, XAML/XML and diff checks passed.
+  Full manifest schema validation was unavailable: the installed SDK schema set
+  references an undeclared `rescap5:ImmediateRegistration` attribute. No build,
+  tests, installation, GUI checks or Git delivery ran. Owner acceptance is open.
+
+## 2026-10-24 — Reader column width controls
+
+- Added Column and Expanded column toolbar actions with distinct colored icons,
+  localized captions and accessible selection state. Expanded mode removes the
+  reading-width cap for all document styles with bounded responsive margins.
+- Retained the choice as shell geometry. Width changes preserve the source-backed
+  reading position without replacing Markdown or regenerating diagrams/themes.
+  Existing layouts default to Column; standalone HTML/PDF sizing stays independent.
+- Toolbar presentation follows the actual document pane after AI/sidebar/splitter
+  changes, with compact captions, stacked actions and scrollable view tabs for
+  narrow panes. Static peer review found no remaining actionable findings.
+- C#/JavaScript/CSS syntax, XAML XML, localization structure and diff checks passed.
+  No build, automated tests, installation, GUI checks or Git delivery requested.
+
 ## 2026-10-23 — Release x64 0.1.0.29 performance delivery
 
 - Built current source, packaged signed x64 Release distributions and updated

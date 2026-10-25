@@ -32,6 +32,14 @@ synthetic request using the existing CLI login on Windows. Neither test sends an
 open document. The CLI probe can consume account usage; its presence/login status
 alone is not a remote test. See [AI connection details](ai-editing.md).
 
+The Windows dialog includes **Open Markdown files with MarkVibe**. A check mark
+shows when this installation is the effective default for `.md` or `.markdown`;
+each extension is queried separately. **Use MarkVibe for Markdown files** opens
+Windows Default apps for confirmation and remains available after declining the
+installation offer. Status refreshes when you return to MarkVibe. Unknown status
+is labeled explicitly; portable/source copies cannot configure an installed handler.
+This Windows choice is separate from Reset preferences.
+
 ## Coordinated theme application
 
 `App.xaml` installs the official `OpenSilver.Themes.Modern` theme through `Application.Theme`, as shown in the [OpenSilver documentation](https://doc.opensilver.net/documentation/how-to-topics/theme-handling.html). Its LightPalette and DarkPalette use MarkVibe's shell colors. Changing appearance selects `ModernTheme.CurrentPalette`, updates shell brushes, publishes CSS variables to DOM hosts, selects Monaco's `vs`/`vs-dark`, and renders Mermaid using the matching palette. The map and highlighted code inherit the same appearance. Existing source mappings preserve the reading location during presentation changes.

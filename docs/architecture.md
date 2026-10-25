@@ -2,7 +2,27 @@
 
 ## Runtime and application model
 
-MarkVibe uses OpenSilver's DOM-based C#/XAML application model. The Browser project is a .NET 10 Blazor WebAssembly host whose root component invokes OpenSilver.WebAssembly.Runner. The OpenSilver app provides the window layout, controls, commands and state.
+MarkVibe uses OpenSilver's DOM-based C#/XAML application model. The Browser project is a .NET 10 Blazor WebAssembly host whose root component invokes OpenSilver.WebAssembly.Runner. The OpenSilver app provides the window layout and controls.
+
+Application state belongs to an intermediate object model. Services validate
+commands, update that model and call platform adapters. Views display model data
+and forward user actions; moving a method to another MainPage partial does not
+establish this separation.
+
+Document menus, search, global preferences, folder appearance and shell layout
+now follow this ownership through Core `DocumentInteractionState` and
+`ShellLayout`. `App.Documents` composes their services independently of MainPage.
+`DocumentMenuService` supplies command descriptors; `DocumentContentService`
+prepares source-backed clipboard content. Reader controls use
+`ReaderPresentationService`, and both source and reader search use
+`DocumentFindService`. Browser search retains only renderer indexes, ranges and
+selection handles; it never rewrites source-mapped Markdown nodes.
+
+This is not a completed application-wide migration. Existing workspace and
+navigation coordination, AI requests, map persistence and disk-change/deletion
+workflows still live partly in MainPage. Move these transitions and operation
+lifetimes into dedicated services over a composed application model; preserve
+cancellation, stale-result checks and the authoritative document catalog.
 
 OpenSilver 3.3.3 is used with its matching WebAssembly runtime and Modern Theme 3.3.0. The application library and host target net10.0; the repository pins SDK 10.0.402. Earlier builds and browser checks are historical evidence in [validation](validation.md). The 2026-10-16 model and maintainability changes received source/static review only, with no build or test execution for that work.
 

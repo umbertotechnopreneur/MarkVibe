@@ -9,37 +9,35 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Text.Json;
 using MarkVibe.Controls;
 using MarkVibe.Core;
+using MarkVibe.Services;
 
 namespace MarkVibe;
 
+/// <summary>Presents service-provided file commands and the existing confirmation dialog.</summary>
 public partial class MainPage
 {
-    private FileMenuTarget? _fileMenuTarget;
     private bool _confirmingFileDelete;
     private bool _fileMutationBusy;
-    private ReaderAppearance? _readerAppearance;
+
+    /// <summary>Obtains application-owned models and services from the composition root.</summary>
+    private DocumentApplicationServices _documentServices => ((App)Application.Current).Documents;
+    /// <summary>Routes menu operations through the shared command service.</summary>
+    private DocumentMenuService _documentMenus => _documentServices.Menus;
+    /// <summary>Routes reader presentation changes through its model service.</summary>
+    private ReaderPresentationService _readerPresentation => _documentServices.Reader;
 
     /// <summary>Resolves folder-specific reading choices over the global Settings defaults.</summary>
-    private Preferences ReaderPreferences => _readerAppearance?.ApplyTo(_preferences) ?? _preferences;
+    private Preferences ReaderPreferences => _readerPresentation.ResolvePreferences();
 
     /// <summary>Restores this folder's own choices before its first document is rendered.</summary>
     private async Task LoadReaderAppearanceAsync(CancellationToken cancellationToken = default)
     {
         var context = _active;
-        _readerAppearance = null;
         if (context != null)
         {
-            var result = await BrowserServices.CallAsync<JsonElement>(
-                "reader.appearance.read", new { workspaceId = context.Provider.Info.Id }, cancellationToken);
-            if (ReferenceEquals(context, _active))
-            {
-                _readerAppearance = result.ValueKind == JsonValueKind.Object
-                    ? Wire.Decode<ReaderAppearance>(result.GetRawText())
-                    : null;
-            }
+            await _readerPresentation.ReadAppearanceAsync(context.Provider.Info.Id, cancellationToken);
         }
     }
 
@@ -53,24 +51,12 @@ public partial class MainPage
                 return;
             }
             var context = _active;
-            var current = ReaderPreferences;
-            var preferences = key switch
-            {
-                "lightDocumentTheme" => current with { LightDocumentTheme = value },
-                "darkDocumentTheme" => current with { DarkDocumentTheme = value },
-                "lightCodeTheme" => current with { LightCodeTheme = value },
-                "darkCodeTheme" => current with { DarkCodeTheme = value },
-                "underlineLinks" => current with { UnderlineLinks = value == "true" },
-                "documentFont" => current with { DocumentFont = value },
-                _ => current
-            };
-            _readerAppearance = key == "reset" ? null : ReaderAppearance.From(preferences.Validated());
-            var persisted = await BrowserServices.CallAsync<bool>("reader.appearance.save",
-                new { workspaceId = context.Provider.Info.Id, appearance = _readerAppearance });
+            var result = await _readerPresentation.ChangeAppearanceAsync(
+                context.Provider.Info.Id, key, value);
             if (ReferenceEquals(context, _active))
             {
                 await ApplyPreferencesAsync();
-                if (!persisted)
+                if (!result.Persisted)
                 {
                     SetStatus("Preferences are available for this session. Browser storage is unavailable.");
                 }
@@ -78,7 +64,7 @@ public partial class MainPage
         });
         DocumentFileActions.ActionRequested += action => ExecuteAsync(async () =>
         {
-            var target = _fileMenuTarget;
+            var target = _documentServices.State.MenuTarget;
             FileMenuPopup.IsOpen = false;
             if (target != null)
             {
@@ -87,6 +73,7 @@ public partial class MainPage
         });
         MapHost.FileActionRequested += OpenFileActionAsync;
         MapHost.FileMenuRequested += ShowFileMenu;
+        InitializeDocumentFind();
         AttachFileMenu(DocumentTitle, () => _active == null || _document == null ? null : new(_active.Provider.Info.Id, _document.Path, _document.Title));
         AttachFileMenu(WorkspaceName, () => _active == null ? null : new(_active.Provider.Info.Id, "", _active.Provider.Info.Name, true));
         AttachFileMenu(OutlineTree, () => _active == null || _document == null ? null : new(_active.Provider.Info.Id, _document.Path, _document.Title));
@@ -140,12 +127,13 @@ public partial class MainPage
         {
             return;
         }
-        _fileMenuTarget = target;
+        _documentMenus.Open(target, CanUseLocalFileMenu(target), _document, _layout.ReaderExpanded);
         AppLocalization.SetRaw(FileMenuTitle, target.Title);
         AppLocalization.SetRaw(FileMenuPath, target.Path.Length == 0 ? _active!.Provider.Info.Name : target.Path);
-        DocumentFileActions.Configure(
-            CanUseLocalFileMenu(target), WorkspacePath.IsMarkdown(target.Path), target.IsFolder,
-            target.SelectedText.Length > 0);
+        DocumentFileActions.Configure(_documentServices.State.MenuItems);
+        ReaderAppearanceGroup.IsExpanded = false;
+        ReaderAppearanceGroup.Header = UiStrings.T("Appearance");
+        System.Windows.Automation.AutomationProperties.SetName(ReaderAppearanceGroup, UiStrings.T("Appearance"));
         DocumentAppearance.Update(ReaderPreferences);
         _ = LoadReaderFontsAsync();
         var root = (FrameworkElement)Application.Current.RootVisual;
@@ -181,49 +169,18 @@ public partial class MainPage
             return;
         }
 
-        if (action == "copySelection" && !target.IsFolder && target.SelectedText.Length > 0)
+        var context = _active!;
+        var document = _document;
+        var session = new DocumentCommandSession(context.Provider.Info, context.Catalog,
+            context.Provider, document, ReaderPreferences, CanUseLocalFileMenu(target),
+            () => ReferenceEquals(context, _active) && ReferenceEquals(document, _document)
+                && !_workspaceTransitionBusy);
+        var result = await _documentMenus.ExecuteAsync(session, target, action, _opening.Token);
+        if (session.IsCurrent())
         {
-            await BrowserServices.CallAsync("document.copy", new { text = target.SelectedText });
-            return;
-        }
-
-        if (action == "copyFile" && !target.IsFolder && WorkspacePath.IsMarkdown(target.Path))
-        {
-            var context = _active!;
-            // The open snapshot includes local revisions that may not have been saved to disk yet.
-            var document = _document?.Path == target.Path
-                ? _document
-                : await context.Catalog.OpenAsync(context.Provider, target.Path, _opening.Token);
-            if (ReferenceEquals(context, _active))
-            {
-                await BrowserServices.CallAsync("document.copy", new { text = document.Source });
-            }
-            return;
-        }
-
-        if (!CanUseLocalFileMenu(target))
-        {
-            return;
-        }
-        if (action is "reveal" or "terminal")
-        {
-            await BrowserServices.CallAsync("file." + action, new { workspaceId = target.WorkspaceId, path = target.Path });
-        }
-        else if (action == "browser" && !target.IsFolder && WorkspacePath.IsMarkdown(target.Path))
-        {
-            var context = _active!;
-            var document = await context.Catalog.OpenAsync(context.Provider, target.Path, _opening.Token);
-            if (ReferenceEquals(context, _active))
-            {
-                await BrowserServices.CallAsync("document.browser", new { document, workspaceId = target.WorkspaceId, preferences = ReaderPreferences }, _opening.Token);
-            }
-        }
-        else if (action == "delete" && !target.IsFolder)
-        {
-            await ConfirmDeleteFileAsync(target);
+            await PresentDocumentCommandAsync(target, result);
         }
     }
-
     /// <summary>Requires the app's blurred confirmation and revalidates both the file revision and UI session before recycling.</summary>
     private async Task ConfirmDeleteFileAsync(FileMenuTarget target)
     {
@@ -303,6 +260,7 @@ public partial class MainPage
         RefreshSidebar();
         if (_document?.Path == deletedPath)
         {
+            await CloseDocumentFindAsync();
             var next = context.Catalog.Cards.FirstOrDefault(card => card.Path.Equals("README.md", StringComparison.OrdinalIgnoreCase)) ?? context.Catalog.Cards.FirstOrDefault();
             _document = null;
             if (next == null)

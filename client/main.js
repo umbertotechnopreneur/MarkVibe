@@ -16,6 +16,8 @@
  * Modified with AI: OpenAI Codex; reliable map updates, metadata controls and installed UI fonts; 2026-10-16
  * Modified with AI: OpenAI Codex; forward managed atlas control data to the map renderer; 2026-10-16
  * Human guidance: Umberto Giacobbi; implement the approved document atlas controls
+ * Modified with AI: OpenAI Codex; apply reader width through the existing layout command; 2026-10-24
+ * Human guidance: Umberto Giacobbi; use the available horizontal reading space
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -28,6 +30,7 @@ import { SourceHost, releaseSourceWorkspace, disposeSourceModels } from "./sourc
 import { CurrentDocumentWatch } from "./document-watch.js";
 import { MapHost } from "./map.js";
 import { observeDocumentSelection } from "./document-selection.js";
+import { findDocument } from "./document-find.js";
 import {
   openWorkspace, getWorkspace, initializeWorkspaceStorage, capabilities, addFiles, acquireAsset,
   releaseAssets, releaseWorkspace, disposeWorkspaces, setWorkspaceMemory, canResumeWorkspace,
@@ -58,6 +61,7 @@ let preferenceRevision = 0;
 let exportAdapter;
 let preferences = readPreferences();
 let readerPreferences = preferences;
+let readerExpanded = readLayout().readerExpanded;
 const colorScheme = matchMedia("(prefers-color-scheme: dark)");
 
 /** Translates startup and runtime-error UI before the OpenSilver shell is ready. */
@@ -365,6 +369,12 @@ async function dispatch(operation, args, signal) {
     case "preferences.apply":
       return applyPreferences(args);
     case "layout.save":
+      readerExpanded = args.readerExpanded === true;
+      for (const view of views.values()) {
+        if (view instanceof MarkdownHost) {
+          view.setExpanded(readerExpanded);
+        }
+      }
       return saveLayout(args);
     case "ai.connection.status":
       return aiConnectionStatus(args.provider, signal);
@@ -382,6 +392,8 @@ async function dispatch(operation, args, signal) {
     case "source.find":
       (await getView(args.hostId, signal)).find(args.query);
       return true;
+    case "document.find":
+      return findDocument(views.values(), args);
     case "source.copy":
     case "document.copy":
       try {
@@ -419,15 +431,19 @@ async function dispatch(operation, args, signal) {
     case "document.browser":
       exportAdapter ??= await import("./export.js");
       return exportAdapter.openBrowserPreview(args, signal);
+    case "file.path":
     case "file.reveal":
     case "file.terminal":
     case "file.deleteRevision":
     case "file.delete":
       return nativeCall(operation, args, signal);
     case "workspace.open":
-      return openWorkspace(args.mode, signal, args.recentPath, args.recentKind);
+      return openWorkspace(args.mode, signal, args.recentPath, args.recentKind, args.workspaceId);
     case "workspace.recent":
       return isDesktop() ? nativeCall(operation, args, signal) : [];
+    case "fileAssociations.status":
+    case "fileAssociations.configure":
+      return nativeCall(operation, args, signal);
     case "map.command": {
       const view = await getView(args.hostId, signal);
       if (args.action.startsWith("explore-")) await view.effects.command(args.action.slice(8), args.data);
@@ -639,6 +655,11 @@ function popState(event) {
     emit({ type: "history", entry: event.state.markvibe });
   }
 }
+/** Ask an open Settings dialog to reread effective Windows defaults after desktop activation. */
+function desktopActivated() {
+  emit({ type: "desktop-activated" });
+}
+
 /** Notify managed appearance state that the system color preference changed. */
 function systemAppearance() {
   emit({ type: "appearance" });
@@ -719,6 +740,7 @@ document.addEventListener("visibilitychange", visibilityChanged);
 colorScheme.addEventListener("change", systemAppearance);
 window.addEventListener("languagechange", systemLanguage);
 window.addEventListener("markvibe-native-appearance", systemAppearance);
+window.addEventListener("markvibe-native-activated", desktopActivated);
 
 window.markvibe = {
   translate: t,
@@ -777,6 +799,7 @@ window.markvibe = {
     }
     views.get(id).setSuspended?.(mapSuspended);
     if (kind === "markdown") {
+      views.get(id).setExpanded(readerExpanded);
       views.get(id).positionListener = position => {
         const view = views.get(id);
         const entry = history.state?.markvibe;
@@ -851,5 +874,6 @@ window.markvibe = {
     colorScheme.removeEventListener("change", systemAppearance);
     window.removeEventListener("languagechange", systemLanguage);
     window.removeEventListener("markvibe-native-appearance", systemAppearance);
+    window.removeEventListener("markvibe-native-activated", desktopActivated);
   }
 };

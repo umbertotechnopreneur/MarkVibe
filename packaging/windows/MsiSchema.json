@@ -131,6 +131,15 @@
     "columns": { "Condition": "s255", "Description": "l255" },
     "keys": ["Condition"]
   },
+  "CustomAction": {
+    "columns": {
+      "Action": "s72",
+      "Type": "i2",
+      "Source": "S72",
+      "Target": "S255"
+    },
+    "keys": ["Action"]
+  },
   "InstallExecuteSequence": {
     "columns": { "Action": "s72", "Condition": "S255", "Sequence": "I2" },
     "keys": ["Action"]

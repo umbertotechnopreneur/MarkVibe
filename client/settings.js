@@ -13,6 +13,8 @@
  * Human guidance: Umberto Giacobbi; choose installed monospace fonts for the UI
  * Modified with AI: OpenAI Codex; persist validated map inspector splitter width; 2026-10-16
  * Modified with AI: OpenAI Codex; retain the explicitly selected AI connection provider; 2026-10-16
+ * Modified with AI: OpenAI Codex; validate the persisted reader width choice; 2026-10-24
+ * Human guidance: Umberto Giacobbi; normal and expanded reader columns
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -158,7 +160,8 @@ function normalizeLayout(value) {
     sidebarOpen: layout.sidebarOpen !== false,
     sidebarWidth: boundedLayoutNumber(layout.sidebarWidth, 180, 520, 220),
     sourceRatio: boundedLayoutNumber(layout.sourceRatio, 0.2, 0.8, 0.5),
-    mapInspectorWidth: boundedLayoutNumber(layout.mapInspectorWidth, 220, 600, 290)
+    mapInspectorWidth: boundedLayoutNumber(layout.mapInspectorWidth, 220, 600, 290),
+    readerExpanded: layout.readerExpanded === true
   };
 }
 

@@ -409,7 +409,7 @@ public partial class MainPage
                 ToggleSettings(this, new RoutedEventArgs());
                 return;
             case "close":
-                _layout = _layout with { AiOpen = false };
+                _readerPresentation.SetAiOpen(false);
                 LayoutMarkdownAi();
                 await RenderMarkdownAiAsync();
                 await SaveLayoutAsync();
@@ -737,6 +737,7 @@ public partial class MainPage
         var inputSuspended = false;
         try
         {
+            await CloseDocumentFindAsync();
             await BrowserServices.CallAsync("document.edit.suspend");
             inputSuspended = true;
             cancellationToken.ThrowIfCancellationRequested();
@@ -858,7 +859,7 @@ public partial class MainPage
                 _aiPrompt = prompt[..Math.Min(prompt.Length, MarkdownAi.PromptCharacters)];
             }
 
-            _layout = _layout with { AiOpen = !_layout.AiOpen };
+            _readerPresentation.SetAiOpen(!_layout.AiOpen);
             LayoutMarkdownAi();
             await RenderMarkdownAiAsync();
             await SaveLayoutAsync();

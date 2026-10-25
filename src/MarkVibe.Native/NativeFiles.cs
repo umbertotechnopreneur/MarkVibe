@@ -110,7 +110,17 @@ public sealed class NativeFiles
         RejectLinks(root);
         var id = Id(root);
         _roots[id] = root;
-        return new(id, Path.GetFileName(root), "native", new(CanRefresh: true, CanReopen: true, CanWriteSidecars: true));
+        var name = Path.GetFileName(root);
+        if (name.Length == 0)
+        {
+            name = root;
+        }
+
+        return new(id, name, "native", new(
+            CanRefresh: true,
+            CanReopen: true,
+            CanWriteSidecars: true,
+            CanOpenParent: Directory.GetParent(root) != null));
     }
 
     /// <summary>Reopens the remembered local workspace or reports that it is unavailable.</summary>

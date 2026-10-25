@@ -19,6 +19,8 @@
  * Modified with AI: OpenAI Codex; bound map painting and remove filtered SVG surfaces; 2026-10-16
  * Human guidance: Umberto Giacobbi; eliminate gray redraw artifacts during card selection
  * Modified with AI: OpenAI Codex; lighter card surfaces, relation lens and unfiltered finite link effects; 2026-10-16
+ * Modified with AI: OpenAI Codex; full-width reading with responsive side margins; 2026-10-24
+ * Human guidance: Umberto Giacobbi; normal and expanded reader columns
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -629,6 +631,14 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus
 :host([data-document-style=technical]) .reader>.markdown{max-width:1120px;padding:28px 40px 80px}
 .markdown h1{font-size:2.25em;font-weight:600;line-height:1.18}
 @media(max-width:760px){.reader>.markdown,:host([data-document-style=technical]) .reader>.markdown{padding:24px 26px 80px}}
+
+/* Width belongs to the live reader; typography and standalone export page sizes stay independent. */
+:host([data-reader-width="expanded"]) .reader > .markdown {
+  width: auto;
+  max-width: none;
+  padding-left: clamp(16px, 2vw, 32px);
+  padding-right: clamp(16px, 2vw, 32px);
+}
 
 /* Exploration keeps opaque surfaces and uses finite SVG strokes instead of filtered compositor layers. */
 .document-map .page-card {

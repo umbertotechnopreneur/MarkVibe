@@ -106,7 +106,7 @@ public partial class MainPage
         var normalizedPath = WorkspacePath.Normalize(path, imported: true);
         if (context.AiContext.Paths.Contains(normalizedPath, StringComparer.Ordinal))
         {
-            _layout = _layout with { AiOpen = true };
+            _readerPresentation.SetAiOpen(true);
             await RenderMarkdownAiAsync();
             await SaveLayoutAsync();
             return;
@@ -135,7 +135,7 @@ public partial class MainPage
             }
 
             context.AiContext.Add(normalizedPath);
-            _layout = _layout with { AiOpen = true };
+            _readerPresentation.SetAiOpen(true);
             await SaveLayoutAsync();
         }
         finally

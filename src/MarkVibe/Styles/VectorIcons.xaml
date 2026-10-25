@@ -4,6 +4,8 @@
  Modified with AI: OpenAI Codex; distinct radial, circular and grid arrangement icons; 2026-10-16
  Human guidance: Umberto Giacobbi; flat icons and XAML controls
  Modified with AI: OpenAI Codex; complete stroked map glyphs and legible export symbols; 2026-10-16
+ Modified with AI: OpenAI Codex; original narrow and expanded reader column symbols; 2026-10-24
+ Human guidance: Umberto Giacobbi; distinguish normal and expanded reading widths
  Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  Fluent back, forward and chevron geometry: Copyright (c) 2020 Microsoft Corporation, MIT. See THIRD-PARTY-NOTICES.txt.
  VBWR E -->
@@ -503,6 +505,32 @@
       <Path Data="M3 5a2 2 0 1 0 4 0a2 2 0 1 0-4 0M17 19a2 2 0 1 0 4 0a2 2 0 1 0-4 0M7 5h10a4 4 0 0 1 0 8H7a3 3 0 0 0 0 6h10"
             Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.7"
             StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+     </Canvas>
+    </ControlTemplate>
+   </Setter.Value>
+  </Setter>
+ </Style>
+ <Style x:Key="Vector-reader-column" TargetType="ContentControl">
+  <Setter Property="Template">
+   <Setter.Value>
+    <ControlTemplate TargetType="ContentControl">
+     <Canvas Width="24" Height="24">
+      <Path Data="M7 3H17V21H7Z M9.5 7H14.5 M9.5 11H14.5 M9.5 15H14.5"
+            Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.7"
+            StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+     </Canvas>
+    </ControlTemplate>
+   </Setter.Value>
+  </Setter>
+ </Style>
+ <Style x:Key="Vector-reader-expanded" TargetType="ContentControl">
+  <Setter Property="Template">
+   <Setter.Value>
+    <ControlTemplate TargetType="ContentControl">
+     <Canvas Width="24" Height="24">
+      <Path Data="M2 3H22V21H2Z M7 7H17 M7 17H17 M5 12H19 M8 9L5 12L8 15 M16 9L19 12L16 15"
+            Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.7"
+            StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
      </Canvas>
     </ControlTemplate>
    </Setter.Value>

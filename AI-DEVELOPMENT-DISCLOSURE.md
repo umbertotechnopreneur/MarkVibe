@@ -1,5 +1,72 @@
 # AI development disclosure
 
+## Local Release delivery — 2026-10-25
+
+Umberto requested installation, commit and push and confirmed inclusion of all
+pending app changes. Codex built Release x64 0.1.0.30 from repository source,
+trusted the generated local development certificate, updated the existing MSIX
+installation and launched its installed executable. Windows package status and
+the process path were verified. Packaging also generated MSI and portable files;
+those distributions were not installed. Existing NuGet vulnerability warnings
+remain; dependencies were unchanged. No tests or GUI interaction ran.
+
+## Document commands and model ownership — 2026-10-25
+
+Umberto approved the proposed context commands and required an intermediate
+object model with services below the UI. Codex added checked reader widths,
+selection-prefilled find, source navigation, path/section/table/code copying,
+grouped exports and collapsed appearance controls. Core contains the source
+extraction and interaction models; App composes menu, search and reader services.
+Global preferences, folder appearance and shell layout now use these services.
+Existing workspace/navigation, AI, map and watch/deletion workflows still require
+further separation; this change does not claim a complete application migration.
+
+Static C# and JavaScript syntax, XAML XML, eight-language labels and whitespace
+checks passed. No build, automated tests, installation, GUI interaction, new
+dependency import or Git delivery ran for this change. Native clipboard, Excel
+paste, visual search and context-menu acceptance remain unverified at runtime.
+
+## Parent folder links — 2026-10-25
+
+Umberto requested clickable `../` prefixes at both displayed workspace paths.
+Codex added the two links and native parent opening through the existing guarded
+workspace transition. Drive roots disable the links, and browser providers hide
+them. Static C#/JavaScript syntax, XAML XML, translation and diff checks passed.
+No build, tests, installation, GUI interaction or Git delivery ran.
+
+## Optional Markdown association — 2026-10-25
+
+Umberto requested a choice to associate Markdown files during installation.
+Codex registered `.md` and `.markdown` handlers for MSI and MSIX, preserved quoted
+document paths through `--open`, and added a localized Yes/No offer. Yes opens
+Windows Default apps for final user confirmation; No preserves existing defaults.
+The installer helper/interactive MSI invokes setup after installation. Other
+installed routes offer it at first launch, remembering the answer across updates.
+Portable/source and diagnostic modes skip setup. Static C#/PowerShell syntax,
+JSON/translation coverage, XML and diff checks passed. Full SDK schema validation
+was unavailable because the installed schema set references an undeclared
+`rescap5:ImmediateRegistration` attribute. No build, tests, installation, GUI
+interaction, dependency import or Git delivery ran.
+
+Umberto also requested a Settings entry. Codex added separate effective-default
+indicators for `.md` and `.markdown`, using Windows shell AppUserModelID/ProgID
+queries, and an explicit setup action that remains available after declining the
+installation offer. The UI refreshes on desktop activation, labels unavailable
+queries and hides the action when both defaults match. C#/JavaScript syntax,
+XAML XML, translation coverage and diff checks passed. Runtime/UI acceptance,
+build and installation remain unperformed.
+
+## Reader column width — 2026-10-24
+
+Umberto requested normal and expanded reading columns to use horizontal space,
+especially for wide tables. Codex added two localized toolbar actions, original
+vector icons and a persisted shell-layout choice. Expanded mode removes the
+reader width cap while retaining modest responsive margins and reading position.
+Changing width does not rerender Markdown, Mermaid or themes. Static review
+corrected toolbar responsiveness when AI/sidebar panes resize the document area.
+C#/JavaScript/CSS syntax, XAML XML, translation structure and diff checks passed.
+No application build, tests, installation, GUI interaction or Git delivery ran.
+
 ## Authorized local delivery and Git integration — 2026-10-23
 
 Umberto requested a local Release build and installation before commit, push and

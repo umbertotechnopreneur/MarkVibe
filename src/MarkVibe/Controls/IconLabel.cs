@@ -14,6 +14,8 @@
  * Human guidance: Umberto Giacobbi; stateless scoped edits and a one-minute deadline
  * Modified with AI: OpenAI Codex; idempotent icon lifecycle and shared declared UI traversal; 2026-10-16
  * Human guidance: Umberto Giacobbi; avoid repeated event handlers and preserve caller-owned labels
+ * Modified with AI: OpenAI Codex; label the reader width actions with distinct symbols; 2026-10-24
+ * Human guidance: Umberto Giacobbi; normal and expanded reader columns
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -261,6 +263,8 @@ internal static class ButtonIcons
         "Open" or "Open file" or "Choose missing file" => ("file", text),
         "Open folder" or "Reopen folder" => ("folder", text),
         "Read" => ("book", text),
+        "Column" => ("reader-column", text),
+        "Expanded column" => ("reader-expanded", text),
         "Source" => ("code", text),
         "Split" => ("split", text),
         "Map" => ("map", text),

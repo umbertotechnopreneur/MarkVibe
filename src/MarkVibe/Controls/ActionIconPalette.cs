@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; semantic action icon colors; 2026-10-23
  * Human guidance: Umberto Giacobbi; distinguish toolbar, graph, PDF, code, settings and information icons
+ * Modified with AI: OpenAI Codex; color reader width controls consistently; 2026-10-24
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 using System.Windows;
@@ -22,7 +23,8 @@ internal static class ActionIconPalette
             "settings" or "folder" or "archive" or "import" or "layout-star" => "IconGold",
             "about" or "file" or "layout-grid" or "external" or "map-globe" => "IconBlue",
             "book" or "outline" or "save" or "download" or "review" or "refresh" => "IconGreen",
-            "map" or "split" or "pages" or "sparkles" or "link" => "IconPurple",
+            "map" or "split" or "pages" or "sparkles" or "link"
+                or "reader-column" or "reader-expanded" => "IconPurple",
             _ => null
         };
 

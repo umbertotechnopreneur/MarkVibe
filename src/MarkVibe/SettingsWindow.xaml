@@ -51,6 +51,21 @@ VBWR E -->
      <CheckBox x:Name="RememberDocumentCheck" Content="Remember last workspace" Margin="0,0,0,10" Checked="CheckChanged" Unchecked="CheckChanged" ToolTipService.ToolTip="Reopen the last document at its saved reading position" />
      <TextBlock Text="Document path and reading position stay on this device. Imported files and bundles must be selected again after restarting." Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" />
      <Button Content="Reset preferences" Style="{StaticResource ToolbarButton}" Click="ResetPreferences" ToolTipService.ToolTip="Restore the default appearance, language and reading preferences" HorizontalAlignment="Left" Margin="0,12,0,0" />
+     <StackPanel x:Name="MarkdownAssociationSection" Visibility="Collapsed">
+      <TextBlock Text="MARKDOWN FILES" Style="{StaticResource DialogSectionLabel}" />
+      <TextBlock Text="Open Markdown files with MarkVibe" FontWeight="SemiBold" TextWrapping="Wrap" />
+      <TextBlock x:Name="MdAssociationStatus" Foreground="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
+      <TextBlock x:Name="MarkdownAssociationStatus" Foreground="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0" />
+      <TextBlock x:Name="MarkdownAssociationHelp" Foreground="{StaticResource MutedText}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" />
+      <Button x:Name="ConfigureMarkdownButton"
+              Style="{StaticResource ToolbarButton}" Click="ConfigureMarkdownFiles"
+              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+              Margin="0,8,0,0" IsEnabled="False" controls:IconLabel.HideIcon="True"
+              AutomationProperties.Name="Use MarkVibe for Markdown files"
+              ToolTipService.ToolTip="Choose MarkVibe in Windows Default apps">
+       <TextBlock Text="Use MarkVibe for Markdown files" TextWrapping="Wrap" />
+      </Button>
+     </StackPanel>
     </StackPanel>
     <StackPanel x:Name="ActionsColumn" Grid.Column="2">
      <TextBlock Text="DOCUMENT STYLE" Style="{StaticResource DialogSectionLabel}" />
