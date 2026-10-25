@@ -13,6 +13,7 @@
  * Human guidance: Umberto Giacobbi; independent font preference for application controls
  * Modified with AI: OpenAI Codex; durable raw content markers and shared declared UI traversal; 2026-10-16
  * Human guidance: Umberto Giacobbi; preserve document labels and remove duplicated UI traversal
+ * Modified with AI: OpenAI Codex; respect text-only confirmation tooltip suppression; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -113,7 +114,15 @@ internal static class AppLocalization
         var labels = Originals.GetOrCreateValue(element);
         if (element is FrameworkElement frameworkElement)
         {
-            labels.Tooltip ??= ToolTipService.GetToolTip(element) as string;
+            if (IconLabel.GetHideToolTip(element))
+            {
+                labels.Tooltip = null;
+                ToolTipService.SetToolTip(element, null);
+            }
+            else
+            {
+                labels.Tooltip ??= ToolTipService.GetToolTip(element) as string;
+            }
             labels.Automation ??= AutomationProperties.GetName(element);
             if (!string.IsNullOrEmpty(labels.Tooltip))
             {
@@ -147,7 +156,7 @@ internal static class AppLocalization
                 button.Content = UiStrings.T(labels.Text);
             }
 
-            if (string.IsNullOrEmpty(labels.Tooltip))
+            if (!IconLabel.GetHideToolTip(button) && string.IsNullOrEmpty(labels.Tooltip))
             {
                 labels.Tooltip = ResolveButtonTooltip(button, labels);
                 ToolTipService.SetToolTip(button, UiStrings.T(labels.Tooltip));

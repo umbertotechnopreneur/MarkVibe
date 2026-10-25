@@ -26,6 +26,7 @@
  * Modified with AI: OpenAI Codex; host the shared publication footer and canonical initiative badge; 2026-10-16
  * Modified with AI: OpenAI Codex; refresh AI connections only when provider or validated credentials change; 2026-10-16
  * Modified with AI: OpenAI Codex; notify the startup service after initialization; 2026-10-25
+ * Modified with AI: OpenAI Codex; synchronize sidebar refresh availability with workspace and navigation; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -765,6 +766,7 @@ public partial class MainPage : UserControl
     /// <summary>Shows both parent links only for native folders and disables them during transitions or at a drive root.</summary>
     private void UpdateParentFolderActions()
     {
+        UpdateSidebarRefreshAction();
         var info = _active?.Provider.Info;
         var visibility = info?.Mode == "native" ? Visibility.Visible : Visibility.Collapsed;
         var canOpenParent = info?.Capabilities.CanOpenParent == true && !_workspaceTransitionBusy;
@@ -1207,6 +1209,7 @@ public partial class MainPage : UserControl
     /// <summary>Synchronizes export availability with the active document and outstanding operations.</summary>
     private void UpdateExportButtons()
     {
+        UpdateSidebarRefreshAction();
         var available = !_exportBusy && !_documentBusy && !_markdownEditBusy && !_aiBusy
             && _document != null && MessageOverlay.Visibility != Visibility.Visible;
         ExportHtmlButton.IsEnabled = available;

@@ -1,5 +1,47 @@
 # AI development disclosure
 
+## Sidebar refresh icon — 2026-10-25
+
+Umberto requested a refresh icon at the far right of the sidebar workspace name.
+Codex added a transparent icon action and an application-owned refresh service
+with model-owned busy state, using the provider refresh and existing catalog/view
+projection. Availability follows provider capabilities and incompatible operations;
+stale workspace results and duplicate refresh requests are rejected. XML and diff
+checks passed. No build, tests, installation, GUI acceptance or Git delivery ran
+for this source-only addition.
+
+On Umberto's subsequent installation request, Codex built signed Release x64
+0.1.0.35 from current source, updated the MSIX installation and launched it.
+The packaged UI assembly, installed version/status and running executable path
+were verified. Existing dependency advisories remain; no tests, interactive GUI
+validation or Git delivery ran for this installation.
+
+## Build identity and tooltip-free dialogs, Release 0.1.0.34 — 2026-10-25
+
+Umberto requested compilation identity below the splash information and removal
+of the Yes/No/Cancel dialog tooltips. Codex added packaged build metadata using
+the build machine's name, local date/time, culture, UTC offset and timezone.
+The existing startup service owns that data and the DOM binding displays it.
+Shared confirmation controls now opt out of generated tooltips during decoration
+and localization, preserving accessible names.
+
+Release x64 0.1.0.34 was built from current source, including the SVG filter fix,
+signed, installed and launched. Packaged assets, metadata consistency, generated
+XAML, package status and installed process path were checked. Existing dependency
+advisories remain. Tests and interactive GUI acceptance were not requested or run;
+the synthetic SVG regressions remain unexecuted. No Git delivery ran for this work.
+
+## Preserve local SVG styles — 2026-10-25
+
+Umberto reported a black SVG cover and authorized changing the filter after
+Codex identified unconditional style removal as the cause. Codex extracted the
+asset sanitizer into a dedicated module and retained allowlisted drawing/text
+CSS, inline styles and light/dark media rules, with bounded CSS and existing
+active-content/resource restrictions. Reader and export share the implementation.
+Synthetic browser regressions were added but not run because tests were not
+requested. Syntax and diff checks passed. No app build, installation, GUI
+acceptance or Git delivery ran; installed 0.1.0.33 predates this change.
+
 ## Text-only confirmation actions — 2026-10-25
 
 During the authorized build/install/Git delivery, Umberto requested removal of

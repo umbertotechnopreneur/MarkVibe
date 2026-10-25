@@ -12,6 +12,7 @@
  * Modified with AI: OpenAI Codex; stable template selectors for persistent modal blur; 2026-10-16
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; wider responsive startup presentation; 2026-10-25
+ * Modified with AI: OpenAI Codex; show build identity below the startup controls; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -84,6 +85,18 @@
   padding: 8px 16px;
   cursor: pointer;
 }
+.boot-build {
+  margin: 28px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.boot-build > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 8px; }
+.boot-build dt { font-weight: 600; }
+.boot-build dd { margin: 0; }
 @keyframes progress{from{transform:translateX(-60px)}to{transform:translateX(150px)}}
 #blazor-error-ui{display:none;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:var(--panel);border-top:1px solid var(--line);padding:16px;color:var(--text);font-size:14px}
 #blazor-error-ui a{color:var(--accent);margin-left:12px}

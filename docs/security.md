@@ -14,7 +14,19 @@ Generated Mermaid styles retain bounded static CSS rules scoped to that diagram'
 
 Current-page HTML/PDF preparation reuses the same HTML, image and Mermaid validation, with separate aggregate export bounds. Supported images become data URLs and diagrams become sanitized inline SVG. The standalone document embeds no script and adds a restrictive CSP. Blocked/missing resources become visible notices. Only safe external and same-document anchor links retain navigation; neighboring Markdown pages are not included. PDF uses a separate script-free sandboxed print frame, cleaned up after printing, cancellation or a bounded fallback. Neither exporter uploads content or writes the original workspace.
 
-Local SVG assets use a separate, stricter profile that removes style, links, scripts, image references, filters, foreignObject and animation. Accepted raster files must have supported signatures and bounded header dimensions. Corrupt or unsupported images receive a useful error.
+Local SVG assets retain allowlisted drawing and typography CSS, including inline
+declarations and light/dark color-scheme rules. Styles remain inside the standalone
+SVG image document. CSS imports, fonts loaded from URLs, other at-rules, scripts,
+links, image references, filters, foreignObject and animation remain blocked.
+Only local fragment URLs can reference gradients, clipping and markers. CSS is
+limited to 64 KiB and 512 rules per image, in addition to the existing SVG size,
+element and pixel limits. Accepted raster files must have supported signatures
+and bounded header dimensions. Corrupt or unsupported images receive a useful error.
+
+The targeted SVG regression script is `node tests/browser/svg.mjs` (run only when
+requested). It uses synthetic fixtures in isolated headless Edge to check both
+color schemes, inline text alignment, local gradients, rejected active/external
+content and the CSS rule limit. It has not yet been executed for this change.
 
 No Markdown content can select an interop method, load a library URL or supply a JavaScript callback. Ink and sticky-note editing, their codecs and their sidecar schemas are retired; annotation files are excluded from providers without deleting user files.
 

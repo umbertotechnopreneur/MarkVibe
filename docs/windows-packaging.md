@@ -29,6 +29,13 @@ Default packaging increments its final component, across both configurations.
 after packaging succeeds. Build settings include version, configuration and UTC timestamp;
 the About window displays the version and timestamp.
 
+Packaged applications also contain `app/build-info.json`. The splash reads this
+before managed startup and shows version/configuration/architecture, the build
+machine's name and its local build date/time, UTC offset and timezone identifier.
+The local date/time text uses the build host's culture and timezone; opening the
+package on another machine does not convert it. Unpackaged development hosts
+without that file omit the metadata instead of inventing compilation facts.
+
 Outputs: portable ZIPs, MSI installers and MSIX files for the selected architectures, one
 MSIX bundle, public development certificate, installation helper, README,
 `BUILD-INFO.json` and `SHA256SUMS.txt`. No tests, installation, branch/worktree creation,

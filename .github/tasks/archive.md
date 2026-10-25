@@ -3,6 +3,55 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-25 — Release x64 0.1.0.35 local installation
+
+- On the owner's installation request, built signed Release x64 0.1.0.35 from
+  current source and updated the MSIX installation, then launched the installed app.
+  The packaged UI assembly matches the newly compiled sidebar refresh controls;
+  Windows package status is `Ok` and the running executable belongs to 0.1.0.35.
+- Existing dependency advisories remain. No tests, interactive GUI validation or
+  Git delivery ran for this installation. Local metadata and hashes are in ignored
+  repository `artifacts/`.
+
+## 2026-10-25 — Sidebar workspace refresh action
+
+- Added a right-aligned refresh glyph in the sidebar's workspace-name row using
+  the existing transparent button template, with keyboard/accessibility support.
+- A dedicated service owns provider refresh and duplicate-request rejection over
+  application-model busy state. The adapter reuses the existing catalog/view
+  synchronization, retaining draft/history handling and expanded tree folders.
+  Unsupported providers and incompatible operations disable the action.
+- XML and diff checks passed. No build, tests, installation, GUI acceptance or
+  Git delivery was requested or performed for this source-only addition.
+
+## 2026-10-25 — Release x64 0.1.0.34, build identity and quiet dialog actions
+
+- Built signed Release x64 0.1.0.34 from current source, installed the MSIX bundle
+  and launched its installed executable. Windows reports `Ok`. Packaged JS/HTML/
+  CSS match the current build, including the shared SVG style sanitizer.
+- The startup service loads `app/build-info.json` into its model and renders
+  version/configuration/architecture, compilation machine and build-local date/
+  time with its UTC offset and timezone. Packaging records these facts once using
+  the build host's culture and timezone; the viewer does not reinterpret them.
+- Both shared confirmation buttons opt out of generated tooltips. Icon decoration
+  and localization respect that choice; accessible names remain available.
+- Metadata/UTC consistency, packaged asset hashes and generated XAML were checked.
+  Existing dependency advisories remain. No tests or interactive GUI acceptance
+  ran, and no Git delivery was requested for these latest changes.
+
+## 2026-10-25 — Preserve static local SVG presentation
+
+- Fixed the cause of black SVG covers: the asset sanitizer used to remove every
+  style block and inline style. A dedicated asset service now retains allowlisted
+  drawing/typography declarations and light/dark media rules inside the image.
+- Active elements and external resources remain blocked. CSS gets aggregate size
+  and rule limits; original dimensions, pixel and element limits remain enforced.
+  Reader and export use the same sanitizer. Source documents were not changed.
+- Added synthetic browser regressions for colors, inline text/gradient styles,
+  active/external content and rule bounds. JavaScript syntax and diff checks
+  passed. Tests, application builds, installation and Git delivery were not
+  requested or performed for this source-only change.
+
 ## 2026-10-25 — Text-only confirmation buttons, Release x64 0.1.0.33
 
 - Removed automatic icons from both shared confirmation actions, including

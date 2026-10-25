@@ -16,6 +16,7 @@
  * Human guidance: Umberto Giacobbi; avoid repeated event handlers and preserve caller-owned labels
  * Modified with AI: OpenAI Codex; label the reader width actions with distinct symbols; 2026-10-24
  * Human guidance: Umberto Giacobbi; normal and expanded reader columns
+ * Modified with AI: OpenAI Codex; suppress redundant tooltips through an attached presentation option; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -43,6 +44,15 @@ public sealed class IconLabel : Grid
     public static bool GetHideIcon(DependencyObject element) => (bool)element.GetValue(HideIconProperty);
     /// <summary>Marks a button or link as text-only.</summary>
     public static void SetHideIcon(DependencyObject element, bool value) => element.SetValue(HideIconProperty, value);
+    /// <summary>Opts out of automatically generated button tooltips while retaining accessible names.</summary>
+    public static readonly DependencyProperty HideToolTipProperty = DependencyProperty.RegisterAttached(
+        "HideToolTip", typeof(bool), typeof(IconLabel), new PropertyMetadata(false));
+
+    /// <summary>Reports whether this control intentionally has no tooltip.</summary>
+    public static bool GetHideToolTip(DependencyObject element) => (bool)element.GetValue(HideToolTipProperty);
+
+    /// <summary>Suppresses generated tooltips on actions whose visible captions are sufficient.</summary>
+    public static void SetHideToolTip(DependencyObject element, bool value) => element.SetValue(HideToolTipProperty, value);
     public string CaptionKey { get; private set; }
 
     /// <summary>Creates an icon and caption that can wrap inside compact action grids.</summary>
@@ -198,7 +208,9 @@ internal static class ButtonIcons
                 System.Windows.Automation.AutomationProperties.SetName(button, accessibleName);
             }
 
-            ToolTipService.SetToolTip(button, ToolTipService.GetToolTip(button) ?? accessibleName);
+            ToolTipService.SetToolTip(button, IconLabel.GetHideToolTip(button)
+                ? null
+                : ToolTipService.GetToolTip(button) ?? accessibleName);
             if (!IconLabel.GetHideIcon(button))
             {
                 button.Content = new IconLabel(icon, text);

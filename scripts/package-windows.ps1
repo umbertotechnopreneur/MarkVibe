@@ -13,6 +13,7 @@
 # Human guidance: Umberto Giacobbi; an MSI installer alongside MSIX and portable files
 # Modified with AI: OpenAI Codex; default local delivery to Release x64; 2026-10-23
 # Human guidance: Umberto Giacobbi; retire Debug deliveries and remember Release x64
+# Modified with AI: OpenAI Codex; record build-host local time, timezone and machine for the splash; 2026-10-25
 # Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 #
 # Copyright (c) 2026 Umberto Giacobbi
@@ -144,7 +145,13 @@ if ($LASTEXITCODE -ne 0 -or [version]$nodeVersion -lt [version]'22.12.0') {
 
     throw 'Use an existing Node >=22.12 in this PowerShell session.'
 }
-$builtAt = [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+$buildMoment = [DateTimeOffset]::Now
+$builtAt = $buildMoment.UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
+$builtAtLocal = $buildMoment.ToString('O')
+$builtAtLocalDisplay = $buildMoment.ToString('G', [Globalization.CultureInfo]::CurrentCulture)
+$buildTimeZone = [TimeZoneInfo]::Local.Id
+$buildUtcOffset = $buildMoment.ToString('zzz')
+$buildMachine = [Environment]::MachineName
 $channel = $Configuration.ToLowerInvariant()
 $namePrefix = "MarkVibe-$Version-$channel"
 Push-Location -LiteralPath $repositoryRoot
@@ -212,6 +219,22 @@ try {
 
             throw 'The desktop publish output is incomplete.'
         }
+        # The splash reads build-host facts before the managed application loads.
+        # Preserve the build host's local formatting, offset and zone, rather than
+        # converting the timestamp using the eventual viewer's machine settings.
+        $splashBuildInfo = [ordered]@{
+            version = $Version
+            configuration = $Configuration
+            architecture = $architecture
+            machineName = $buildMachine
+            builtAtUtc = $builtAt
+            builtAtLocal = $builtAtLocal
+            builtAtLocalDisplay = $builtAtLocalDisplay
+            timeZoneId = $buildTimeZone
+            utcOffset = $buildUtcOffset
+        }
+        $splashBuildInfo | ConvertTo-Json | Set-Content `
+            -LiteralPath (Join-Path $payload 'app/build-info.json') -Encoding utf8NoBOM
         Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') -Destination $payload
         $notices = Join-Path $payload 'THIRD_PARTY_NOTICES.txt'
         Copy-Item -LiteralPath (Join-Path $payload 'app/js/THIRD_PARTY_NOTICES.txt') -Destination $notices
@@ -319,6 +342,9 @@ try {
         configuration=$Configuration
 
         builtAtUtc=$builtAt
+        builtAtLocal=$builtAtLocal
+        buildTimeZone=$buildTimeZone
+        buildMachine=$buildMachine
 
         architectures=$Architectures
 
