@@ -3,23 +3,27 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
-Current local delivery: Release x64 MSIX **0.1.0.32**, built from the current
+Current local delivery: Release x64 MSIX **0.1.0.33**, built from the current
 source, installed and launched on 2026-10-25. This delivery includes dotted link
 underlines, document services, expanded reading, Markdown associations and parent
-links, dense graph optimizations and the dismissible splash. Windows package
+links, dense graph optimizations, the dismissible splash and text-only confirmation buttons. Windows package
 status and installed process path were verified. No tests
 or GUI interaction ran for this delivery; historical static-only notes below
 describe implementation checkpoints, not the current installation state.
 Changes explicitly marked source-only await a later delivery.
 
+- [ ] Owner-check text-only Yes/No and other shared confirmation actions in
+  installed Release 0.1.0.33. Compilation, package identity and launch passed;
+  visual acceptance remains with the owner.
+
 - [ ] Owner-check dense graph presentation and the dismissible splash in
-  installed Release 0.1.0.32. Dense maps retain relations with immediate magnification;
+  installed Release 0.1.0.33. Dense maps retain relations with immediate magnification;
   the splash stays one second after readiness, or skips that delay on a click.
   Debug browser profiling passed on 55 documents / 506 links; see
   `docs/graph-profile-2026-10-25.md`. Splash click/keyboard and localized appearance
   still need GUI acceptance. Signed packaging, installation and launch passed.
 
-- [ ] Owner-check subtle hyperlink underlines in installed Release x64 0.1.0.32:
+- [ ] Owner-check subtle hyperlink underlines in installed Release x64 0.1.0.33:
   dotted 1px decoration, .25em offset and 55% of the link color, including imported
   document themes and exports. Verify dark/light appearances, wrapped links,
   visited/focused links and the underline-off preference. Source compilation,
