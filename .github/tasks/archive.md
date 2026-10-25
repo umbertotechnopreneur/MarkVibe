@@ -3,6 +3,18 @@
 Record completed behavior, validation scope and remaining limitations. Keep command
 transcripts and temporary artifacts in dated validation reports, not this index.
 
+## 2026-10-25 — Text-only confirmation buttons, Release x64 0.1.0.33
+
+- Removed automatic icons from both shared confirmation actions, including
+  Yes/No, using the existing `IconLabel.HideIcon` property. Localized labels,
+  accessible names, keyboard focus and confirmation behavior remain unchanged.
+- Built, signed and installed Release x64 0.1.0.33, then launched it. The packaged
+  UI assembly matches the compiled source; generated confirmation markup contains
+  both opt-outs. Windows reports `Ok` and the running process belongs to 0.1.0.33.
+  No tests or interactive GUI acceptance ran; existing dependency advisories remain.
+- The preceding document/performance delivery was committed, pushed and squash
+  merged through PR #4. This follow-up continues the same authorized delivery.
+
 ## 2026-10-25 — Release x64 0.1.0.32 delivery
 
 - Built signed Release x64 packages from current source and installed the MSIX

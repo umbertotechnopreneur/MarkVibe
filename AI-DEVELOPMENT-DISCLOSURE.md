@@ -1,5 +1,14 @@
 # AI development disclosure
 
+## Text-only confirmation actions — 2026-10-25
+
+During the authorized build/install/Git delivery, Umberto requested removal of
+the icons from the shown Yes/No buttons. Codex set the existing HideIcon property
+on both shared confirmation actions, retaining their localized text and behavior.
+Release x64 0.1.0.33 was built from source, signed, installed and launched.
+Generated markup, packaged assembly identity, Windows package status and process
+path were checked. No tests or interactive GUI validation ran for this small edit.
+
 ## Release 0.1.0.32 delivery — 2026-10-25
 
 On Umberto's subsequent installation and Git delivery request, Codex built
