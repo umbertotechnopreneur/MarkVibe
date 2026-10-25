@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; shared document context routing and confirmed local deletion; 2026-10-16
  * Human guidance: Umberto Giacobbi; Explorer, terminal, browser and delete in file context menus
+ * Modified with AI: OpenAI Codex; forward sidebar refresh through the application service; 2026-10-25
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 using System.Windows;
@@ -44,6 +45,8 @@ public partial class MainPage
     /// <summary>Wires the shared context popup and current-document/workspace entry points once.</summary>
     private void InitializeFileMenus()
     {
+        Loaded += (_, _) => _documentServices.WorkspaceRefresh.StateChanged += UpdateSidebarRefreshAction;
+        Unloaded += (_, _) => _documentServices.WorkspaceRefresh.StateChanged -= UpdateSidebarRefreshAction;
         DocumentAppearance.PreferenceChanged += (key, value) => ExecuteAsync(async () =>
         {
             if (_active == null || _workspaceTransitionBusy)
@@ -93,6 +96,35 @@ public partial class MainPage
         };
         SizeChanged += (_, _) => FileMenuPopup.IsOpen = false;
     }
+
+    /// <summary>Displays the refresh service's availability without retaining operation state in the sidebar.</summary>
+    private void UpdateSidebarRefreshAction()
+    {
+        SidebarRefreshButton.IsEnabled = _documentServices.WorkspaceRefresh.CanExecute(
+            _active?.Provider.Info,
+            _workspaceTransitionBusy || _documentBusy || _markdownEditBusy || _fileMutationBusy);
+    }
+
+    /// <summary>Forwards sidebar activation to the shared workspace service and existing view projection.</summary>
+    private async void RefreshWorkspace(object sender, RoutedEventArgs arguments) => await ExecuteAsync(async () =>
+    {
+        var context = _active;
+        if (context == null)
+        {
+            return;
+        }
+
+        await _documentServices.WorkspaceRefresh.ExecuteAsync(
+            context.Provider,
+            () => ReferenceEquals(context, _active)
+                && !_workspaceTransitionBusy && !_documentBusy && !_markdownEditBusy && !_fileMutationBusy,
+            async () =>
+            {
+                await ReloadCatalogAsync(_document?.Path ?? _missingPath);
+                RefreshSidebar();
+            },
+            _opening.Token);
+    });
 
     /// <summary>Adds right-click and Shift+F10 routing while preserving the target's normal navigation behavior.</summary>
     private void AttachFileMenu(FrameworkElement element, Func<FileMenuTarget?> targetProvider)

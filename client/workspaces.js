@@ -11,6 +11,7 @@
  * Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
  * Modified with AI: OpenAI Codex; retain only the current map sidecar in provider metadata; 2026-10-16
  * Human guidance: Umberto Giacobbi; simplify the unreleased model without backward compatibility
+ * Modified with AI: OpenAI Codex; share SVG image validation with static style preservation; 2026-10-25
  * Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
  *
  * Copyright (c) 2026 Umberto Giacobbi
@@ -18,7 +19,7 @@
  *
  * VBWR E */
 
-import DOMPurify from "dompurify";
+import { sanitizeSvg } from "./svg.js";
 import { isDesktop, nativeCall } from "./native.js";
 import {
   WorkspaceError, limits, normalizePath, isRelevant, isMarkdown, isMapLayout, mapLayoutFileName, isIgnored,
@@ -640,50 +641,6 @@ export async function addFiles(id, desiredPath, signal) {
     workspace.add(path, { file, size: file.size });
   }
   return additions.map(entry => entry.path);
-}
-
-/** Remove executable and external SVG content and retain bounded image dimensions. */
-async function sanitizeSvg(blob) {
-  if (blob.size > 256 * 1024) {
-    throw new WorkspaceError("image-too-large", "This SVG exceeds the display limit.");
-  }
-  const text = decode.decode(await blob.arrayBuffer());
-  const clean = DOMPurify.sanitize(text, {
-    USE_PROFILES: { svg: true, svgFilters: false },
-    FORBID_TAGS: ["script", "style", "foreignObject", "image", "use", "a", "animate", "animateMotion", "animateTransform", "set", "filter"],
-    FORBID_ATTR: ["style", "href", "xlink:href"],
-    RETURN_DOM: true
-  });
-  const svg = clean.querySelector("svg");
-  if (!svg || clean.querySelectorAll("*").length > 2048) {
-    throw new WorkspaceError("invalid-image", "This SVG cannot be displayed safely.");
-  }
-  for (const element of clean.querySelectorAll("*")) {
-    for (const attribute of [...element.attributes])
-      if (/url\s*\(/iu.test(attribute.value) && !/^url\(\s*#[a-zA-Z0-9_-]+\s*\)$/u.test(attribute.value)) {
-        element.removeAttribute(attribute.name);
-      }
-  }
-  const box = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/u).map(Number);
-  if (box.length === 4 && (!box.every(Number.isFinite) || box[2] <= 0 || box[3] <= 0 || box[2] > 10000 || box[3] > 10000)) {
-    throw new WorkspaceError("image-too-large", "This SVG exceeds the display limit.");
-  }
-  /** Read a finite bounded SVG dimension or use the established safe fallback. */
-  const dimension = (name, fallback) => {
-    const value = svg.getAttribute(name);
-    return value && /^\d+(?:\.\d+)?(?:px)?$/u.test(value) ? parseFloat(value) : fallback;
-  };
-  const width = dimension("width", box.length === 4 ? box[2] : 300);
-  const height = dimension("height", box.length === 4 ? box[3] : 150);
-  if (!Number.isFinite(width * height) || width <= 0 || height <= 0 || width > 10000 || height > 10000 || width * height > limits.imagePixels) {
-    throw new WorkspaceError("image-too-large", "This SVG exceeds the display limit.");
-  }
-  svg.setAttribute("width", String(width));
-  svg.setAttribute("height", String(height));
-  return {
-    blob: new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" }),
-    pixels: Math.ceil(width * height)
-  };
 }
 
 /** Validate a local image's format and dimensions before creating a displayable resource. */

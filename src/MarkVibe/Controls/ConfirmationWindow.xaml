@@ -4,6 +4,7 @@
  Human guidance: Umberto Giacobbi; confirm before clearing all map customization
  Modified with AI: OpenAI Codex; text-only confirmation actions; 2026-10-25
  Human guidance: Umberto Giacobbi; remove icons from Yes and No buttons
+ Modified with AI: OpenAI Codex; suppress redundant action tooltips; 2026-10-25
  Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  VBWR E -->
 <ChildWindow x:Class="MarkVibe.Controls.ConfirmationWindow"
@@ -27,9 +28,11 @@
   </ScrollViewer>
   <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
    <Button x:Name="CancelButton" Content="Cancel" Click="Cancel"
-           controls:IconLabel.HideIcon="True" Style="{StaticResource ToolbarButton}" />
+           controls:IconLabel.HideIcon="True" controls:IconLabel.HideToolTip="True"
+           Style="{StaticResource ToolbarButton}" />
    <Button x:Name="ConfirmButton" Click="Confirm"
-           controls:IconLabel.HideIcon="True" Style="{StaticResource DialogPrimaryButton}" />
+           controls:IconLabel.HideIcon="True" controls:IconLabel.HideToolTip="True"
+           Style="{StaticResource DialogPrimaryButton}" />
   </StackPanel>
  </Grid>
 </ChildWindow>

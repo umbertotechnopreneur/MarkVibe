@@ -11,6 +11,7 @@
   Modified with AI: OpenAI Codex; attribution header added; 2026-10-11
   Human guidance: Umberto Giacobbi; repository readability rules and MIT licensing
   Modified with AI: OpenAI Codex; independent dismissible startup overlay; 2026-10-25
+  Modified with AI: OpenAI Codex; localized startup build identity rows; 2026-10-25
   Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
 
   Copyright (c) 2026 Umberto Giacobbi
@@ -41,6 +42,11 @@ VBWR E -->
    <div class="boot-progress"></div>
    <button id="startup-continue" type="button" hidden
            data-mv-i18n="Open workspace">Open workspace</button>
+   <dl id="startup-build" class="boot-build" hidden>
+    <div><dt data-mv-i18n="Version">Version</dt><dd id="startup-build-version"></dd></div>
+    <div><dt data-mv-i18n="Build machine">Build machine</dt><dd id="startup-build-machine"></dd></div>
+    <div><dt data-mv-i18n="Built">Built</dt><dd id="startup-build-time"></dd></div>
+   </dl>
   </div>
  </div>
  <main id="opensilver-root" aria-label="MarkVibe Markdown viewer"></main>

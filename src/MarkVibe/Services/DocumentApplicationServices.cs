@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; application-owned document service composition; 2026-10-25
  * Human guidance: Umberto Giacobbi; intermediate object model owns state, UI displays it
+ * Modified with AI: OpenAI Codex; compose the model-owned workspace refresh service; 2026-10-25
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 using MarkVibe.Core;
@@ -23,11 +24,15 @@ public sealed class DocumentApplicationServices
     /// <summary>Searches the active document and updates its result model.</summary>
     public DocumentFindService Find { get; }
 
+    /// <summary>Refreshes the active provider through the shared operation model.</summary>
+    public WorkspaceRefreshService WorkspaceRefresh { get; }
+
     /// <summary>Composes services over the same application-owned model without creating any views.</summary>
     public DocumentApplicationServices()
     {
         Menus = new(State);
         Reader = new(State.Reader);
         Find = new(State.Find);
+        WorkspaceRefresh = new(State.WorkspaceRefresh);
     }
 }

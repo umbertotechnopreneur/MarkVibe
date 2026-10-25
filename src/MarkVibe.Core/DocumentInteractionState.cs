@@ -2,6 +2,7 @@
  * Project: MarkVibe | Creator: Umberto Giacobbi
  * Created with AI: OpenAI Codex; shared document interaction state; 2026-10-25
  * Human guidance: Umberto Giacobbi; services update models and views only present them
+ * Modified with AI: OpenAI Codex; retain workspace refresh state in the application model; 2026-10-25
  * Copyright (c) 2026 Umberto Giacobbi | License: MIT (see LICENSE)
  * VBWR E */
 namespace MarkVibe.Core;
@@ -20,6 +21,9 @@ public sealed class DocumentInteractionState
 
     /// <summary>The current reader layout and folder appearance.</summary>
     public ReaderPresentationState Reader { get; } = new();
+
+    /// <summary>The workspace refresh lifecycle shared by sidebar and service adapters.</summary>
+    public WorkspaceRefreshState WorkspaceRefresh { get; } = new();
 }
 
 /// <summary>Retains search identity and results without depending on a renderer or UI control.</summary>

@@ -3,27 +3,46 @@
 Keep only open, actionable tasks here. State an observable completion condition;
 reuse existing authorization and identify any remaining owner checkpoint.
 
-Current local delivery: Release x64 MSIX **0.1.0.33**, built from the current
+Current local delivery: Release x64 MSIX **0.1.0.35**, built from its recorded
 source, installed and launched on 2026-10-25. This delivery includes dotted link
 underlines, document services, expanded reading, Markdown associations and parent
-links, dense graph optimizations, the dismissible splash and text-only confirmation buttons. Windows package
+links, dense graph optimizations, the dismissible splash with build-host metadata,
+SVG styles, tooltip-free confirmation actions and the sidebar refresh icon. Windows package
 status and installed process path were verified. No tests
 or GUI interaction ran for this delivery; historical static-only notes below
 describe implementation checkpoints, not the current installation state.
 Changes explicitly marked source-only await a later delivery.
 
+- [ ] Owner-check the installed sidebar refresh icon. It appears at
+  the right of the workspace-name row without button chrome, invokes a service
+  over model-owned busy state and reuses the existing catalog/view projection.
+  Release x64 0.1.0.35 compilation, packaged assembly identity, installation and
+  launch passed. Tests and interactive GUI acceptance were not requested or run.
+
+- [ ] Owner-check the installed SVG presentation fix. The asset sanitizer now
+  retains bounded static CSS and color-scheme rules, with active/external content
+  still filtered. Targeted synthetic regressions were added in
+  `tests/browser/svg.mjs`; execution and native visual acceptance remain pending.
+  Release 0.1.0.35 includes this change; package assets, installation and launch
+  passed, without executing the targeted browser checks.
+
+- [ ] Owner-check the splash build information and tooltip-free shared dialog
+  actions in installed 0.1.0.35. The packaged metadata matches the build host,
+  culture, timezone and UTC offset. Source/package and generated-XAML checks
+  passed; interactive GUI acceptance was not performed.
+
 - [ ] Owner-check text-only Yes/No and other shared confirmation actions in
-  installed Release 0.1.0.33. Compilation, package identity and launch passed;
+  installed Release 0.1.0.35. Compilation, package identity and launch passed;
   visual acceptance remains with the owner.
 
 - [ ] Owner-check dense graph presentation and the dismissible splash in
-  installed Release 0.1.0.33. Dense maps retain relations with immediate magnification;
+  installed Release 0.1.0.35. Dense maps retain relations with immediate magnification;
   the splash stays one second after readiness, or skips that delay on a click.
   Debug browser profiling passed on 55 documents / 506 links; see
   `docs/graph-profile-2026-10-25.md`. Splash click/keyboard and localized appearance
   still need GUI acceptance. Signed packaging, installation and launch passed.
 
-- [ ] Owner-check subtle hyperlink underlines in installed Release x64 0.1.0.33:
+- [ ] Owner-check subtle hyperlink underlines in installed Release x64 0.1.0.35:
   dotted 1px decoration, .25em offset and 55% of the link color, including imported
   document themes and exports. Verify dark/light appearances, wrapped links,
   visited/focused links and the underline-off preference. Source compilation,
