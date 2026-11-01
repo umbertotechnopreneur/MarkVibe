@@ -1,13 +1,11 @@
 # Dependency and compatibility decisions
 
-Direct versions below are pinned in source. The 2026-10-16 license review used
-the installed npm/NuGet package metadata, lockfiles and actual bundle input graph.
-Historical execution evidence is recorded separately in the validation and task
-archive documents; a source/license review is not a security or runtime test.
+Dependency versions and licenses are defined by the project files, lockfiles and
+third-party notices. The SDK selection follows `global.json`.
 
 | Dependency | Pin | Purpose | Upstream licensing context |
 | --- | --- | --- | --- |
-| .NET SDK | 10.0.402 | C# 14 / .NET 10 build selection; owner-approved patch update on 2026-10-16 | .NET licensing; review distribution components |
+| .NET SDK | >=10.0.402, stable .NET 10 | C# 14 / .NET 10; latest installed stable SDK | .NET licensing; review distribution components |
 | OpenSilver | 3.3.3 | C#/XAML DOM application library | MIT upstream |
 | OpenSilver.Themes.Modern | 3.3.0 | Official control templates and light/dark palettes | MIT upstream |
 | OpenSilver.WebAssembly | 3.3.3 | Matching browser runtime with net10.0 target | MIT upstream |
@@ -24,16 +22,10 @@ archive documents; a source/license review is not a security or runtime test.
 | highlight.js | 11.12.0 | Rendered code highlighting | BSD-3-Clause |
 | esbuild | 0.28.2 | Local client bundling | MIT, development-only |
 
-NuGet references use exact range syntax; npm dependencies use exact version strings. global.json disables SDK roll-forward. npm and NuGet lockfiles are present and NuGet locked restore passes. Fresh npm installation was not repeated during this validation; use `npm ci --ignore-scripts --no-audit --no-fund` for a later authorized clean reproduction.
-
-Modern Theme has its own release numbering: 3.3.0 requires OpenSilver >=3.3.0 and
-was compiled with the existing OpenSilver 3.3.3 pin. The XML override replaced
-the earlier vulnerable 8.0.2 dependency, but subsequent builds reported other
-NU1902/NU1903 advisories for Pkcs 8.0.1 and Xml 8.0.4. Those remain tracked in
-the active task list; do not read historical clean restore output as a current
-security assessment. No dependency upgrade is included in this review.
-
-The local default Node 20.19.0 is below the bundle requirement. Validation used the already installed cached Node 24.19.0 through a process-local PATH change. No Node installation or global configuration change was made.
+NuGet references use exact range syntax; npm dependencies use exact version
+strings. npm and NuGet lockfiles are maintained. Use locked restores and Node
+>=22.12 for builds. Modern Theme 3.3.0 requires OpenSilver >=3.3.0.
+Dependency advisory remediation is tracked in the active task list.
 
 The bundle script retains legal-comment files, emits a build manifest and copies package-level notices for modules included by the actual build graph. Distribution includes the approved MIT application license and available NuGet notices. MarkVibe's MIT license cannot replace dependency obligations.
 
@@ -62,7 +54,7 @@ documents redistribution boundaries, not blanket ownership of third-party code.
 
 ## Why this architecture
 
-The Windows host pins WebView2 1.0.4258.31, the stable SDK verified on NuGet on 2026-10-11. Local checks used the already installed runtime 154.0.4258.62. The SDK package was restored; no SDK/workload or WebView2 Runtime installation was performed. Host operations follow [WebView2 security guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security) and the official [PDF printing APIs](https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/print).
+The Windows host pins WebView2 SDK 1.0.4258.31 and uses the separately installed Evergreen Runtime. Host operations follow [WebView2 security guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security) and the official [PDF printing APIs](https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/print).
 
 OpenSilver provides the requested DOM-based C#/XAML runtime. Its matching WASM package's net10.0 metadata supports selecting .NET 10 at source level. Markdig is managed code with a shared AST; it avoids independent JavaScript interpretations of headings and links.
 

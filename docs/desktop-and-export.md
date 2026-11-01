@@ -23,7 +23,7 @@ the source file or request a new browser folder permission.
 
 Choose **Settings → Export current page** in Read, Source, Split or Map.
 Both formats include the title/path, reading styles, highlighted code, supported
-local images, sanitized Mermaid and resolved vector ink on a light background.
+local images and sanitized Mermaid on a light background.
 Only the current document is included. Same-document anchors and safe external links
 remain usable; links to neighboring Markdown pages are marked unavailable.
 
@@ -50,8 +50,8 @@ the Browser runtime manifest under the host's `bin/.../app/`, including OpenSilv
 WASM and client assets. It requires neither an HTTP server nor MAUI.
 
 ```powershell
-dotnet run --project src/MarkVibe.Windows --no-build
-dotnet run --project src/MarkVibe.Windows --no-build -- --open 'C:\Docs\README.md'
+dotnet run --project src/MarkVibe.Windows --no-build -c Release
+dotnet run --project src/MarkVibe.Windows --no-build -c Release -- --open 'C:\Docs\README.md'
 ```
 
 Use Open file/Open folder to grant a local documentation root. Adjacent Markdown and
@@ -63,24 +63,19 @@ unrestricted filesystem or shell access.
 Settings live in the persistent WebView2 profile; the native session records the
 selected root and document/anchor/position under `%LOCALAPPDATA%\MarkVibe\Windows`.
 It automatically reopens on restart. Disabling remembering clears the saved session;
-`--open` overrides it. Ink autosaves separately; see [ink](ink-design.md). Document
-map positions, colors and icons autosave in the selected root's
-`.markvibe-map.json`; see [map layout](map-layout.md). Text notes use that same map
-JSON or `<document path>.notes.json` in the reader, with shared styling, formatted
-bodies and source element anchors; see [sticky notes](notes-design.md). HTML/PDF
-exports render colored note boxes after their owning source block, including an
-unresolved-notes section. These sidecars leave Markdown unchanged. The new map
-and text-note routes have not yet been built or runtime-verified.
+`--open` overrides it. Document map positions, colors, icons and atlas settings
+are saved separately in `.markvibe-map.json`; see [map layout](map-layout.md).
+Markdown files remain unchanged. Ink and sticky-note sidecars are not used.
 
 Source builds need the .NET 10 desktop runtime and Microsoft Edge WebView2 Runtime.
 The MSIX and portable distributions include .NET; WebView2 Runtime remains required.
 Portable profiles live in a sibling `data/` directory. See [distribution and installation](windows-packaging.md).
 
-## Other platforms and evidence
+## Other platforms
 
 | Platform | Current route |
 | --- | --- |
-| Windows | Implemented WPF/WebView2 wrapper; synthetic native checks pass |
+| Windows | WPF/WebView2 wrapper |
 | macOS, Android, iOS | Possible [OpenSilver MAUI Hybrid launcher](https://doc.opensilver.net/documentation/general/maui-hybrid-launcher.html); no wrapper implemented |
 | Linux | Possible [OpenSilver Photino launcher](https://doc.opensilver.net/documentation/general/photino-launcher.html); no wrapper implemented |
 | Browsers | Existing WebAssembly project; browser permissions and printing apply |
@@ -91,10 +86,4 @@ and per-launch capability, blocks external page resources and opens user-initiat
 external links in the system browser. Follow Microsoft's
 [WebView2 security guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security)
 and [printing documentation](https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/print).
-
-Local automation exercises the real WebView2 runtime and PDF API using isolated
-profiles, synthetic documents and Debug-only save destinations. Native picker interaction,
-physical pen/printers and clean-machine installation remain unverified. Packaging runs
-no tests; the user must explicitly request installation acceptance.
-See [validation](validation.md).
 

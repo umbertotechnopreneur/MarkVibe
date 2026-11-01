@@ -41,9 +41,3 @@ follow the workspace identity; reopening a retained folder keeps that identity.
 Keep `AppStyles.xaml` as the single application merger. Load `ThemeResources.xaml` before styles that consume its brushes and dimensions, then `Buttons.xaml`, `Navigation.xaml` and `Dialogs.xaml`. Retain stable keyed resources at this boundary. Resource dictionaries must resolve shared resources from the application scope, and must not duplicate the merger recursively. Keep any `BasedOn` dependency earlier in the lookup chain. Use explicit application/component resource URIs supported by the existing OpenSilver build.
 
 Map light/dark application palettes to semantic brush objects such as Surface, Text, Muted, Border and Accent. Update the existing brush values when the active palette changes so controls holding static brush references repaint consistently. Use the supported system accent brush for active controls and a shared elevation-16 DropShadowEffect for elevated surfaces. The reader's imported background/foreground are a separate document surface palette. CSS selectors and font rules remain in the DOM; they are not converted to XAML control styles.
-
-## Validation status
-
-The parent UI integration completed a client bundle and solution build using existing .NET SDK 10.0.401 and Node 24.21.0, with zero warnings and errors. These are compilation results; no tests or app/browser launch were performed. Settings use two columns by default and reflow below a 680-pixel content width, with compact action grids and shared wrapping icon captions.
-
-Suggested later acceptance covers all preview/code combinations, rapid light/dark switching, persisted independent selections, fonts with unavailable families, source/ink anchors, and standalone HTML/PDF export with network disabled.

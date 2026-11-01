@@ -133,21 +133,28 @@ build, installation and final launch; it does not authorize interactive validati
 
 Keep documentation short and easy to read. Use plain words, short sentences and
 one or two concrete examples. Explain the result first; link to code for details.
-Avoid repeating the same explanation across documents.
+Avoid repeating the same explanation across documents. Describe current behavior
+and instructions, not the sequence of past changes. Keep only the latest delivery
+summary, replacing the previous one. Do not create historical validation reports,
+CI/PR ledgers or cumulative contribution logs.
 
 Use focused imperative subjects. Describe the problem, result and actual validation; link issues and UI screenshots when available. Update dependency locks. Record when tests were not requested.
 
-Deliver future changes through pull requests into the protected default branch.
+Documentation-only changes need no PR, build, tests or workflow dispatch. When the
+owner requests Git delivery, commit only the authorized documentation on the
+current branch with `[skip ci]` and push. Editing alone does not authorize delivery.
+Preserve unrelated changes and unpublished commits. If branch protection blocks
+the push, report the restriction without creating a PR or starting CI.
+
+Deliver code changes through pull requests into the protected default branch.
 No independent reviewer or formal approval is required. The owner/admin can
 merge their own pull request when authorized and other branch rules are met.
 GitHub's formal self-review restriction is distinct from permission to merge;
 record owner authorization rather than claiming an approval GitHub rejected.
 Do not approve or merge pending work until the owner explicitly authorizes it.
 Do not push directly to it or rewrite published history as routine maintenance.
-The owner's explicit initial-history consolidation is a one-time exception; retain
-existing release tags and keep a recoverable history backup. Prefer a single
-reviewable change per PR and squash merging when the repository permits it.
+Prefer a single reviewable change per PR and squash merging when the repository permits it.
 
 ## Agent Workflow
 
-Ask permission before **each branch or worktree creation**. Keep active work in `.github/tasks/todo.md`, milestones in `archive.md` and findings in `lessons.md`. Respect read limits, preserve unrelated changes and require publication/SDK authorization. Reuse consent within its scope; keep secrets and private documents out of Git and artifacts.
+Ask permission before **each branch or worktree creation**. Keep only current actionable work in `.github/tasks/todo.md` and the latest delivery summary in `archive.md`. Replace the previous summary and remove completed tasks; do not maintain a history or lessons ledger. Respect read limits, preserve unrelated changes and require publication/SDK authorization. Reuse consent within its scope; keep secrets and private documents out of Git and artifacts.

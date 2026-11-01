@@ -1,6 +1,6 @@
 # Security and resource boundaries
 
-The following boundaries describe the current source. Authorized checks on 2026-10-11 exercised path/scheme containment, bounded ZIP cases and a browser fixture with scripts, unsafe links and remote images. Those historical regressions cover their specific cases, not the later implementation or a complete security audit. The 2026-10-16 maintainability changes received source/static review only; no build or tests were run for that work. See [validation](validation.md) for recorded coverage and remaining acceptance.
+These boundaries describe how MarkVibe handles documents, local files and network access.
 
 ## Untrusted document content
 
@@ -162,15 +162,13 @@ fields, canonical Markdown paths, paired bounded dimensions, finite coordinates,
 16 colors and 24 local icons. Unknown fields, including legacy notes, are rejected.
 Unsupported/invalid files are preserved. Connected browser folders open with read access; an explicit map
 save click requests write permission. Browser writes check the revision before
-opening and committing a temporary writable stream. These new map routes have
-source/static review only; earlier security checks did not exercise them.
+opening and committing a temporary writable stream.
 
 Edited Markdown lives in bounded managed document sessions and is saved through
 an explicit copy action. Session state distinguishes unsaved work from an exported
 copy; neither state implies that the original workspace file was replaced.
 Source revisions and parsed-model cache entries have separate ownership so
-eviction cannot discard an unsaved revision. Historical annotation designs are
-retained as retired documentation, not active security boundaries.
+eviction cannot discard an unsaved revision.
 
 Native PDF preparation uses a separate WebView2 with page scripts and web messaging disabled, a restrictive CSP and no external resource access. `PrintToPdfStreamAsync` writes through an atomic destination replacement after an OS save choice. Cancellation before commit preserves the previous destination; cancellation cannot undo an already completed commit. Debug smoke options require isolated directories and are rejected in Release.
 
@@ -181,9 +179,7 @@ The synthetic demo uses same-origin fetches. Versioned settings, a workspace
 descriptor, a reading-state record and optionally a connected handle are stored
 in browser storage; document contents are not persisted by workspace resumption.
 Disabling remembering clears these entries and the stored handle. Storage failure
-is handled as a session-only state. Historical browser regressions asserted no
-external HTTP requests initiated by their document fixtures; they did not exercise
-live AI sends or audit unrelated browser/runtime traffic.
+is handled as a session-only state.
 
 Deployers must provide HTTPS, correct WebAssembly/module MIME types and complete local assets. A tested deployment-specific Content Security Policy is pending: OpenSilver interop and WebAssembly requirements must be evaluated before selecting script directives. No unverified CSP is presented as a security guarantee.
 

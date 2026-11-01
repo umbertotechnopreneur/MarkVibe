@@ -6,7 +6,7 @@ Runtime. No SDK, workload, app or certificate is installed by packaging.
 
 ## Requested Release or Debug build
 
-Use PowerShell 7, existing Node >=22.12, .NET SDK 10.0.402 and Windows SDK tools
+Use PowerShell 7, existing Node >=22.12, a stable .NET 10 SDK >=10.0.402 and Windows SDK tools
 `makeappx.exe`/`signtool.exe`. The script discovers tools already installed on the machine.
 
 ```powershell
@@ -129,20 +129,13 @@ Settings explains why; the saved preference is retained. All application dialogs
 menus and tooltips live inside the browser, so they do not need WPF-over-browser
 composition. The isolated PDF host remains hidden with its existing boundaries.
 
-This removes the transparent capture-to-WPF presentation path after the owner
-reported missing shell regions during map movement in 0.1.0.24. Microsoft documents
-that `WebView2CompositionControl` adds a graphics-capture step and can have lower
-frame rates than standard hosting; see its
+`WebView2CompositionControl` adds a graphics-capture step and can have lower
+frame rates than standard hosting; see Microsoft's
 [composition-control specification](https://github.com/MicrosoftEdge/WebView2Feedback/blob/main/specs/WPF_WebView2CompositionControl.md).
-In-app modal blur remains a separate browser effect. No GPU-disable flag, redraw
-polling loop or document-map animation removal is introduced. Owner acceptance of
-pan/zoom, selection, resize, themes and modal opening remains necessary;
-browser-only captures cannot prove native redraw behavior.
+In-app modal blur remains a separate browser effect.
 The Windows project targets `net10.0-windows10.0.19041.0` and pins the existing
 Windows SDK .NET reference pack `10.0.19041.57`. A bare `net10.0-windows` target
-defaults to Windows 7 APIs and does not deploy the Windows Runtime assembly that
-the former composition host loaded at startup. The compatible Windows target and
-MSIX's Windows 11 minimum are retained; no SDK/package update is needed for this fix.
+defaults to Windows 7 APIs. Keep the explicit Windows target and MSIX's Windows 11 minimum.
 
 ## GitHub and Microsoft Store
 

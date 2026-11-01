@@ -29,10 +29,14 @@ and preserve concurrent changes from other contributors.
 Preserve the VibeWare source headers with the exact `VBWR B` / `VBWR E` markers,
 MIT notice and supported AI provenance. Keep generated files and third-party assets
 under their own notices; add no comment headers to JSON or lockfiles. Update the
-[AI development disclosure](AI-DEVELOPMENT-DISCLOSURE.md) when contributions or
-validation evidence change.
+[AI development disclosure](AI-DEVELOPMENT-DISCLOSURE.md) when the tools or human
+responsibilities change. Describe current behavior; do not append contribution
+history, validation reports or CI/pull-request records.
 
-Deliver changes through pull requests into the protected default branch. Keep one
+Deliver code changes through pull requests into the protected default branch.
+Documentation-only changes need no PR, build or tests. When the owner explicitly
+requests Git delivery, commit only the authorized documentation on the current
+branch with `[skip ci]` and push without starting workflows. Keep one
 reviewable change per PR and use a focused imperative subject. Describe the problem and result, update relevant
 documentation and dependency locks, and report exactly what was compiled or tried.
 Keep private documents, credentials and temporary build output out of source control.
@@ -40,7 +44,7 @@ Keep private documents, credentials and temporary build output out of source con
 For coding agents, ask before each branch or worktree creation. Run tests only when
 I explicitly request them for the current task; suggest a small relevant check when
 useful. An older test approval is not continuing permission. Do not install an app,
-certificate, SDK or workload implicitly. The owner's documented local Debug MSIX
+certificate, SDK or workload implicitly. The owner's documented local Release x64 MSIX
 delivery authorization in AGENTS.md includes closing MarkVibe, trusting its own
 development certificate, replacement installation and final launch; it does not
 authorize interactive acceptance or installation of a second distribution type.
@@ -53,8 +57,9 @@ temporary packaging data there, with final files only after success. Create no
 output folders in Codex directories. The package script does not run tests, create
 branches/worktrees or publish releases. Manual GitHub packaging uses the same script.
 
-Track actionable work in `.github/tasks/todo.md`, completed milestones in `archive.md`
-and durable findings in `lessons.md`. A publication request is separate from a build.
+Keep current tasks in `.github/tasks/todo.md` and only the latest delivery summary
+in `archive.md`. Replace that summary and remove completed tasks instead of keeping
+a timeline. A publication request is separate from a build.
 Application code is [MIT licensed](LICENSE); preserve third-party license notices.
 
 Use the approved VibeWare logo and the exact tagline from the initiative's

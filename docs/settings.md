@@ -2,10 +2,7 @@
 
 Settings are managed by the C# `Preferences` record and the OpenSilver dialog.
 JavaScript validates the persistence boundary and adapts browser storage, media
-queries and library APIs. Earlier runtime evidence is recorded separately in
-[validation](validation.md). The 2026-10-16 font, dialog and maintainability changes
-were included in the Debug x64 build; interaction checks and test execution remain
-separate. See the task archive for the current build and launch evidence.
+queries and library APIs.
 
 ## Available preferences
 

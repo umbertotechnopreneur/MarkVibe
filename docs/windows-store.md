@@ -9,7 +9,7 @@ Manifesto: https://umbertogiacobbi.biz/vibeware/manifesto
 
 Created with AI: OpenAI Codex; document the future Microsoft Store prerequisites; 2026-10-16
 Human guidance: Umberto Giacobbi; local Debug MSIX now, Store identity unavailable
-Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+AI disclosure: AI-DEVELOPMENT-DISCLOSURE.md
 
 Copyright (c) 2026 Umberto Giacobbi
 License: MIT (see LICENSE)

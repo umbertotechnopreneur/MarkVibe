@@ -1,6 +1,5 @@
 # MarkVibe
 
-[![Verification status](https://github.com/umbertotechnopreneur/MarkVibe/actions/workflows/checks.yml/badge.svg?branch=master)](https://github.com/umbertotechnopreneur/MarkVibe/actions/workflows/checks.yml)
 ![Platform: Windows 11 and WebAssembly](https://img.shields.io/badge/platform-Windows_11_%C2%B7_WebAssembly-0078D4)
 [![License: MIT](https://img.shields.io/badge/license-MIT-2EA44F)](LICENSE)
 
@@ -90,7 +89,7 @@ dotnet run --project src/MarkVibe.Windows --no-build -c Release
 ```
 
 See [architecture](docs/architecture.md), [packaging](docs/windows-packaging.md)
-and [contributing](CONTRIBUTING.md). Changes are delivered through pull requests.
+and [contributing](CONTRIBUTING.md) for development and delivery rules.
 Packaging cleans `artifacts/` before creating a new distribution.
 Local delivery defaults to Release x64.
 
@@ -101,10 +100,8 @@ Dependencies and brand assets keep their own notices; the included ELK layout
 module remains EPL-2.0. See [third-party notices](THIRD-PARTY-NOTICES.txt) and
 [dependency licensing](docs/dependencies.md).
 
-I develop MarkVibe with AI assistance under my direction. The
-[development disclosure](AI-DEVELOPMENT-DISCLOSURE.md) and
-[validation record](docs/validation.md) distinguish implementation, builds,
-installation and functional checks.
+I develop MarkVibe with AI assistance under my direction. See the
+[development disclosure](AI-DEVELOPMENT-DISCLOSURE.md) for tools and responsibilities.
 
 ## A note on security
 
@@ -123,7 +120,7 @@ not the application's author or publisher.
 I am [Umberto Giacobbi](https://umbertogiacobbi.biz). I define this project's
 purpose, guide its implementation, and remain responsible for checking
 functionality, performance, and security. Each project keeps its own identity,
-license, release status and validation evidence.
+license and release status.
 
 To learn what VibeWare means and why I created it, read the
 [VibeWare manifesto](https://umbertogiacobbi.biz/vibeware/manifesto).

@@ -264,49 +264,9 @@ Revision checks detect external changes optimistically; neither provider impleme
 cross-process compare-and-swap. Browser downloads report that the download started,
 not that the user completed the save dialog.
 
-## Validation scope
+## Inspector sizing
 
-The document inspector now uses a standard splitter whenever the canvas and
-preview fit side by side. Its preferred width (220–600 px, initially 290 px) is
-saved in the shell's `markvibe.layout` preferences and restored after restarting.
-Window resizing temporarily constrains the visible width without overwriting the
-saved preference. Narrow windows retain the explicitly opened preview overlay.
-
-A subsequent owner-authorized Debug x64 0.1.0.16 build and local UI inspection
-confirmed dragging the inspector from 290 to 400 px, saving that value and
-restoring 400 px after terminating and restarting the desktop process. Broader
-atlas behavior listed below remains outside that focused inspection.
-
-Debug 0.1.0.18 also retains graph cards while sidebar navigation changes the
-current document. Changed card metadata updates in place; a replacement workspace
-session still receives a full presentation. Depth uses the equivalent centered
-2D scale, with a consistently opaque black canvas. Local inspection with 24
-synthetic linked documents confirmed retained card identity for sidebar and card
-selection, with no repeated entrance animation during navigation after initial
-presentation. This addresses the observed redraw path; it is not a GPU stress test.
-
-The owner subsequently supplied a screenshot of gray native redraw corruption
-after clicking cards, including shell regions. The 0.1.0.18 DOM inspection did
-not establish that this was resolved. The follow-up uses a WPF-composed visible
-browser, clips map painting to its opaque viewport, and removes SVG shadow
-filters and the minimap's backdrop blur. Card borders, accent selection and route
-strokes retain their existing roles; shared modal blur belongs to the dialog
-surface. Native screen inspection must use a visible window at the actual DPI,
-because a browser screenshot does not include the Windows presentation path.
-
-The original atlas implementation received JavaScript/C# syntax, XAML/JSON
-structure, localization-shape and source review. Its subsequent compilation is
-covered by the Debug delivery above; automated suites, inference and publication
-were not requested for this follow-up.
-Suggested owner-requested acceptance: semantic zoom and readable overview labels;
-island collapse/reopen with linked documents; full-catalog routes and truncation;
-neighborhood stability; preview and heading navigation; minimap input; eight-view
-save/replace/delete/restore across reopen; conflicting sidecar revisions; narrow
-views, light/dark shell themes and reduced motion.
-
-The 2026-10-16 visual, zoom and arrangement changes have now been included in a
-Debug build; their full interaction acceptance remains open. Tests were not requested.
-Suggested checks: native save/reopen and revision conflicts; pointer-anchored
-wheel zoom, drag/click distinction, all three arrangements and tied/disconnected
-graphs; keyboard controls, filter/focus stability, reduced motion and connected
-folder write permission; narrow layouts, both application themes and touch scrolling.
+The document inspector uses a splitter whenever the canvas and preview fit side
+by side. Its preferred width (220–600 px, initially 290 px) is saved in
+`markvibe.layout` and restored on restart. Window resizing constrains the visible
+width without overwriting that preference. Narrow windows use the preview overlay.
