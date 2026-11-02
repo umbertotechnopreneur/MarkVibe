@@ -9,7 +9,7 @@
 
   Created with AI: OpenAI Codex; Markdown AI contract and validation scope; 2026-10-11
   Human guidance: Umberto Giacobbi; stateless scoped edits, semantic costs and a one-minute deadline
-  Evidence: AI-DEVELOPMENT-DISCLOSURE.md; .github/tasks/archive.md
+  AI disclosure: AI-DEVELOPMENT-DISCLOSURE.md
 
   Copyright (c) 2026 Umberto Giacobbi
   License: MIT (see LICENSE)
@@ -131,9 +131,8 @@ is discarded before the source commit. No automatic retry repeats billed generat
 The embedded [model snapshot](../src/MarkVibe.Core/AI/openai-models.json) retains
 the retrieval timestamp, sources, Standard text prices, long-context multipliers,
 supported reasoning levels, full context, maximum input and maximum output.
-It was downloaded from official documentation on 2026-10-11. Account availability
-comes separately from `GET /v1/models`; that endpoint does not supply this pricing
-and context catalog. Refresh its public facts explicitly with:
+Account availability comes separately from `GET /v1/models`; that endpoint does
+not supply this pricing and context catalog. Refresh its public facts explicitly with:
 
 ```powershell
 node scripts/update-openai-models.mjs
@@ -190,14 +189,3 @@ discards local Markdown edits after confirmation. Closing or replacing a workspa
 protects unsaved drafts and requests. Draft sessions are limited to sixteen pages;
 restored or explicitly saved sessions can expire without discarding unsaved source.
 Original files and annotation sidecars are not silently rewritten by an AI reply.
-
-## Validation for this contribution
-
-The public catalog download and earlier successful builds are historical evidence,
-not results for the current reference-collection changes. Source/static review and
-synthetic regression cases have been added; those cases have not been executed for
-this update. A Debug x64 package and launch have been requested, with the actual
-outcome to be recorded in the [task archive](../.github/tasks/archive.md). No build
-success is claimed here. Live inference, credential validation, reference counting,
-cancellation, selections, undo and saving require their own functional acceptance.
-See [active work](../.github/tasks/todo.md).

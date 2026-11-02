@@ -24,8 +24,8 @@ or removing a project. Always name the intended solution in command-line command
   VS 18.9; an updated VS 2026 is the preferred pairing. This is not a claim that
   18.9 is the minimum supported version. See Microsoft's
   [SDK and Visual Studio support matrix](https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs).
-- **.NET SDK 10.0.402**, pinned without roll-forward in `global.json`. Select an
-  existing installation with that exact SDK; do not silently retarget the projects.
+- **Latest installed stable .NET 10 SDK**, minimum **10.0.402**. `global.json`
+  allows stable SDK roll-forward; do not silently retarget the projects.
 - **Node.js >=22.12**, npm and **PowerShell 7 (`pwsh`)** available in the environment
   inherited by Visual Studio. Check `node --version` in its terminal. If an older
   Node takes precedence, reopen Visual Studio from an environment whose PATH selects
@@ -34,8 +34,6 @@ or removing a project. Always name the intended solution in command-line command
   OpenSilver's build tools are declared in the projects and restored through NuGet.
   No simulator project or machine-wide OpenSilver extension is needed by this
   solution's build targets.
-
-This repository change installs no SDK, workload, browser, extension or runtime.
 
 ## What Build Solution includes
 
@@ -98,8 +96,7 @@ For explicitly requested JavaScript profiling, run `npm run bundle:debug` before
 the Debug build. It keeps readable modules and linked source maps. The Release
 guard rejects that bundle; `npm run bundle` restores normal optimized assets.
 `scripts/profile-graph.mjs` records local browser DevTools traces after indexing;
-see [the current graph profiling report](graph-profile-2026-10-25.md) for commands,
-F12/source-map instructions, trace import and validation limits.
+see [local profiling](diagnostics.md#graph-profiling) for commands and trace inspection.
 Restart a running development server after rebuilding its WebAssembly assemblies.
 
 If the shared startup profiles are not shown, use **Configure Startup Projects**
@@ -109,13 +106,3 @@ single startup project. For browser debugging, set `MarkVibe.Browser` as startup
 and select **MarkVibe Debug** in its launch dropdown. The two entries in
 `MarkVibe.slnLaunch` each start one host; they do not start the executable checks.
 See [Microsoft's launch-profile documentation](https://learn.microsoft.com/en-us/visualstudio/ide/how-to-set-multiple-startup-projects).
-
-## Verification boundary
-
-The solution lists, configuration mappings, JSON/XML syntax and target conditions
-were reviewed statically. The parent then restored and compiled all seven projects
-through `MarkVibe.sln -c Debug` successfully, with desktop assets staged. Existing
-NU1900 vulnerability-cache warnings remain. The package build uses the same shared
-project graph. Visual Studio and F5 were not launched, and no check executable or
-test suite was run. The owner checks native and WebAssembly breakpoint attachment
-and the Visual Studio-only client preparation path.

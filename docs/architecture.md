@@ -24,7 +24,7 @@ workflows still live partly in MainPage. Move these transitions and operation
 lifetimes into dedicated services over a composed application model; preserve
 cancellation, stale-result checks and the authoritative document catalog.
 
-OpenSilver 3.3.3 is used with its matching WebAssembly runtime and Modern Theme 3.3.0. The application library and host target net10.0; the repository pins SDK 10.0.402. Earlier builds and browser checks are historical evidence in [validation](validation.md). The 2026-10-16 model and maintainability changes received source/static review only, with no build or test execution for that work.
+OpenSilver 3.3.3 is used with its matching WebAssembly runtime and Modern Theme 3.3.0. The application library and host target net10.0. Use the latest installed stable .NET 10 SDK, minimum 10.0.402, as selected by `global.json`.
 
 Application controls are declared in OpenSilver XAML: shell, navigation tree,
 settings, About, source/map toolbars, AI composer, model Popup, review, usage
@@ -45,7 +45,7 @@ a fixed HTTPS virtual origin. A versioned, origin-checked message bridge invokes
 writes. Native OS dialogs select files/folders and export destinations; a separate
 script-disabled WebView2 generates clean PDFs. No HTTP document server is involved.
 
-Pen, ink annotation and sticky-note editing paths were removed on 2026-10-11.
+Pen, ink annotation and sticky-note editing are not supported.
 The application does not enumerate, read or write their document sidecars.
 Existing files remain untouched. Map schema 4 contains document cards and optional
 validated atlas presentation settings (neighborhood, collapsed folders and up to
@@ -142,7 +142,7 @@ The production runtime needs only static files. A development server is a local 
 
 Root and subdirectory hosting both require a trailing-slash directory URL. Hash-based document state leaves static resource URLs intact. An offline application shell/service worker is future work.
 
-## Compatibility evidence
+## Platform references
 
 - [OpenSilver.WebAssembly 3.3.3 package metadata](https://www.nuget.org/packages/OpenSilver.WebAssembly/3.3.3)
 - [Official OpenSilver Browser bootstrap sample](https://github.com/OpenSilver/OpenSilver.Samples.Showcase/tree/develop/src/OpenSilver.Showcase.Browser)
