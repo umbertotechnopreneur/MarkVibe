@@ -72,7 +72,7 @@ VBWR E -->
    </Grid.ColumnDefinitions>
    <Border x:Name="Sidebar" Style="{StaticResource FocusSidebar}">
     <Grid>
-     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
      <Grid Margin="20,22,20,12">
       <Grid.ColumnDefinitions>
        <ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
@@ -91,7 +91,10 @@ VBWR E -->
        <controls:VectorIcon Symbol="refresh" Width="18" Height="18" />
       </Button>
      </Grid>
-     <TabControl x:Name="SidebarTabsControl" Grid.Row="1" Style="{StaticResource SidebarTabs}" SelectedIndex="0" AutomationProperties.Name="Document navigation">
+     <TextBlock x:Name="WorkspaceNamesWarning" Grid.Row="1" TextWrapping="Wrap" Margin="16,0,12,8"
+                Text="Some files or folders were skipped because of unsupported or ambiguous names. Rename them and reopen the workspace."
+                Visibility="Collapsed" />
+     <TabControl x:Name="SidebarTabsControl" Grid.Row="2" Style="{StaticResource SidebarTabs}" SelectedIndex="0" AutomationProperties.Name="Document navigation">
       <TabItem x:Name="PagesTab" Header="Pages" Style="{StaticResource SidebarTab}" ToolTipService.ToolTip="Browse workspace pages">
        <TreeView x:Name="DocumentTree" Background="Transparent" BorderThickness="0" Padding="0"
         SelectedItemChanged="DocumentSelected" Margin="6,0,6,8"

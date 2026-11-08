@@ -27,6 +27,7 @@ export class WorkspaceError extends Error {
   }
 }
 export const limits = Object.freeze({
+  pathLength: 1024,
   entries: 4096,
   visited: 10000,
   directories: 1024,
@@ -49,8 +50,8 @@ export function checkCancelled(signal) {
 }
 /** Canonicalize a relative workspace path while rejecting unsafe names and traversal beyond the root. */
 export function normalizePath(path, imported = false) {
-  if (typeof path !== "string" || !path.trim() || path.length > 1024 ||
-    path.startsWith("/") || /[\\:\u0000-\u001f\u007f]/u.test(path)) {
+  if (typeof path !== "string" || !path.trim() || path.length > limits.pathLength ||
+    path.startsWith("/") || /[\\:\u0000-\u001f\u007f-\u009f]/u.test(path)) {
     throw new WorkspaceError("invalid-path", "This resource has an unsafe workspace path.");
   }
   const pathSegments = [];
@@ -73,7 +74,11 @@ export function normalizePath(path, imported = false) {
   if (!pathSegments.length || pathSegments.length > 64) {
     throw new WorkspaceError("invalid-path", "This resource has an unsafe workspace path.");
   }
-  return pathSegments.join("/");
+  const canonical = pathSegments.join("/");
+  if (canonical.length > limits.pathLength) {
+    throw new WorkspaceError("invalid-path", "This resource has an unsafe workspace path.");
+  }
+  return canonical;
 }
 const ignored = new Set([".git", "node_modules", "bin", "obj", ".vs", "__macosx"]);
 /** Check whether a path includes a directory excluded from documentation workspaces. */

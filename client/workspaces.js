@@ -21,8 +21,9 @@
 
 import { sanitizeSvg } from "./svg.js";
 import { isDesktop, nativeCall } from "./native.js";
+import { LocalEntrySelection, hasAmbiguousPrefix } from "./local-entries.js";
 import {
-  WorkspaceError, limits, normalizePath, isRelevant, isMarkdown, isMapLayout, mapLayoutFileName, isIgnored,
+  WorkspaceError, limits, normalizePath, isRelevant, isMarkdown, isMapLayout, mapLayoutFileName,
   checkCancelled, errorFor, resourceUrl, makeId, pause
 } from "./path.js";
 
@@ -176,6 +177,7 @@ export function pickFiles({ directory = false, multiple = true, accept = "" } = 
   });
 }
 
+/** A browser workspace exposes only its selected and validated local resources. */
 class Workspace {
   /** Create a workspace identity, mode and bounded resource entry collection. */
   constructor(name, mode, id = makeId()) {
@@ -183,6 +185,8 @@ class Workspace {
     this.name = name;
     this.mode = mode;
     this.entries = new Map();
+    this.ambiguousPaths = new Set();
+    this.skippedNames = false;
   }
   /** Describe the provider's workspace identity and currently available capabilities. */
   info() {
@@ -190,6 +194,7 @@ class Workspace {
       id: this.id,
       name: this.name,
       mode: this.mode,
+      skippedNames: this.skippedNames,
       capabilities: {
         canRefresh: this.mode === "connected",
         canReopen: this.mode === "connected" || this.mode === "imported" || this.mode === "zip",
@@ -207,6 +212,13 @@ class Workspace {
       bytes: entry.size ?? 0,
       kind: isMarkdown(path) ? "document" : isMapLayout(path) ? "sidecar" : "asset"
     }));
+  }
+  /** Commits a complete local scan together with the paths that must stay unavailable for manual addition. */
+  useSelection(selection, signal) {
+    checkCancelled(signal);
+    this.entries = selection.entries();
+    this.ambiguousPaths = selection.ambiguous;
+    this.skippedNames = selection.skippedNames;
   }
   /** Add a canonical relevant resource while enforcing entry and duplicate-path limits. */
   add(path, entry) {
@@ -306,7 +318,7 @@ class Workspace {
   /** Enumerate a connected folder within depth, directory and visited-entry budgets. */
   async scan(signal) {
     await this.checkPermission();
-    const next = new Workspace(this.name, this.mode, this.id);
+    const selection = new LocalEntrySelection();
     let visited = 0;
     let directories = 0;
     /** Visit one connected directory and retain only supported contained resources within the traversal budgets. */
@@ -314,23 +326,30 @@ class Workspace {
       if (depth > limits.depth || ++directories > limits.directories) {
         throw new WorkspaceError("folder-too-large", "Choose a smaller documentation folder.");
       }
+      const children = [];
       for await (const [name, handle] of directory.entries()) {
         checkCancelled(signal);
         if (++visited > limits.visited) {
           throw new WorkspaceError("folder-too-large", "Choose a smaller documentation folder.");
         }
-        const path = normalizePath(parent + name, true);
-        if (isIgnored(path)) {
-          continue;
-        }
+        const rawPath = parent + name;
         if (handle.kind === "directory") {
-          await walk(handle, path + "/", depth + 1);
+          if (selection.register(rawPath)) {
+            children.push({ rawPath, handle });
+          }
         }
-        else if (isRelevant(path)) {
-          next.add(path, { handle });
+        else {
+          selection.register(rawPath, { handle });
         }
         if (visited % 30 === 0) {
           await pause();
+        }
+      }
+      // Read both spellings before descending so even empty colliding directories exclude both trees.
+      for (const child of children) {
+        checkCancelled(signal);
+        if (!selection.ambiguous.has(child.rawPath.normalize("NFC"))) {
+          await walk(child.handle, child.rawPath + "/", depth + 1);
         }
       }
     };
@@ -339,7 +358,7 @@ class Workspace {
     } catch (error) {
       throw errorFor(error, true);
     }
-    this.entries = next.entries;
+    this.useSelection(selection, signal);
   }
 }
 
@@ -458,10 +477,21 @@ export async function openWorkspace(
       throw new WorkspaceError("missing-relative-paths", "This selection did not include folder paths. Import a documentation ZIP instead.");
     }
     workspace = new Workspace(mode === "imported" ? root : selected.length === 1 ? selected[0].name : "Selected files", mode);
-    for (const file of selected) {
+    const selection = new LocalEntrySelection();
+    for (const [index, file] of selected.entries()) {
+      checkCancelled(signal);
       const path = mode === "imported" ? file.webkitRelativePath.slice(root.length + 1) : file.name;
-      workspace.add(path, { file, size: file.size });
+      const resource = { file, size: file.size };
+      if (mode === "imported") {
+        selection.addImportedFile(path, resource);
+      } else {
+        selection.register(path, resource);
+      }
+      if ((index + 1) % 100 === 0) {
+        await pause();
+      }
     }
+    workspace.useSelection(selection, signal);
   } else if (mode === "zip") {
     const [file] = await pickFiles({ multiple: false, accept: ".zip,application/zip" }, signal);
     const { inspectZip } = await import("./zip.js");
@@ -495,10 +525,16 @@ export async function openWorkspace(
   return workspace.info();
 }
 
+/** Connected-folder saves require a lock shared by every MarkVibe tab on this origin. */
+function supportsMapSaving(workspace) {
+  return workspace.mode === "connected" && typeof navigator.locks?.request === "function";
+}
+
 /** Report whether the provider can write its persistent map or request an explicit folder write grant. */
 async function mapAccess(workspace) {
-  const canEnableWrite = workspace.mode === "connected" && typeof workspace.root?.requestPermission === "function";
-  const canWrite = workspace.mode === "connected" && await workspace.root.queryPermission({ mode: "readwrite" }) === "granted";
+  const supported = supportsMapSaving(workspace);
+  const canEnableWrite = supported && typeof workspace.root?.requestPermission === "function";
+  const canWrite = supported && await workspace.root.queryPermission({ mode: "readwrite" }) === "granted";
   return { canWrite, canEnableWrite };
 }
 /** Read the map sidecar and its exact content revision using the current provider's capabilities. */
@@ -511,24 +547,47 @@ export async function readMapLayout(id, signal, accessOnly = false) {
   if (accessOnly) {
     return { json: null, revision: "", ...access };
   }
+  const { json, revision } = await readMapFile(workspace, signal);
+  return { json, revision, ...access };
+}
+
+/** Keep file handles inside the provider while reading the sidecar and computing its content revision. */
+async function readMapFile(workspace, signal) {
+  let handle;
   let blob;
   if (workspace.mode === "connected") {
     await workspace.checkPermission();
     checkCancelled(signal);
+    const pending = workspace.pendingMapCreation;
     try {
-      blob = await (await workspace.root.getFileHandle(mapLayoutFileName)).getFile();
+      handle = await workspace.root.getFileHandle(mapLayoutFileName);
+      blob = await handle.getFile();
     }
     catch (error) {
       if (error?.name === "NotFoundError") {
-        return { json: null, revision: "", ...access };
+        if (workspace.pendingMapCreation === pending) {
+          delete workspace.pendingMapCreation;
+        }
+        return { json: null, revision: "" };
       }
       throw errorFor(error, true);
+    }
+    if (blob.size === 0 && pending && blob.lastModified === pending.lastModified &&
+        await handle.isSameEntry(pending.handle) && workspace.pendingMapCreation === pending) {
+      return { handle, json: null, revision: "" };
+    }
+    // Once an observed entry changes, restoring its old bytes must not revive the retry permission.
+    if (workspace.pendingMapCreation === pending) {
+      delete workspace.pendingMapCreation;
+    }
+    if (blob.size === 0) {
+      throw new WorkspaceError("invalid-map", ".markvibe-map.json is empty. Rename it and reopen the folder to start a new layout, or download a separate copy.");
     }
   } else if (workspace.entries.has(mapLayoutFileName)) {
     blob = await workspace.blob(mapLayoutFileName, limits.documentBytes, signal);
   }
   else {
-    return { json: null, revision: "", ...access };
+    return { json: null, revision: "" };
   }
   if (blob.size > limits.documentBytes) {
     throw new WorkspaceError("invalid-map", "This map layout exceeds 1 MiB. The original file is preserved.");
@@ -544,7 +603,7 @@ export async function readMapLayout(id, signal, accessOnly = false) {
   }
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   const revision = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
-  return { json, revision, ...access };
+  return { handle, json, revision };
 }
 /** Request connected-folder write permission directly from the user's save gesture. */
 export function enableMapSaving(id) {
@@ -552,7 +611,7 @@ export function enableMapSaving(id) {
   if (workspace.mode === "native") {
     return Promise.resolve(true);
   }
-  if (workspace.mode !== "connected" || !workspace.root?.requestPermission) {
+  if (!supportsMapSaving(workspace) || !workspace.root?.requestPermission) {
     return Promise.reject(new WorkspaceError("map-read-only", "Download the layout and keep it in the top-level folder."));
   }
   // Call directly from the map button's click, before crossing the async C# bridge.
@@ -569,39 +628,69 @@ export async function writeMapLayout(args, signal) {
   if (workspace.mode === "native") {
     return nativeCall("map.write", args, signal);
   }
-  if (typeof args.json !== "string" || new TextEncoder().encode(args.json).length > limits.documentBytes) {
+  if (typeof args.json !== "string" || args.json.length > limits.documentBytes) {
+    throw new WorkspaceError("invalid-map", "This map layout exceeds its saving limit.");
+  }
+  const bytes = new TextEncoder().encode(args.json);
+  if (bytes.length > limits.documentBytes) {
     throw new WorkspaceError("invalid-map", "This map layout exceeds its saving limit.");
   }
   if (!(await mapAccess(workspace)).canWrite) {
     throw new WorkspaceError("map-permission", "Choose Save layout to allow folder write access, or download a JSON copy.");
   }
+  // Two independent pickers can assign different workspace ids to the very same folder.
+  // Hold one origin-wide lock from the first revision check through file creation and commit.
+  return navigator.locks.request("markvibe.map.write", { signal }, () =>
+    commitMapLayout(workspace, args.revision, bytes, signal));
+}
+
+/** Commit a connected map while holding the origin lock and checking for external file changes. */
+async function commitMapLayout(workspace, expectedRevision, bytes, signal) {
   /** Create the map conflict error while keeping the pre-existing folder file unchanged. */
   const conflict = () => new WorkspaceError("map-conflict", "The map layout changed in the folder. Download your layout before reopening; the existing file was preserved.");
-  if ((await readMapLayout(workspace.id, signal)).revision !== args.revision) {
+  checkCancelled(signal);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const revision = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+  const previous = await readMapFile(workspace, signal);
+  if (getWorkspace(workspace.id) !== workspace || previous.revision !== expectedRevision) {
     throw conflict();
   }
   let stream;
   try {
-    const handle = await workspace.root.getFileHandle(mapLayoutFileName, { create: true });
-    stream = await handle.createWritable();
-    await stream.write(args.json);
+    checkCancelled(signal);
+    let handle = previous.handle;
+    if (!handle) {
+      // Creating the file is visible before the writable stream commits. A failed first write
+      // can retry only this observed empty entry, for the lifetime of this connected workspace.
+      handle = await workspace.root.getFileHandle(mapLayoutFileName, { create: true });
+      const placeholder = await handle.getFile();
+      if (placeholder.size !== 0) {
+        throw conflict();
+      }
+      workspace.pendingMapCreation = { handle, lastModified: placeholder.lastModified };
+    }
+    stream = await handle.createWritable({ mode: "exclusive" });
+    await stream.write(bytes);
     checkCancelled(signal);
     // Existing contents are unchanged until close commits the temporary stream.
-    const current = await readMapLayout(workspace.id, signal);
-    if (args.revision ? current.revision !== args.revision : current.json !== "") {
+    const current = await readMapFile(workspace, signal);
+    if (getWorkspace(workspace.id) !== workspace || current.revision !== expectedRevision ||
+        !current.handle || !await current.handle.isSameEntry(handle)) {
       throw conflict();
     }
+    checkCancelled(signal);
     await stream.close();
-    stream = null;
-    const bytes = new TextEncoder().encode(args.json);
-    const digest = await crypto.subtle.digest("SHA-256", bytes);
-    return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+    delete workspace.pendingMapCreation;
+    return revision;
   } catch (error) {
     if (stream) {
       try {
         await stream.abort();
       } catch {
       }
+    }
+    if (error?.name === "NoModificationAllowedError" || error?.name === "NotFoundError") {
+      throw conflict();
     }
     throw errorFor(error, true);
   }
@@ -617,30 +706,35 @@ export async function addFiles(id, desiredPath, signal) {
   if (desiredPath && files.length !== 1) {
     throw new WorkspaceError("invalid-selection", "Choose the missing file.");
   }
-  const additions = [];
+  const additions = new Map();
   for (const file of files) {
     const path = normalizePath(desiredPath || file.name, true);
+    if (hasAmbiguousPrefix(path, workspace.ambiguousPaths)) {
+      throw new WorkspaceError("duplicate-path", "Rename the conflicting files or folders and reopen the workspace.");
+    }
     if (!isRelevant(path)) {
       throw new WorkspaceError("unsupported-file", "Choose Markdown, a supported image or .markvibe-map.json.");
     }
     if (workspace.entries.has(path)) {
       throw new WorkspaceError("duplicate-path", "This path is already open. Select the containing folder to refresh it.");
     }
-    if (additions.some(item => item.path === path)) {
+    if (additions.has(path)) {
       throw new WorkspaceError("duplicate-path", "Select the containing folder to preserve these filenames.");
     }
-    additions.push({ path, file });
+    additions.set(path, file);
   }
-  if (workspace.entries.size + additions.length > limits.entries) {
+  if (workspace.entries.size + additions.size > limits.entries) {
     throw new WorkspaceError("too-many-files", "This workspace has reached its file limit.");
   }
-  if ([...workspace.entries.keys()].filter(isMarkdown).length + additions.filter(item => isMarkdown(item.path)).length > 1024) {
+  const addedPaths = [...additions.keys()];
+  if ([...workspace.entries.keys()].filter(isMarkdown).length + addedPaths.filter(isMarkdown).length > 1024) {
     throw new WorkspaceError("too-many-documents", "This workspace has reached its 1,024 document limit.");
   }
-  for (const { path, file } of additions) {
+  checkCancelled(signal);
+  for (const [path, file] of additions) {
     workspace.add(path, { file, size: file.size });
   }
-  return additions.map(entry => entry.path);
+  return addedPaths;
 }
 
 /** Validate a local image's format and dimensions before creating a displayable resource. */

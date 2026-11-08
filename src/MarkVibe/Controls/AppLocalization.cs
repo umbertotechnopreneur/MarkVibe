@@ -89,11 +89,11 @@ internal static class AppLocalization
     /// <summary>Reports an explicit caller-owned subtree without allocating translation metadata.</summary>
     internal static bool IsRaw(DependencyObject element) => Originals.TryGetValue(element, out var labels) && labels.Raw;
 
-    /// <summary>Decorate button captions before refreshing their text and accessible labels.</summary>
-    public static void Apply(DependencyObject root)
+    /// <summary>Decorate captions, apply the view's typography and refresh its accessible labels.</summary>
+    public static void Apply(DependencyObject root, FontFamily? fontFamily = null)
     {
         ButtonIcons.Decorate(root);
-        AppTypography.Apply(root);
+        AppTypography.Apply(root, fontFamily);
         Walk(root, new HashSet<DependencyObject>());
     }
 

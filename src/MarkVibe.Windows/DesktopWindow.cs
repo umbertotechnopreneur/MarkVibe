@@ -179,7 +179,8 @@ internal sealed partial class DesktopWindow : Window
             };
             core.FrameNavigationStarting += (_, args) =>
             {
-                if (args.Uri != "about:blank")
+                // The opaque Mermaid frame contains its own hash-authorized runtime and loads no subresources.
+                if (args.Uri != "about:blank" && args.Uri != Origin + "/js/diagram-frame.html")
                 {
                     args.Cancel = true;
                 }

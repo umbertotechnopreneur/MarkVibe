@@ -28,14 +28,14 @@ internal static class AppTypography
         CurrentFamily = new FontFamily(family == "system" ? "Segoe UI" : family);
     }
 
-    /// <summary>Refreshes declared UI controls before localization, including dialogs opened after the preference changes.</summary>
-    public static void Apply(DependencyObject root)
+    /// <summary>Refreshes declared controls using the view's font when supplied or the selected application family.</summary>
+    public static void Apply(DependencyObject root, FontFamily? fontFamily = null)
     {
-        Walk(root, new HashSet<DependencyObject>());
+        Walk(root, fontFamily ?? CurrentFamily, new HashSet<DependencyObject>());
     }
 
     /// <summary>Visits only declared controls and item headers, preserving theme-specific glyph fonts inside templates.</summary>
-    private static void Walk(DependencyObject element, HashSet<DependencyObject> visited)
+    private static void Walk(DependencyObject element, FontFamily fontFamily, HashSet<DependencyObject> visited)
     {
         if (!visited.Add(element))
         {
@@ -44,12 +44,12 @@ internal static class AppTypography
 
         if (element is Control control)
         {
-            control.FontFamily = CurrentFamily;
+            control.FontFamily = fontFamily;
             control.FontWeight = InterfaceWeight(control.FontWeight);
         }
         else if (element is TextBlock text)
         {
-            text.FontFamily = CurrentFamily;
+            text.FontFamily = fontFamily;
             // Icon captions bind to their owning button; retain that binding for selection changes.
             if (text.GetBindingExpression(TextBlock.FontWeightProperty) == null)
             {
@@ -59,7 +59,7 @@ internal static class AppTypography
 
         foreach (var child in UiTree.DeclaredChildren(element))
         {
-            Walk(child, visited);
+            Walk(child, fontFamily, visited);
         }
     }
 

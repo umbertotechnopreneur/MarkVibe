@@ -58,7 +58,7 @@ The Windows host pins WebView2 SDK 1.0.4258.31 and uses the separately installed
 
 OpenSilver provides the requested DOM-based C#/XAML runtime. Its matching WASM package's net10.0 metadata supports selecting .NET 10 at source level. Markdig is managed code with a shared AST; it avoids independent JavaScript interpretations of headings and links.
 
-Monaco and Mermaid are heavy optional dependencies and are dynamically imported. Browser documents and images are lazy. The design is a static site with browser file capabilities, so publishing the complete generated static directory does not require a document-processing service.
+Monaco loads on demand as a module. Mermaid loads on demand in a self-contained sandboxed frame. Browser documents and images are lazy. The complete generated static directory can be served without a document-processing service.
 
 ## Primary sources
 

@@ -745,6 +745,9 @@ public partial class MainPage : UserControl
         }
 
         _updating = true;
+        WorkspaceNamesWarning.Visibility = _active.Provider.Info.SkippedNames
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         RefreshDocumentTree(_active.Catalog.Cards, _active.Provider.Info.Id, _document?.Path);
         _updating = false;
     }

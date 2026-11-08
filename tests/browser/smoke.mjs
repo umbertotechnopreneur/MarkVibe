@@ -76,7 +76,7 @@ async function documentIs(page, path) {
 }
 
 /** Run a named browser scenario and record its result with relevant failure evidence. */
-async function check(name, run) {
+async function check(name, run, expectedConsoleError = () => false) {
   if (scenarioFilter && !scenarioFilter.test(name)) {
     return;
   }
@@ -87,7 +87,7 @@ async function check(name, run) {
   const remote = [];
   page.on("pageerror", error => errors.push(error.message));
   page.on("console", message => {
-    if (message.type() === "error") {
+    if (message.type() === "error" && !expectedConsoleError(message.text())) {
       errors.push(message.text());
     }
   });
@@ -374,6 +374,49 @@ try {
     await page.screenshot({ path: join(artifacts, "mobile-read.png"), fullPage: true });
   });
 
+  await check("Linux workspace names exclude both Unicode aliases and become readable after folder refresh", async page => {
+    await ready(page);
+    await page.evaluate(async () => {
+      const root = await navigator.storage.getDirectory();
+      const folder = await root.getDirectoryHandle("unicode-names", { create: true });
+      window.showDirectoryPicker = async () => folder;
+      const accented = await folder.getDirectoryHandle("café", { create: true });
+      await folder.getDirectoryHandle("cafe\u0301", { create: true });
+      for (const [directory, name, source] of [
+        [folder, "README.md", "# Name handling"],
+        [folder, "résumé.md", "# Unique after refresh"],
+        [folder, "re\u0301sume\u0301.md", "# Conflicting file"],
+        [accented, "child.md", "# Inside a conflicting directory"]
+      ]) {
+        const handle = await directory.getFileHandle(name, { create: true });
+        const stream = await handle.createWritable();
+        await stream.write(source);
+        await stream.close();
+      }
+    });
+
+    await view(page, "Open folder");
+    await headingIs(page, "Name handling");
+    const warning = page.locator("[dataid=WorkspaceNamesWarning]");
+    await warning.waitFor({ state: "visible" });
+    const workspaceId = await page.evaluate(() => history.state.markvibe.workspaceId);
+    const entries = await appCall(page, "workspace.entries", { workspaceId });
+    assert.deepEqual(entries.map(entry => entry.path), ["README.md"]);
+    await assert.rejects(appCall(page, "workspace.text", { workspaceId, path: "café/child.md" }), /missing/i);
+
+    await page.evaluate(async () => {
+      const folder = await window.showDirectoryPicker();
+      await folder.removeEntry("cafe\u0301");
+      await folder.removeEntry("re\u0301sume\u0301.md");
+    });
+    await page.locator("[dataid=SidebarRefreshButton]").click();
+    await warning.waitFor({ state: "hidden" });
+    assert.equal(await appCall(page, "workspace.text", { workspaceId, path: "café/child.md" }),
+      "# Inside a conflicting directory");
+    assert.equal(await appCall(page, "workspace.text", { workspaceId, path: "résumé.md" }),
+      "# Unique after refresh");
+  });
+
   await check("folder and ZIP providers preserve nested paths and return their actual source", async page => {
     await ready(page);
     const folder = await mkdtemp(join(artifacts, "folder-fixture-"));
@@ -407,6 +450,63 @@ try {
     assert.equal(await page.locator(".reader script").count(), 0);
     assert.equal(await page.getByRole("link", { name: "Unsafe", exact: true }).count(), 0);
     await page.locator(".missing-resource").first().waitFor({ state: "visible" });
+  });
+
+  const diagramPixel = new URL("forbidden-diagram-pixel.png", base).href;
+  await check("Mermaid cannot request even a same-origin image while rendering or exporting", async page => {
+    let requests = 0;
+    await page.route(diagramPixel, async route => {
+      requests++;
+      await route.fulfill({ status: 200, contentType: "image/png", body: Buffer.alloc(0) });
+    });
+    await ready(page);
+    const source = "# Diagram isolation\n\n```mermaid\nflowchart LR\n A --> B\n```\n\n" +
+      '```mermaid\nflowchart LR\n A@{ img: "' + diagramPixel + '" }\n```\n';
+    await openFiles(page, [{ name: "README.md", mimeType: "text/markdown", buffer: Buffer.from(source) }]);
+    await page.locator(".reader .mv-diagram svg").waitFor();
+    await page.getByText("Diagram unavailable", { exact: true }).waitFor();
+
+    const html = await htmlExport(page);
+    assert.ok(html.includes("Diagram unavailable"));
+    assert.equal(requests, 0, "A blocked diagram must never reach the network handler.");
+  }, message => message.includes(diagramPixel) && /Content Security Policy/iu.test(message));
+
+  await check("reader and export discard unchecked nested rules from diagram SVG", async page => {
+    // Inject at the sending boundary so this tests the receiver even if Mermaid changes its CSS.
+    await page.addInitScript(() => {
+      if (!location.pathname.endsWith("/js/diagram-frame.html")) {
+        return;
+      }
+      const post = MessagePort.prototype.postMessage;
+      /** Add one allowed declaration and an untrusted nested rule to the synthetic frame's SVG. */
+      MessagePort.prototype.postMessage = function (message, ...arguments_) {
+        if (typeof message === "string" && message.startsWith("<svg")) {
+          const id = /\bid="(diagram-[a-f0-9]{32})"/u.exec(message)?.[1];
+          if (id) {
+            const css = "#" + id + " { opacity: 0.987; &amp; rect { fill: url(/nested-diagram-probe.svg#paint) } }";
+            message = message.replace("</svg>", "<style>" + css + "</style></svg>");
+          }
+        }
+        return post.call(this, message, ...arguments_);
+      };
+    });
+    let requests = 0;
+    await page.route("**/nested-diagram-probe.svg*", async route => {
+      requests++;
+      await route.fulfill({ status: 200, contentType: "image/svg+xml", body: "<svg/>" });
+    });
+    await ready(page);
+    const source = "# Nested SVG fixture\n\n```mermaid\nflowchart LR\n A --> B\n```\n";
+    await openFiles(page, [{ name: "README.md", mimeType: "text/markdown", buffer: Buffer.from(source) }]);
+    const svg = page.locator(".reader .mv-diagram svg");
+    await svg.waitFor();
+    const styles = (await svg.locator("style").allTextContents()).join("\n");
+    const html = await htmlExport(page);
+    for (const output of [styles, html]) {
+      assert.ok(output.includes("opacity: 0.987"), "Keep the checked outer declaration.");
+      assert.ok(!output.includes("nested-diagram-probe"), "Discard the entire nested rule.");
+    }
+    assert.equal(requests, 0);
   });
 
   await check("Appearance and reading styles apply immediately and survive reload", async page => {
@@ -580,6 +680,96 @@ try {
     await page.reload({ waitUntil: "networkidle" });
     await page.locator(".reader h1").waitFor({ state: "visible" });
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light");
+  });
+
+  await check("two tabs saving the same folder preserve the winning map revision", async (page, context) => {
+    const pages = [page, await context.newPage()];
+    await Promise.all(pages.map(ready));
+    const workspaces = await Promise.all(pages.map(async tab => {
+      // Each picker returns the same real origin-private directory under a separate workspace id.
+      await tab.evaluate(() => {
+        window.showDirectoryPicker = async () => {
+          const root = await navigator.storage.getDirectory();
+          return root.getDirectoryHandle("shared-map-fixture", { create: true });
+        };
+      });
+      return appCall(tab, "workspace.open", { mode: "connected" });
+    }));
+    assert.notEqual(workspaces[0].id, workspaces[1].id);
+
+    let revision = "";
+    for (const phase of [0, 2]) {
+      const layouts = pages.map((_, index) => JSON.stringify({
+        schemaVersion: 4, nodes: {}, atlas: { focusDepth: phase + index }
+      }));
+      // Hold the production lock until both tabs have queued. Sequential execution
+      // by the browser would otherwise let even an unlocked revision check pass.
+      await page.evaluate(() => new Promise((resolve, reject) => {
+        navigator.locks.request("markvibe.map.write", () => new Promise(release => {
+          window.releaseMapTestLock = release;
+          resolve();
+        })).catch(reject);
+      }));
+      const pending = Promise.allSettled(pages.map((tab, index) =>
+        appCall(tab, "map.write", { workspaceId: workspaces[index].id, revision, json: layouts[index] })));
+      try {
+        await page.waitForFunction(async () => {
+          const state = await navigator.locks.query();
+          return state.pending.filter(lock => lock.name === "markvibe.map.write").length === 2;
+        }, undefined, { timeout: 5000 });
+      } finally {
+        await page.evaluate(() => {
+          window.releaseMapTestLock();
+          delete window.releaseMapTestLock;
+        });
+      }
+      const saves = await pending;
+      assert.equal(saves.filter(save => save.status === "fulfilled").length, 1);
+      const winner = saves.findIndex(save => save.status === "fulfilled");
+      const rejected = saves[1 - winner];
+      assert.match(rejected.reason.message, /map layout changed/i);
+      const stored = await appCall(page, "map.read", { workspaceId: workspaces[0].id });
+      assert.equal(stored.json, layouts[winner]);
+      assert.equal(stored.revision, saves[winner].value);
+      revision = stored.revision;
+    }
+  });
+
+  await check("only the workspace that created an empty first-save placeholder can retry it", async page => {
+    await ready(page);
+    await page.evaluate(() => {
+      window.showDirectoryPicker = async () => {
+        const root = await navigator.storage.getDirectory();
+        return root.getDirectoryHandle("retry-map-fixture", { create: true });
+      };
+      const createWritable = FileSystemFileHandle.prototype.createWritable;
+      // Fail once after the provider has created the real entry but before it can commit any content.
+      FileSystemFileHandle.prototype.createWritable = function (options) {
+        if (this.name === ".markvibe-map.json") {
+          FileSystemFileHandle.prototype.createWritable = createWritable;
+          throw new DOMException("Synthetic write failure", "QuotaExceededError");
+        }
+        return createWritable.call(this, options);
+      };
+    });
+    const owner = await appCall(page, "workspace.open", { mode: "connected" });
+    const layout = { json: JSON.stringify({ schemaVersion: 4, nodes: {} }), revision: "" };
+    await assert.rejects(appCall(page, "map.write", { workspaceId: owner.id, ...layout }));
+
+    // Reopening obtains a new workspace without the in-memory handle that identifies the empty file.
+    const reopened = await appCall(page, "workspace.open", { mode: "connected" });
+    await assert.rejects(appCall(page, "map.read", { workspaceId: reopened.id }), /is empty.*rename/i);
+    await assert.rejects(appCall(page, "map.write", { workspaceId: reopened.id, ...layout }), /is empty/i);
+    assert.equal(await page.evaluate(async () => {
+      const directory = await window.showDirectoryPicker();
+      const handle = await directory.getFileHandle(".markvibe-map.json");
+      return (await handle.getFile()).size;
+    }), 0);
+
+    const revision = await appCall(page, "map.write", { workspaceId: owner.id, ...layout });
+    const stored = await appCall(page, "map.read", { workspaceId: reopened.id });
+    assert.equal(stored.json, layout.json);
+    assert.equal(stored.revision, revision);
   });
 
   await check("a genuine persisted directory handle resumes without a startup permission prompt", async page => {

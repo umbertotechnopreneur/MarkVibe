@@ -30,6 +30,10 @@ public static class Limits
     public const int DocumentBytes = 1024 * 1024;
     public const int IndexBytes = 8 * 1024 * 1024;
     public const int Blocks = 2048;
+    /// <summary>Maximum number of inline syntax nodes processed for one document.</summary>
+    public const int InlineNodes = 32_768;
+    /// <summary>Maximum number of UTF-16 code units written to one rendered document.</summary>
+    public const int RenderedHtmlCharacters = 3 * DocumentBytes;
     public const int Headings = 512;
     public const int Links = 4096;
     public const int MapNodes = 120;
@@ -70,8 +74,14 @@ public sealed record WorkspaceCapabilities(
     bool CanOpenParent = false
 );
 
-/// <summary>Identifies the active workspace and its provider-specific capabilities.</summary>
-public sealed record WorkspaceInfo(string Id, string Name, string Mode, WorkspaceCapabilities Capabilities);
+/// <summary>Identifies the provider and reports whether its current local selection omitted unsafe or ambiguous names.</summary>
+public sealed record WorkspaceInfo(
+    string Id,
+    string Name,
+    string Mode,
+    WorkspaceCapabilities Capabilities,
+    bool SkippedNames = false
+);
 
 /// <summary>Describes a canonical workspace resource before its content is read.</summary>
 public sealed record WorkspaceEntry(string Path, long Bytes, string Kind);

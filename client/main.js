@@ -558,7 +558,7 @@ async function dispatch(operation, args, signal) {
         }
         await workspace.scan(signal);
         releaseAssetsForWorkspace(args.workspaceId);
-        return true;
+        return workspace.info();
       }
     case "workspace.release":
       mapStates.delete(args.workspaceId);

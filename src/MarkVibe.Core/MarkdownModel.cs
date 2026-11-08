@@ -68,7 +68,7 @@ public sealed class MarkdownParser
     private static string Escape(string value) => HtmlEncoder.Default.Encode(value);
     /// <summary>Computes the exact UTF-8 source fingerprint used by document and note identities.</summary>
     public static string Fingerprint(string source) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source))).ToLowerInvariant();
-    /// <summary>Parses bounded Markdown and renders source-backed ink blocks and note targets.</summary>
+    /// <summary>Parses bounded Markdown and renders source-backed navigation and selection targets.</summary>
     public MarkdownModel Parse(string path, string source)
     {
         path = WorkspacePath.Normalize(path);
@@ -78,14 +78,10 @@ public sealed class MarkdownParser
         }
 
         var document = Markdown.Parse(source, _pipeline);
-        var allBlocks = document.Descendants<Block>().Take(Limits.Blocks + 1).ToList();
-        if (allBlocks.Count > Limits.Blocks)
-        {
-            throw new WorkspaceException("too-many-blocks", "This document contains too many blocks to display safely.");
-        }
+        ValidateNodeCounts(document);
 
         var headings = new List<Heading>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var headingIds = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var block in document.Descendants<HeadingBlock>())
         {
             if (headings.Count >= Limits.Headings)
@@ -94,12 +90,7 @@ public sealed class MarkdownParser
             }
 
             var text = PlainInline(block.Inline);
-            var stem = Slug(text);
-            var id = stem;
-            for (var suffix = 1; !seen.Add(id); suffix++)
-            {
-                id = stem + "-" + suffix.ToString(CultureInfo.InvariantCulture);
-            }
+            var id = AllocateId(Slug(text), headingIds);
 
             block.GetAttributes().Id = id;
             headings.Add(new(id, text, block.Level, block.Line + 1));
@@ -179,8 +170,8 @@ public sealed class MarkdownParser
         title = Truncate(title, 160);
         var introduction = document.Descendants<ParagraphBlock>().Select(p => PlainInline(p.Inline)).FirstOrDefault(p => p.Length > 20) ?? "Open this page to explore its contents.";
         var blocks = new List<SourceBlock>();
-        var blockIds = new HashSet<string>(StringComparer.Ordinal);
-        using var writer = new StringWriter(CultureInfo.InvariantCulture);
+        var blockIds = new Dictionary<string, int>(StringComparer.Ordinal);
+        using var writer = new BoundedHtmlWriter();
         var renderer = new HtmlRenderer(writer);
         _pipeline.Setup(renderer);
         SafeHtmlRendering.Configure(renderer);
@@ -223,11 +214,7 @@ public sealed class MarkdownParser
             var end = Math.Clamp(block.Span.End + 1, start, source.Length);
             var quote = source[start..end];
             var stem = "b-" + Fingerprint(quote)[..16];
-            var blockId = stem;
-            for (var suffix = 1; !blockIds.Add(blockId); suffix++)
-            {
-                blockId = stem + "-" + suffix;
-            }
+            var blockId = AllocateId(stem, blockIds);
 
             var startLine = block.Line + 1;
             var endLine = startLine + quote.Count(c => c == '\n');
@@ -239,17 +226,54 @@ public sealed class MarkdownParser
             writer.Write("</section>");
         }
 
-        writer.Flush();
         var html = writer.ToString();
-        if (html.Length > 3 * Limits.DocumentBytes)
-        {
-            throw new WorkspaceException("render-too-large", "This document expands beyond the display limit.");
-        }
 
         return new(path, title, Truncate(introduction, 240), source, html, Fingerprint(source), headings, blocks, links, source.Count(c => c == '\n') + 1)
         {
             Elements = elements
         };
+    }
+
+    /// <summary>Rejects excessive block or inline counts before collecting metadata or generating markup.</summary>
+    private static void ValidateNodeCounts(MarkdownDocument document)
+    {
+        var blocks = 0;
+        var inlines = 0;
+        foreach (var node in document.Descendants())
+        {
+            if (node is Block && ++blocks > Limits.Blocks)
+            {
+                throw new WorkspaceException("too-many-blocks", "This document contains too many blocks to display safely.");
+            }
+
+            if (node is Inline && ++inlines > Limits.InlineNodes)
+            {
+                throw new WorkspaceException("too-many-inlines", "This document contains too many inline elements to display safely.");
+            }
+        }
+    }
+
+    /// <summary>Returns the first free ordinal ID and remembers where the next duplicate should resume.</summary>
+    private static string AllocateId(string stem, Dictionary<string, int> nextSuffixById)
+    {
+        if (nextSuffixById.TryAdd(stem, 1))
+        {
+            return stem;
+        }
+
+        // A generated suffix may also be a literal heading, such as "setup-1".
+        // Reserve every emitted ID so both kinds of collision keep their original ordering.
+        var suffix = nextSuffixById[stem];
+        string candidate;
+        do
+        {
+            candidate = stem + "-" + suffix.ToString(CultureInfo.InvariantCulture);
+            suffix++;
+        }
+        while (!nextSuffixById.TryAdd(candidate, 1));
+
+        nextSuffixById[stem] = suffix;
+        return candidate;
     }
 
     /// <summary>Maps ordinary rendered text to exact UTF-16 source offsets for reader selections.</summary>

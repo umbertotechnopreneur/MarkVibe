@@ -136,7 +136,7 @@ Only two workspace contexts and three parsed Markdown models per context are ret
 
 ## Static assets and hosting
 
-Client libraries are bundled locally with esbuild, with dynamic chunks for Monaco and Mermaid. Assets use document.baseURI. Bootstrap imports the client adapter, loads libs/OpenSilver.js, and starts _framework/blazor.webassembly.js.
+Client libraries are bundled locally with esbuild. Monaco loads on demand. Mermaid loads in a dedicated sandboxed frame when a supported diagram is displayed or exported. Assets use document.baseURI. Bootstrap imports the client adapter, loads libs/OpenSilver.js, and starts _framework/blazor.webassembly.js.
 
 The production runtime needs only static files. A development server is a local convenience. No production ASP.NET Core document API, document upload endpoint, analytics endpoint, database service or remote CDN is part of this source architecture.
 
