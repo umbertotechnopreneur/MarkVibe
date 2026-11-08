@@ -138,8 +138,12 @@ try {
         if ([version]$nodeVersion -lt [version]'22.12.0') { throw "Node $nodeVersion non supportato: seleziona una versione >=22.12." }
         if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw '.NET SDK non trovato. Seleziona il percorso di uno SDK gia installato.' }
         $sdkVersion = (Get-Content global.json -Raw | ConvertFrom-Json).sdk.version
-        if (-not ((& dotnet --list-sdks) -match ('^' + [regex]::Escape($sdkVersion) + '\s'))) { throw ".NET SDK $sdkVersion richiesto da global.json non disponibile." }
-        Write-Host "Node $nodeVersion; .NET SDK $sdkVersion."
+        # Let the .NET host apply the repository's global.json roll-forward policy.
+        $selectedSdk = & dotnet --version
+        if ($LASTEXITCODE -ne 0) {
+            throw "Nessuno SDK .NET compatibile con il requisito $sdkVersion di global.json."
+        }
+        Write-Host "Node $nodeVersion; .NET SDK $selectedSdk."
     }
     if ($prerequisites) {
         $dependenciesReady = Invoke-CheckStep 'Dipendenze JavaScript dal lock' {
