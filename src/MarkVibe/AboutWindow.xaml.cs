@@ -19,6 +19,7 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using MarkVibe.Controls;
 using MarkVibe.Core;
 
@@ -27,21 +28,24 @@ namespace MarkVibe;
 /// <summary>Explains MarkVibe's origin, human responsibility and publication links without implying release acceptance.</summary>
 public partial class AboutWindow : ChildWindow
 {
+    private static readonly FontFamily AboutFont = new("Cascadia Mono, Consolas, monospace");
+
     /// <summary>Initializes the About dialog, local images, version text and language refresh handlers.</summary>
     public AboutWindow()
     {
         InitializeComponent();
-        HeroImage.Source = IconLabel.Asset("images/about-hero.png");
+        ProductIcon.Source = IconLabel.Asset("favicon.svg");
         VibeWareLogo.Source = IconLabel.Asset("images/vibeware-logo.png");
-        ManifestoLink.Content = new IconLabel("file", "Manifesto");
         RepositoryLink.Content = new IconLabel("github", "MarkVibe on GitHub");
         InitiativeLink.Content = new IconLabel("github", "VibeWare on GitHub");
         AuthorLink.Content = new IconLabel("map-globe", "umbertogiacobbi.biz");
+        TermsLink.Content = new IconLabel("file", "Terms");
+        PrivacyLink.Content = new IconLabel("license", "Privacy");
 
         var assembly = typeof(AboutWindow).Assembly;
         var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-        var version = informationalVersion ?? assembly.GetName().Version?.ToString() ?? UiStrings.T("Development");
-        VersionText.Text = version.Split('+')[0];
+        var version = informationalVersion?.Split('+')[0] ?? assembly.GetName().Version?.ToString();
+        AppLocalization.SetText(VersionText, version == null ? "Development" : "{0}", version);
         var buildTimestamp = assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .FirstOrDefault(item => item.Key == "BuildTimestamp")?.Value;
         AppLocalization.SetText(
@@ -50,16 +54,8 @@ public partial class AboutWindow : ChildWindow
             buildTimestamp);
 
         var root = Application.Current.RootVisual as FrameworkElement;
-        Width = Math.Max(280, Math.Min(1000, (root?.ActualWidth ?? 1048) - 48));
-        Height = Math.Max(300, Math.Min(680, (root?.ActualHeight ?? 728) - 48));
-        if (Width < 700)
-        {
-            Grid.SetRow(LinksColumn, 1);
-            Grid.SetColumn(LinksColumn, 0);
-            Grid.SetColumnSpan(LinksColumn, 3);
-            Grid.SetColumnSpan(StoryColumn, 3);
-            LinksColumn.Margin = new Thickness(0, 24, 0, 0);
-        }
+        Width = Math.Max(280, Math.Min(Width, (root?.ActualWidth ?? 688) - 48));
+        Height = Math.Max(260, Math.Min(Height, (root?.ActualHeight ?? 628) - 48));
 
         Loaded += (_, _) =>
         {
@@ -74,7 +70,7 @@ public partial class AboutWindow : ChildWindow
     private void RefreshLanguage()
     {
         Title = UiStrings.T("About MarkVibe");
-        AppLocalization.Apply(this);
+        AppLocalization.Apply(this, AboutFont);
     }
 
     /// <summary>Opens the maintainer's website.</summary>
@@ -84,7 +80,7 @@ public partial class AboutWindow : ChildWindow
     private void Repository(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Repository);
 
     /// <summary>Opens the repository's MIT license page.</summary>
-    private void License(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Repository + "/blob/master/LICENSE");
+    private void License(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.Repository + "/blob/main/LICENSE");
 
     /// <summary>Opens the initiative's own repository, distinct from the application's authorship.</summary>
     private void InitiativeRepository(object sender, RoutedEventArgs arguments) => PublicationLinks.Open(PublicationLinks.InitiativeRepository);
