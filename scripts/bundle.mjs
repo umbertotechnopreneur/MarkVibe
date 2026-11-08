@@ -18,6 +18,7 @@
  * VBWR E */
 
 import { build } from "esbuild";
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile, readdir, copyFile, rm, lstat } from "node:fs/promises";
 import { dirname, resolve, join, relative } from "node:path";
 import { clientFingerprint, verifyInstalledPackages } from "./client-inputs.mjs";
@@ -41,6 +42,38 @@ if (previousOutputInfo?.isSymbolicLink()) {
 }
 await rm(bundleDirectory, { recursive: true, force: true });
 await mkdir(bundleDirectory, { recursive: true });
+// The opaque diagram frame cannot import modules from the application's origin.
+// Inline only this source-built runtime and authorize its exact bytes in the frame CSP.
+const diagramFrame = await build({
+  absWorkingDir: repositoryRoot,
+  entryPoints: ["client/diagram-frame.js"],
+  outfile: join(bundleDirectory, "diagram-frame.js"),
+  bundle: true,
+  format: "iife",
+  platform: "browser",
+  target: ["es2022"],
+  supported: { "inline-script": true },
+  minify: !debug,
+  legalComments: "inline",
+  metafile: true,
+  write: false
+});
+const frameOutputs = Object.values(diagramFrame.metafile.outputs);
+if (diagramFrame.outputFiles.length !== 1 || frameOutputs.length !== 1 || frameOutputs[0].imports.length !== 0) {
+  throw new Error("The diagram runtime must be a single self-contained script.");
+}
+const frameScript = diagramFrame.outputFiles[0].text.replace(/\r\n?/gu, "\n");
+if (/<\/script(?:[\t\n\f\r />]|$)/iu.test(frameScript)) {
+  throw new Error("The diagram runtime cannot be embedded safely.");
+}
+const frameHash = createHash("sha256").update(frameScript).digest("base64");
+const framePolicy = "default-src 'none'; script-src 'sha256-" + frameHash +
+  "'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'";
+const framePath = join(bundleDirectory, "diagram-frame.html");
+const frameHtml = '<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' +
+  framePolicy + '"><meta name="referrer" content="no-referrer"><body><script>' + frameScript + '</script></body>';
+await writeFile(framePath, frameHtml);
+
 const result = await build({
   absWorkingDir: repositoryRoot,
   entryPoints: { markvibe: "client/main.js", "editor.worker": "client/editor.worker.js" },
@@ -58,6 +91,12 @@ const result = await build({
   chunkNames: "chunks/[name]-[hash]",
   loader: { ".ttf": "file", ".woff": "file", ".woff2": "file", ".txt": "text" }
 });
+Object.assign(result.metafile.inputs, diagramFrame.metafile.inputs);
+const frameOutput = relative(repositoryRoot, framePath).split("\\").join("/");
+result.metafile.outputs[frameOutput] = {
+  ...frameOutputs[0],
+  bytes: Buffer.byteLength(frameHtml)
+};
 await writeFile(join(bundleDirectory, "bundle-manifest.json"), JSON.stringify(result.metafile, null, 2));
 const modulesRoot = join(repositoryRoot, "node_modules");
 const bundledPackages = new Set();

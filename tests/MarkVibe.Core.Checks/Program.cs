@@ -155,6 +155,32 @@ var checks = new (string Name, Func<Task> Run)[]
         True(model.Blocks.Select(b => b.Id).Distinct().Count() == model.Blocks.Count);
         Equal(64, model.Fingerprint.Length);
     })),
+    ("duplicate heading and block IDs retain their first available suffix", Sync(() =>
+    {
+        var parser = new MarkdownParser();
+        var headings = parser.Parse("headings.md", "# Setup-1\n# Setup\n# Setup\n# Setup-2\n# Setup");
+        Equal("setup-1,setup,setup-2,setup-2-1,setup-3", string.Join(",", headings.Headings.Select(heading => heading.Id)));
+
+        var repeated = string.Join("\n\n", Enumerable.Repeat("repeat", Limits.Blocks));
+        var blocks = parser.Parse("blocks.md", repeated).Blocks;
+        Equal(Limits.Blocks, blocks.Count);
+        Equal(blocks[0].Id + "-2047", blocks[^1].Id);
+    })),
+    ("inline count and emitted HTML each have a document budget", Sync(() =>
+    {
+        var parser = new MarkdownParser();
+        // Flat code spans exercise the aggregate node budget independently of Markdig's nesting limit.
+        var paragraph = string.Join(" ", Enumerable.Repeat("`x`", 64));
+        var formatted = string.Join("\n\n", Enumerable.Repeat(paragraph, Limits.InlineNodes / 64));
+        var inlineError = Throws<WorkspaceException>(() => parser.Parse("formatted.md", formatted));
+        Equal("too-many-inlines", inlineError.Code);
+
+        // A single code block stays below the source and node limits, but every ampersand expands to &amp;.
+        var code = "```\n" + new string('&', Limits.RenderedHtmlCharacters / 5 + 1) + "\n```";
+        var htmlError = Throws<WorkspaceException>(() => parser.Parse("escaped.md", code));
+        Equal("render-too-large", htmlError.Code);
+        True(parser.Parse("ordinary.md", "A & B").Html.Contains("&amp;", StringComparison.Ordinal));
+    })),
     ("comment prefixes preserve Markdown formatting and validated local links", Sync(() =>
     {
         const string source = "<!-- hidden-marker --> **Quick read:** [Next](next.md)\n\n"
@@ -512,17 +538,17 @@ static void Equal<T>(T expected, T actual)
     }
 }
 
-// Requires a synchronous fixture action to fail with the expected workspace error code.
-static void Throws<T>(Action action)
+// Requires a synchronous fixture action to fail and returns the exception for contract checks.
+static T Throws<T>(Action action)
     where T : Exception
 {
     try
     {
         action();
     }
-    catch (T)
+    catch (T exception)
     {
-        return;
+        return exception;
     }
 
     throw new InvalidOperationException("Expected " + typeof(T).Name);

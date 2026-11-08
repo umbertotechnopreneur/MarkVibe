@@ -8,7 +8,7 @@ Markdig recognizes embedded HTML. The managed renderer hides comments and accept
 
 External navigation allows explicit http, https and mailto URLs without credentials. External links open with noopener and noreferrer. Remote document images are not loaded. Document links, heading fragments and image references are decoded once in C#, then resolved inside the current workspace. File, data, JavaScript, scheme-relative and drive paths are blocked.
 
-Mermaid configuration directives, front matter and click commands are rejected. Its library is imported lazily and rendered serially with strict security and HTML labels disabled. Its SVG is sanitized again, with active elements and external CSS/resource references rejected. A diagram failure leaves a source/error panel and the rest of the document available.
+The reader and exporter render Mermaid in a sandboxed frame with an opaque origin. Its content security policy permits the bundled script by hash and blocks image requests, connections, fonts and other subresources while Mermaid measures and draws. The frame sends back sanitized SVG through a private channel. The receiver checks the SVG again before displaying or exporting it. Mermaid runs in strict mode with HTML labels disabled. An unsupported diagram leaves its source available.
 
 Generated Mermaid styles retain bounded static CSS rules scoped to that diagram's id. Animation/import/other at-rules are discarded; style properties are allowlisted and external URLs, escaped CSS and executable values are rejected. This preserves node fills and readable labels without admitting document-supplied theme configuration.
 
@@ -108,7 +108,7 @@ behavior and does not establish live provider acceptance.
 
 Workspace-relative paths are Unicode NFC and case-sensitive. Rooted paths, drive paths, controls, backslashes, noncanonical imported paths and paths escaping the root are rejected. URL percent encoding is handled once for links, never repeatedly for provider filenames.
 
-Connected scans are cancellable and bounded by 10,000 visited entries, 1,024 directories and 16 directory levels. The .git, node_modules, bin, obj, .vs and __MACOSX segments are ignored. A relevant path collision is rejected instead of silently overwriting a resource.
+Connected scans are cancellable and bounded by 10,000 visited entries, 1,024 directories and 16 directory levels. Local file and folder selections skip unsupported names. When two names have the same NFC spelling, both are omitted, including their contents if they are directories. The sidebar reports the omission. ZIP imports reject the entire archive on an unsafe or duplicate path.
 
 ## Limits
 
@@ -119,8 +119,8 @@ Connected scans are cancellable and bounded by 10,000 visited entries, 1,024 dir
 | Markdown file | 1 MiB UTF-8 |
 | AI reference collection / combined reference source | 16 paths / 4 MiB UTF-8 per request, current editing target excluded |
 | Aggregate metadata/link indexing input | 8 MiB source bytes per retained workspace |
-| Parsed blocks / headings / document links | 2,048 / 512 / 4,096 |
-| Rendered HTML | 3 MiB in UTF-16 code units, with bridge payload bounded separately |
+| Parsed blocks / inline nodes / headings / document links | 2,048 / 32,768 / 512 / 4,096 |
+| Rendered HTML | 3,145,728 UTF-16 code units, enforced as the renderer writes |
 | Bridge request JSON | 6 MiB in UTF-16 code units |
 | Retained workspace contexts / selected models | 2 / 3 per context |
 | Edited document sessions | 16 per retained workspace |
@@ -160,9 +160,13 @@ Concurrent edits from other applications still require user reconciliation.
 Map layouts accept only schema version 4 and are strictly validated in C# for
 fields, canonical Markdown paths, paired bounded dimensions, finite coordinates,
 16 colors and 24 local icons. Unknown fields, including legacy notes, are rejected.
-Unsupported/invalid files are preserved. Connected browser folders open with read access; an explicit map
-save click requests write permission. Browser writes check the revision before
-opening and committing a temporary writable stream.
+Connected browser folders open with read access. An explicit map save requests
+write permission. MarkVibe holds a Web Lock across the revision checks and the
+file commit so two tabs on the same origin cannot both save from a stale revision.
+It also requests an exclusive file writer. Browsers without Web Locks offer a
+JSON download. Other programs can still edit the sidecar independently.
+If the first save leaves an empty file, retry in the same workspace. After
+reopening, MarkVibe preserves the empty file and offers recovery instructions.
 
 Edited Markdown lives in bounded managed document sessions and is saved through
 an explicit copy action. Session state distinguishes unsaved work from an exported

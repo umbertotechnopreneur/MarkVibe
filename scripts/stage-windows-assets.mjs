@@ -48,4 +48,5 @@ await visit(manifest.Root);
 await access(path.join(assetsDestination, "index.html"));
 await access(path.join(assetsDestination, "_framework", "blazor.webassembly.js"));
 await access(path.join(assetsDestination, "js", "markvibe.js"));
+await access(path.join(assetsDestination, "js", "diagram-frame.html"));
 console.log(`Desktop assets staged: ${stagedAssetCount} files`);

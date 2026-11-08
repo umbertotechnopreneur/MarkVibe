@@ -15,7 +15,7 @@ C# owns state and parsing. Never edit generated `wwwroot/js/`, `bin/` or `obj/`.
 
 ## Build, Test, and Development Commands
 
-Use existing .NET SDK **10.0.402**, Node **>=22.12** and execution authorization:
+Use the latest installed stable .NET 10 SDK (minimum **10.0.402**), Node **>=22.12** and execution authorization:
 
 On this machine, a build request means the existing **MSIX** delivery,
 **Release, x64 only**, followed by launching the newly installed desktop app. A request

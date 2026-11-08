@@ -18,9 +18,11 @@
 using MarkVibe.Core;
 
 namespace MarkVibe.Workspace;
+/// <summary>Adapts the current browser selection to the managed workspace contract.</summary>
 public sealed class BrowserWorkspaceProvider(WorkspaceInfo info) : IWorkspaceProvider
 {
-    public WorkspaceInfo Info { get; } = info;
+    /// <summary>The capabilities and name warnings from the most recent successful scan.</summary>
+    public WorkspaceInfo Info { get; private set; } = info;
 
     /// <summary>Obtains the current workspace entries through the browser provider boundary.</summary>
     public async Task<IReadOnlyList<WorkspaceEntry>> EnumerateAsync(CancellationToken cancellationToken) => await BrowserServices.CallAsync<List<WorkspaceEntry>>("workspace.entries", new { workspaceId = Info.Id }, cancellationToken);
@@ -30,8 +32,12 @@ public sealed class BrowserWorkspaceProvider(WorkspaceInfo info) : IWorkspacePro
     public Task<AssetLease> ReadAssetAsync(string path, string owner, CancellationToken cancellationToken) => BrowserServices.CallAsync<AssetLease>("assets.acquire", new { workspaceId = Info.Id, path = WorkspacePath.Normalize(path), owner }, cancellationToken);
     /// <summary>Releases browser asset leases held by the specified owner.</summary>
     public Task ReleaseAssetsAsync(string owner) => BrowserServices.CallAsync("assets.release", new { owner });
-    /// <summary>Refreshes the browser workspace enumeration with cancellation.</summary>
-    public Task RefreshAsync(CancellationToken cancellationToken) => BrowserServices.CallAsync("workspace.refresh", new { workspaceId = Info.Id }, cancellationToken);
+    /// <summary>Refreshes the enumeration and replaces warnings only when the scan succeeds.</summary>
+    public async Task RefreshAsync(CancellationToken cancellationToken)
+    {
+        Info = await BrowserServices.CallAsync<WorkspaceInfo>(
+            "workspace.refresh", new { workspaceId = Info.Id }, cancellationToken);
+    }
     /// <summary>Releases the workspace provider and its browser resources.</summary>
     public async ValueTask DisposeAsync() => await BrowserServices.CallAsync("workspace.release", new { workspaceId = Info.Id });
 }
